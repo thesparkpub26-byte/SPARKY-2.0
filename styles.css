@@ -1,0 +1,387 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+    background-color: #fafafa;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    background-color: #ffffff;
+}
+
+/* Left Section */
+.left-section {
+    flex: 1;
+    background-image: url('Assets/Fractals.png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 60px;
+    color: white;
+    /* According to the screenshot, the left image has rounded borders inside the page. */
+    border-radius: 24px;
+    margin: 20px 0 20px 20px;
+    position: sticky;
+    top: 20px;
+    height: calc(100vh - 40px);
+    max-width: 50%;
+}
+
+.logo-container {
+    text-align: center;
+    z-index: 10;
+}
+
+.logo-container .logo {
+    width: 80px;
+    margin-bottom: 15px;
+}
+
+.logo-container h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+}
+
+.logo-container p {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    opacity: 0.9;
+    letter-spacing: 0.2px;
+}
+
+/* Right Section */
+.right-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(20px, 4vh, 40px) 40px;
+    background-color: #ffffff;
+    position: relative;
+}
+
+.back-btn {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #e2e2e2;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+    background-color: #d5d5d5;
+}
+
+.back-icon {
+    width: 18px;
+    height: 18px;
+    color: #555;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 380px;
+}
+
+.form-container h2 {
+    font-size: clamp(22px, 4vh, 30px);
+    font-weight: 700;
+    color: #111;
+    margin-bottom: clamp(6px, 1.5vh, 12px);
+    text-align: center;
+}
+
+.subtitle {
+    font-size: clamp(13px, 2vh, 15px);
+    color: #444;
+    text-align: center;
+    margin-bottom: clamp(15px, 4vh, 35px);
+    line-height: 1.5;
+}
+
+.google-btn {
+    width: 100%;
+    padding: clamp(8px, 1.5vh, 12px);
+    border: 1px solid #e1e1e1;
+    background-color: #ffffff;
+    border-radius: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    font-weight: 500;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.google-btn:hover {
+    background-color: #fcfcfc;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.google-btn strong {
+    font-weight: 700;
+    margin-left: 4px;
+}
+
+.google-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: clamp(10px, 3vh, 25px) 0;
+    color: #000;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.divider span {
+    padding: 0 15px;
+}
+
+.input-group {
+    margin-bottom: clamp(10px, 2.5vh, 20px);
+}
+
+.input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+    margin-bottom: clamp(4px, 1.5vh, 10px);
+}
+
+.input-group input {
+    width: 100%;
+    padding: clamp(10px, 2vh, 14px) 18px;
+    border: none;
+    background-color: #efefef;
+    border-radius: 14px;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input::placeholder {
+    color: #888;
+}
+
+.input-group input:focus {
+    background-color: #e8e8e8;
+}
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.eye-icon {
+    position: absolute;
+    right: 18px;
+    width: 18px;
+    height: 18px;
+    color: #666;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.eye-icon:hover {
+    color: #333;
+}
+
+.forgot-password {
+    text-align: right;
+    margin-bottom: clamp(10px, 3vh, 25px);
+    margin-top: -5px;
+}
+
+.forgot-password a {
+    color: #1a73e8;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.forgot-password a:hover {
+    color: #1557b0;
+    text-decoration: underline;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: clamp(10px, 2.5vh, 16px);
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    margin-bottom: clamp(15px, 3vh, 25px);
+    box-shadow: 0 6px 16px rgba(26, 115, 232, 0.3);
+}
+
+.password-group {
+    margin-bottom: clamp(15px, 3vh, 25px);
+}
+
+.confirm-wrapper {
+    margin-top: clamp(8px, 2vh, 15px);
+}
+
+.otp-container {
+    display: flex;
+    justify-content: center;
+    gap: clamp(6px, 1vw, 12px);
+    margin-top: clamp(20px, 4vh, 30px);
+    margin-bottom: clamp(30px, 5vh, 40px);
+}
+
+.otp-input {
+    width: clamp(35px, 4vw, 48px);
+    height: clamp(45px, 5vh, 58px);
+    border: 2px solid transparent;
+    background-color: #efefef;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: #111;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.otp-input:focus {
+    background-color: #ffffff;
+    border-color: #1a73e8;
+    box-shadow: 0 0 15px rgba(26, 115, 232, 0.15);
+}
+
+.submit-btn:hover {
+    background-color: #1557b0;
+    box-shadow: 0 8px 20px rgba(26, 115, 232, 0.4);
+}
+
+.submit-btn:active {
+    transform: scale(0.98);
+}
+
+.spam-notice {
+    font-size: clamp(12px, 1.5vh, 13px);
+    color: #444;
+    text-align: center;
+    margin-top: -10px;
+    margin-bottom: clamp(20px, 4vh, 35px);
+}
+
+.return-container {
+    display: flex;
+    justify-content: center;
+}
+
+.return-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #e2e2e2;
+    color: #555;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: clamp(6px, 1.5vh, 8px) 16px;
+    border-radius: 20px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.return-btn:hover {
+    background-color: #d5d5d5;
+    color: #333;
+}
+
+.signup-text {
+    text-align: center;
+    font-size: 14px;
+    color: #444;
+}
+
+.signup-text a {
+    color: #1a73e8;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.signup-text a:hover {
+    color: #1557b0;
+    text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+    body {
+        overflow: auto;
+        height: auto;
+    }
+
+    .container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .left-section {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        min-height: 300px;
+        height: auto;
+        position: relative;
+        top: 0;
+        padding-bottom: 40px;
+    }
+    
+    .right-section {
+        padding: 40px 20px;
+    }
+}
