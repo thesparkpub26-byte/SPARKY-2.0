@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoring Sheet - TheSpark</title>
     <link rel="icon" href="../Assets/Spark_Logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -27,7 +30,7 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
             flex-shrink: 0;
             z-index: 20;
         }
@@ -57,7 +60,7 @@
             background: #ffffff;
             margin: 24px;
             border-radius: 16px;
-            box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05), 0 4px 10px -5px rgba(0,0,0,0.02);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -5px rgba(0, 0, 0, 0.02);
             border: 1px solid #e2e8f0;
         }
 
@@ -68,7 +71,8 @@
             min-width: 100%;
         }
 
-        th, td {
+        th,
+        td {
             padding: 16px 24px;
             text-align: center;
             border-right: 1px solid #f1f5f9;
@@ -89,9 +93,20 @@
             padding-bottom: 20px;
         }
 
-        .group-basic { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); color: #475569; }
-        .group-data { background: linear-gradient(180deg, #ecfdf5 0%, #dcfce7 100%); color: #166534; }
-        .group-edit { background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%); color: #1e40af; }
+        .group-basic {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            color: #475569;
+        }
+
+        .group-data {
+            background: linear-gradient(180deg, #ecfdf5 0%, #dcfce7 100%);
+            color: #166534;
+        }
+
+        .group-edit {
+            background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+            color: #1e40af;
+        }
 
         /* Sub Header Row */
         th.col-header {
@@ -103,10 +118,18 @@
             z-index: 5;
             box-shadow: 0 1px 0 #e2e8f0, 0 -1px 0 #e2e8f0;
         }
-        
-        th.col-header.group-basic { background: #f8fafc; }
-        th.col-header.group-data { background: #dcfce7; }
-        th.col-header.group-edit { background: #dbeafe; }
+
+        th.col-header.group-basic {
+            background: #f8fafc;
+        }
+
+        th.col-header.group-data {
+            background: #dcfce7;
+        }
+
+        th.col-header.group-edit {
+            background: #dbeafe;
+        }
 
         /* Sticky First Rows & Columns */
         thead th {
@@ -160,166 +183,562 @@
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.3px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
-        
+
         /* Row Hover */
         tbody tr {
             transition: background-color 0.2s ease;
         }
-        
+
         tbody tr:hover td {
             background-color: #f8fafc;
         }
-        
-        tbody tr:hover .sticky-col {
-            background-color: #f8fafc;
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            padding: 32px;
+            box-sizing: border-box;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: #0f172a;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn-outline {
+            padding: 10px 16px;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        .btn-primary {
+            padding: 10px 24px;
+            background: #2563eb;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .inline-select {
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: #334155;
+            background-color: white;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .inline-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
     </style>
 </head>
+
 <body>
 
-<div class="header-bar">
-    <div class="header-title">
-        <img src="../Assets/Spark_Logo.png" alt="Logo">
-        <h1>TheSPARK Newsletter Monitoring Sheet</h1>
-    </div>
-    <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="color: #64748b; font-size: 13px; font-weight: 500;">
-            Auto-saving enabled
+    <div class="header-bar">
+        <div class="header-title">
+            <img src="../Assets/Spark_Logo.png" alt="Logo">
+            <h1>TheSPARK Newsletter Monitoring Sheet</h1>
         </div>
-        <button style="background-color: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2); display: flex; align-items: center; gap: 8px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1d4ed8'" onmouseout="this.style.backgroundColor='#2563eb'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Add Task
-        </button>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="color: #64748b; font-size: 13px; font-weight: 500;">
+                Auto-saving enabled
+            </div>
+            <button onclick="openModal('addTaskModal')"
+                style="background-color: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2); display: flex; align-items: center; gap: 8px; transition: background-color 0.2s;"
+                onmouseover="this.style.backgroundColor='#1d4ed8'" onmouseout="this.style.backgroundColor='#2563eb'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Task
+            </button>
+        </div>
     </div>
-</div>
 
-<div class="table-container">
-    <table>
-        <thead>
-            <tr>
-                <th class="group-header group-basic sticky-col" rowspan="2" style="top:0;">Topic</th>
-                <th class="group-header group-basic" colspan="6">BASIC INFORMATION</th>
-                <th class="group-header group-data" colspan="3">DATA GATHERING</th>
-                <th class="group-header group-edit" colspan="1">EDITING PROCESS</th>
-            </tr>
-            <tr>
-                <th class="col-header">Section</th>
-                <th class="col-header">Type of Article</th>
-                <th class="col-header">Medium</th>
-                <th class="col-header">Writer Assigned</th>
-                <th class="col-header">Photo/Graphics</th>
-                <th class="col-header">PJ/Artist Assigned</th>
-                
-                <th class="col-header group-data">Interview</th>
-                <th class="col-header group-data">Storage</th>
-                <th class="col-header group-data">Upload</th>
-                
-                <th class="col-header group-edit">Current Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Row 1 -->
-            <tr>
-                <td class="sticky-col">Renovation of Canteen</td>
-                <td><strong>News</strong></td>
-                <td><span class="pub-badge" style="background: #fce7f3; color: #db2777;">Special Report</span></td>
-                <td>English</td>
-                <td>Samantha</td>
-                <td>Photo/s</td>
-                <td>Sheyn</td>
-                
-                <td><input type="checkbox" checked></td>
-                <td>
-                    <a href="#" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Files
-                    </a>
-                </td>
-                <td>
-                    <button style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'" onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    </button>
-                </td>
-                
-                <td><span class="pub-badge" style="background: #fef08a; color: #a16207;">Copyreader</span></td>
-            </tr>
-            <!-- Row 2 -->
-            <tr>
-                <td class="sticky-col">SSC Water and Sanitary Dispenser</td>
-                <td><strong>News</strong></td>
-                <td><span class="pub-badge" style="background: #fef08a; color: #a16207;">Full News</span></td>
-                <td>English</td>
-                <td>Alaissa</td>
-                <td>Photo/s</td>
-                <td>Jp</td>
-                
-                <td><input type="checkbox" checked></td>
-                <td>
-                    <a href="#" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Files
-                    </a>
-                </td>
-                <td>
-                    <button style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'" onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    </button>
-                </td>
-                
-                <td><span class="pub-badge" style="background: #dbeafe; color: #1d4ed8;">Section Editor</span></td>
-            </tr>
-            <!-- Row 3 -->
-            <tr>
-                <td class="sticky-col">RLE Fee (Promissory, Transparency)</td>
-                <td><strong>News</strong></td>
-                <td><span class="pub-badge" style="background: #fae8ff; color: #c026d3;">In-Depth News</span></td>
-                <td>English</td>
-                <td>Johan</td>
-                <td>Graphic/s</td>
-                <td>Dan</td>
-                
-                <td><input type="checkbox"></td>
-                <td>
-                    <a href="#" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Files
-                    </a>
-                </td>
-                <td>
-                    <button style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'" onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    </button>
-                </td>
-                
-                <td><span class="pub-badge" style="background: #dcfce7; color: #15803d;">For Layouting</span></td>
-            </tr>
-            <!-- Row 4 -->
-            <tr>
-                <td class="sticky-col">Thesis Using AI</td>
-                <td><strong>Op-Ed</strong></td>
-                <td><span class="pub-badge" style="background: #f3e8ff; color: #7e22ce;">Opinion</span></td>
-                <td>English</td>
-                <td>Rosezhen</td>
-                <td>No Media</td>
-                <td>N/A</td>
-                
-                <td><input type="checkbox" disabled></td>
-                <td>
-                    <span style="color: #94a3b8; font-size: 12px; font-weight: 600;">No Files</span>
-                </td>
-                <td>
-                    <button style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'" onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    </button>
-                </td>
-                
-                <td><span class="pub-badge" style="background: #f1f5f9; color: #475569;">Pending</span></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th class="group-header group-basic sticky-col" rowspan="2" style="top:0;">Topic</th>
+                    <th class="group-header group-basic" colspan="6">BASIC INFORMATION</th>
+                    <th class="group-header group-data" colspan="3">DATA GATHERING</th>
+                    <th class="group-header group-edit" colspan="1">EDITING PROCESS</th>
+                </tr>
+                <tr>
+                    <th class="col-header">Section</th>
+                    <th class="col-header">Type of Article</th>
+                    <th class="col-header">Medium</th>
+                    <th class="col-header">Writer Assigned</th>
+                    <th class="col-header">Photo/Graphics</th>
+                    <th class="col-header">PJ/Artist Assigned</th>
+
+                    <th class="col-header group-data">Interview</th>
+                    <th class="col-header group-data">Storage</th>
+                    <th class="col-header group-data">Upload</th>
+
+                    <th class="col-header group-edit">Current Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Row 1 -->
+                <tr>
+                    <td class="sticky-col">Renovation of Canteen</td>
+                    <td><strong>News</strong></td>
+                    <td><span class="pub-badge" style="background: #fce7f3; color: #db2777;">Special Report</span></td>
+                    <td>English</td>
+                    <td>Samantha</td>
+                    <td>Photo/s</td>
+                    <td>
+                        <select class="inline-select" onchange="handleArtistAssignment(this)">
+                            <option selected>Sheyn</option>
+                            <option>Jp</option>
+                            <option>Dan</option>
+                            <option>N/A</option>
+                        </select>
+                    </td>
+
+                    <td><input type="checkbox" checked></td>
+                    <td>
+                        <a href="#"
+                            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Files
+                        </a>
+                    </td>
+                    <td>
+                        <button onclick="openModal('uploadModal')"
+                            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;"
+                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
+                            onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                    </td>
+
+                    <td><span class="pub-badge" style="background: #fef08a; color: #a16207;">Copyreader</span></td>
+                </tr>
+                <!-- Row 2 -->
+                <tr>
+                    <td class="sticky-col">SSC Water and Sanitary Dispenser</td>
+                    <td><strong>News</strong></td>
+                    <td><span class="pub-badge" style="background: #fef08a; color: #a16207;">Full News</span></td>
+                    <td>English</td>
+                    <td>Alaissa</td>
+                    <td>Photo/s</td>
+                    <td>
+                        <select class="inline-select" onchange="handleArtistAssignment(this)">
+                            <option>Sheyn</option>
+                            <option selected>Jp</option>
+                            <option>Dan</option>
+                            <option>N/A</option>
+                        </select>
+                    </td>
+
+                    <td><input type="checkbox" checked></td>
+                    <td>
+                        <a href="#"
+                            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Files
+                        </a>
+                    </td>
+                    <td>
+                        <button onclick="openModal('uploadModal')"
+                            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;"
+                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
+                            onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                    </td>
+
+                    <td><span class="pub-badge" style="background: #dbeafe; color: #1d4ed8;">Section Editor</span></td>
+                </tr>
+                <!-- Row 3 -->
+                <tr>
+                    <td class="sticky-col">RLE Fee (Promissory, Transparency)</td>
+                    <td><strong>News</strong></td>
+                    <td><span class="pub-badge" style="background: #fae8ff; color: #c026d3;">In-Depth News</span></td>
+                    <td>English</td>
+                    <td>Johan</td>
+                    <td>Graphic/s</td>
+                    <td>
+                        <select class="inline-select" onchange="handleArtistAssignment(this)">
+                            <option>Sheyn</option>
+                            <option>Jp</option>
+                            <option selected>Dan</option>
+                            <option>N/A</option>
+                        </select>
+                    </td>
+
+                    <td><input type="checkbox"></td>
+                    <td>
+                        <a href="#"
+                            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Files
+                        </a>
+                    </td>
+                    <td>
+                        <button onclick="openModal('uploadModal')"
+                            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;"
+                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
+                            onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                    </td>
+
+                    <td><span class="pub-badge" style="background: #dcfce7; color: #15803d;">For Layouting</span></td>
+                </tr>
+                <!-- Row 4 -->
+                <tr>
+                    <td class="sticky-col">Thesis Using AI</td>
+                    <td><strong>Op-Ed</strong></td>
+                    <td><span class="pub-badge" style="background: #f3e8ff; color: #7e22ce;">Opinion</span></td>
+                    <td>English</td>
+                    <td>Rosezhen</td>
+                    <td>No Media</td>
+                    <td>
+                        <select class="inline-select" onchange="handleArtistAssignment(this)">
+                            <option>Sheyn</option>
+                            <option>Jp</option>
+                            <option>Dan</option>
+                            <option selected>N/A</option>
+                        </select>
+                    </td>
+
+                    <td><input type="checkbox" disabled></td>
+                    <td>
+                        <span style="color: #94a3b8; font-size: 12px; font-weight: 600;">No Files</span>
+                    </td>
+                    <td>
+                        <button onclick="openModal('uploadModal')"
+                            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;"
+                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
+                            onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                    </td>
+
+                    <td><span class="pub-badge" style="background: #f1f5f9; color: #475569;">Pending</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal-overlay" id="addTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Task</h2>
+                <button class="modal-close" onclick="closeModal('addTaskModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Assignment Type</label>
+                <select class="form-select">
+                    <option>For Staff</option>
+                    <option>For Self (Section Editor)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Topic</label>
+                <input type="text" class="form-input" placeholder="Enter article topic...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Article</label>
+                <select class="form-select" id="articleCategory" onchange="updateArticleTypes()">
+                    <option value="">Select Category...</option>
+                    <option value="News">News</option>
+                    <option value="Op-Ed">Op-Ed</option>
+                    <option value="Feature">Feature</option>
+                    <option value="DevCom">DevCom</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Literary">Literary</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Type of Article</label>
+                <select class="form-select" id="articleType" disabled>
+                    <option value="">Select Article Category first</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeModal('addTaskModal')">Cancel</button>
+                <button class="btn-primary" onclick="closeModal('addTaskModal')">Create Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Article Modal -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Upload Article</h2>
+                <button class="modal-close" onclick="closeModal('uploadModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Headline</label>
+                <input type="text" class="form-input" placeholder="Enter headline...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Article Text</label>
+                <textarea class="form-textarea" placeholder="Paste article content here..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeModal('uploadModal')">Cancel</button>
+                <button class="btn-primary" onclick="closeModal('uploadModal')">Submit Article</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        const articleTypes = {
+            'News': ['Full News', 'Special Report', 'News Bit', 'News Feature', 'In-Depth News'],
+            'Op-Ed': ['Opinion', 'Spark Agent', 'Letter to the Editor', 'Editorial'],
+            'Feature': ['SciTech', 'General Feature'],
+            'DevCom': ['Feature-Style'],
+            'Sports': ['News', 'News Feature', 'Opinion'],
+            'Literary': ['Poem/Tula', 'Flash Fiction/Dagli', 'Short Story/Maikling Kwento', 'Screenplay']
+        };
+
+        function handleArtistAssignment(selectElement) {
+            const tr = selectElement.closest('tr');
+            const interviewCheckbox = tr.querySelector('td:nth-child(8) input[type="checkbox"]');
+            const storageTd = tr.querySelector('td:nth-child(9)');
+
+            if (selectElement.value !== "N/A") {
+                if (interviewCheckbox) interviewCheckbox.disabled = false;
+                storageTd.innerHTML = `
+                <a href="#" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Files
+                </a>
+            `;
+            } else {
+                if (interviewCheckbox) {
+                    interviewCheckbox.disabled = true;
+                    interviewCheckbox.checked = false;
+                }
+                storageTd.innerHTML = `
+                <span style="color: #94a3b8; font-size: 12px; font-weight: 600;">No Files</span>
+            `;
+            }
+        }
+
+        function updateArticleTypes() {
+            const category = document.getElementById('articleCategory').value;
+            const typeSelect = document.getElementById('articleType');
+
+            typeSelect.innerHTML = '';
+
+            if (category && articleTypes[category]) {
+                typeSelect.disabled = false;
+
+                articleTypes[category].forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    typeSelect.appendChild(option);
+                });
+            } else {
+                typeSelect.disabled = true;
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "Select Article Category first";
+                typeSelect.appendChild(option);
+            }
+        }
+    </script>
 
 </body>
+
 </html>
