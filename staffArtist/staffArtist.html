@@ -49,6 +49,19 @@
                         Recent Submissions
                     </div>
                 </a>
+
+                <!-- Press Works Nav Item -->
+                <a href="#" class="nav-item" data-page="staffArtist_pressWorks.html">
+                    <div class="nav-item-left">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="14 2 14 8 20 8" />
+                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+                            <line x1="8" y1="13" x2="16" y2="13" />
+                            <line x1="8" y1="17" x2="16" y2="17" />
+                        </svg>
+                        Press Works
+                    </div>
+                </a>
             </nav>
 
             <div class="user-profile">
@@ -266,13 +279,105 @@
                     <a href="#" class="page-number">4</a>
                     <a href="#" class="page-number">5</a>
                     <span class="page-dots">&bull;&bull;&bull;</span>
-                    <button class="page-btn">
-                        Next
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                    </button>
                     <div class="page-results-count">
                         Showing <strong>2</strong> results
                     </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="template-staffArtist_pressWorks">
+        <div style="display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 class="page-title">Press Works</h1>
+            </div>
+
+            <div class="card" style="padding: 16px 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                <div class="table-wrapper">
+                    <table class="activities-table articles-table">
+                        <thead>
+                            <tr>
+                                <th style="padding-left: 24px;">Press Works</th>
+                                <th>Publication Type</th>
+                                <th>Academic Year</th>
+                                <th>Members</th>
+                                <th>Date Created</th>
+                                <th style="padding-right: 24px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                                <td style="padding-left: 24px;">Issue 1</td>
+                                <td><span class="pub-badge pub-newsletter">Newsletter</span></td>
+                                <td>2025-2026</td>
+                                <td>18</td>
+                                <td>May 15, 2025</td>
+                                <td style="padding-right: 24px;">
+                                    <button class="action-menu-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                                <td style="padding-left: 24px;">Issue 1</td>
+                                <td><span class="pub-badge pub-tabloid">Tabloid</span></td>
+                                <td>2025-2026</td>
+                                <td>24</td>
+                                <td>May 15, 2025</td>
+                                <td style="padding-right: 24px;">
+                                    <button class="action-menu-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                                <td style="padding-left: 24px;">Issue 1</td>
+                                <td><span class="pub-badge pub-magazine">Magazine</span></td>
+                                <td>2025-2026</td>
+                                <td>14</td>
+                                <td>May 15, 2025</td>
+                                <td style="padding-right: 24px;">
+                                    <button class="action-menu-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                                <td style="padding-left: 24px; border-bottom: none;">Issue 1</td>
+                                <td style="border-bottom: none;"><span class="pub-badge pub-litfolio">Litfolio</span></td>
+                                <td style="border-bottom: none;">2025-2026</td>
+                                <td style="border-bottom: none;">12</td>
+                                <td style="border-bottom: none;">May 15, 2025</td>
+                                <td style="padding-right: 24px; border-bottom: none;">
+                                    <button class="action-menu-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="pagination-pill">
+                <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
+                </button>
+                <div class="page-numbers" style="display: flex; gap: 8px;">
+                    <button class="page-num active" style="background: #2563eb; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
+                    <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
+                    <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
+                    <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
+                    <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
+                    <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
+                </div>
+                <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                    Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+                
+                <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
+                    Showing <b>4</b> Press Works
                 </div>
             </div>
         </div>
