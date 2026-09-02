@@ -589,6 +589,23 @@
     font-weight: 800;
 }
 
+/* Publication Type Badges for Press Works */
+.pub-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.pub-newsletter { background-color: #dbeafe; color: #1e40af; }
+.pub-tabloid { background-color: #fef3c7; color: #92400e; }
+.pub-magazine { background-color: #fce7f3; color: #9d174d; }
+.pub-litfolio { background-color: #e0e7ff; color: #3730a3; }
+
 .role-pill-writer {
     background-color: #1a73e8;
 }
