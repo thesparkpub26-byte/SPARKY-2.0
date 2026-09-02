@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Writer Dashboard - TheSpark</title>
+    <link rel="icon" href="../Assets/Spark_Logo.png">
+    <link rel="stylesheet" href="../admin/admin.css">
+    <link rel="stylesheet" href="../sectionEditor/sectionEditor.css">
+    <link rel="stylesheet" href="staffWriter.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="../Assets/Spark_Logo.png" alt="The Spark Logo">
+                <div class="brand-text">
+                    <h2>TheSpark</h2>
+                    <p>Publication System</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <!-- My Tasks Nav Item -->
+                <a href="#" class="nav-item active" data-page="staffWriter_tasks.html">
+                    <div class="nav-item-left">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                            <line x1="9" y1="12" x2="15" y2="12" />
+                            <line x1="9" y1="16" x2="13" y2="16" />
+                        </svg>
+                        My Tasks
+                    </div>
+                </a>
+
+                <!-- My Articles Nav Item -->
+                <a href="#" class="nav-item" data-page="staffWriter_articles.html">
+                    <div class="nav-item-left">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <line x1="10" y1="9" x2="8" y2="9" />
+                        </svg>
+                        My Articles
+                    </div>
+                </a>
+
+                <!-- Recent Submissions Nav Item -->
+                <a href="#" class="nav-item" data-page="staffWriter_recentSubmissions.html">
+                    <div class="nav-item-left">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                            <path d="m9 16 2 2 4-4" />
+                        </svg>
+                        Recent Submissions
+                    </div>
+                </a>
+            </nav>
+
+            <div class="user-profile">
+                <img src="https://picsum.photos/200?random=15" alt="Profile">
+                <div class="user-info">
+                    <span class="role-badge" style="background-color: #1a73e8; color: white;">News Writer</span>
+                    <h4>News Writer's Name</h4>
+                    <p>newswriter@my.cspc.edu.ph</p>
+                </div>
+                <button class="settings-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path>
+                        <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path>
+                        <path d="M12 2v2"></path>
+                        <path d="M12 22v-2"></path>
+                        <path d="m17 4-1.5 1.5"></path>
+                        <path d="M22 12h-2"></path>
+                        <path d="m17 20-1.5-1.5"></path>
+                        <path d="M2 12h2"></path>
+                        <path d="m7 4 1.5 1.5"></path>
+                        <path d="m7 20 1.5-1.5"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <button class="sign-out-btn" style="margin-top: 15px;"
+                onclick="window.location.href='../authentication/login.html'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Sign Out
+            </button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="search-bar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" placeholder="Search">
+                </div>
+                <div class="top-header-right">
+                    <button class="bell-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dynamic Content Container -->
+            <div id="main-content-container" class="content-container fade-in">
+                <!-- External pages loaded dynamically -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Embedded Templates for file:// protocol fallback -->
+    <template id="template-staffWriter_tasks">
+        <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+            <div class="page-header" style="margin-bottom: 4px;">
+                <h1 class="page-title">My Tasks</h1>
+            </div>
+            <div class="kanban-board">
+                <!-- Column 1: Pending (3) -->
+                <div class="kanban-column">
+                    <h3 class="column-header">Pending (3)</h3>
+                    <div class="cards-container">
+                        <div class="task-card card-moderate">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                Moderate
+                            </span>
+                            <h4 class="card-title">Enrollment Update for Second Semester</h4>
+                            <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 15 &bull; 5:00 PM
+                                </div>
+                                <div class="avatar-group">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member1&backgroundColor=ffd5dc"
+                                        alt="Assignee" class="assignee-avatar">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
+                                        alt="Assignee" class="assignee-avatar">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-card card-low">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                Low
+                            </span>
+                            <h4 class="card-title">Student Election Coverage</h4>
+                            <span class="card-subtitle">Enrollment Period 2026</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 13 &bull; 4:00 PM
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-card card-low">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                Low
+                            </span>
+                            <h4 class="card-title">Campus Clean-Up Drive Coverage</h4>
+                            <span class="card-subtitle">AY 2025 - 2026 Issue 2</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 18 &bull; 7:30 PM
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column 2: Ongoing (3) -->
+                <div class="kanban-column">
+                    <h3 class="column-header">Ongoing (3)</h3>
+                    <div class="cards-container">
+                        <div class="task-card card-moderate">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                Moderate
+                            </span>
+                            <h4 class="card-title">Wellness Campaign Launch</h4>
+                            <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 16 &bull; 5:00 PM
+                                </div>
+                                <div class="avatar-group">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
+                                        alt="Assignee" class="assignee-avatar">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-card card-high">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                High
+                            </span>
+                            <h4 class="card-title">Campus Wi-Fi Expansion Project</h4>
+                            <span class="card-subtitle">Tech & Innovation Series</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 14 &bull; 5:00 PM
+                                </div>
+                                <div class="avatar-group">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa"
+                                        alt="Assignee" class="assignee-avatar">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-card card-high">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                High
+                            </span>
+                            <h4 class="card-title">New Campus Laboratory Building Opens</h4>
+                            <span class="card-subtitle">Foundation Day 2026</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 14 &bull; 8:00 PM
+                                </div>
+                                <div class="avatar-group">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
+                                        alt="Assignee" class="assignee-avatar">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3"
+                                        alt="Assignee" class="assignee-avatar">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column 3: Submitted (3) -->
+                <div class="kanban-column">
+                    <h3 class="column-header">Submitted (3)</h3>
+                    <div class="cards-container">
+                        <div class="task-card card-high">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                High
+                            </span>
+                            <h4 class="card-title">The Rise of Campus Creatives</h4>
+                            <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 14 &bull; 10:45 PM
+                                </div>
+                                <div class="avatar-group">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
+                                        alt="Assignee" class="assignee-avatar">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3"
+                                        alt="Assignee" class="assignee-avatar">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-card card-moderate">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                Moderate
+                            </span>
+                            <h4 class="card-title">College Fair Highlights</h4>
+                            <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 8 &bull; 6:00 PM
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-card card-low">
+                            <span class="priority-badge">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                Low
+                            </span>
+                            <h4 class="card-title">College Fair Attracts Hundreds</h4>
+                            <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                            <div class="card-footer">
+                                <div class="date-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    Apr 7 &bull; 6:30 PM
+                                </div>
+                                <div class="avatar-group">
+                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
+                                        alt="Assignee" class="assignee-avatar">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="template-staffWriter_articles">
+        <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+            <div class="page-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <h1 class="page-title" style="margin-bottom: 0;">My Articles</h1>
+                <button class="status-filter-btn">
+                    Status
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </button>
+            </div>
+            <div class="articles-card">
+                <table class="articles-table">
+                    <thead>
+                        <tr>
+                            <th style="padding-left: 28px;">Title</th>
+                            <th>Coverage</th>
+                            <th style="text-align: center;">Status</th>
+                            <th style="padding-right: 28px;">Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">Wellness Campaign Launch</td>
+                            <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-draft">Draft</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 15 &bull; 3:10 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">Campus Wi-Fi Expansion Project</td>
+                            <td style="color: #64748b;">Tech & Innovation Series</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-for-review">For Review</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 14 &bull; 5:05 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">The Rise of Campus Creatives</td>
+                            <td style="color: #64748b;">AY 2025 - 2026 Issue 2</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-under-revision">Under Revision</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 14 &bull; 10:45 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">New Campus Laboratory Building Opens</td>
+                            <td style="color: #64748b;">Foundation Day 2026</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-published">Published</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 12 &bull; 4:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">College Fair Highlights</td>
+                            <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-published">Published</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 8 &bull; 6:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">College Fair Attracts Hundreds</td>
+                            <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-published">Published</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 7 &bull; 5:30 PM</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-container">
+                <div class="pagination-pill">
+                    <button class="page-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m15 18-6-6 6-6" />
+                        </svg>
+                        Previous
+                    </button>
+                    <a href="#" class="page-number active">1</a>
+                    <a href="#" class="page-number">2</a>
+                    <a href="#" class="page-number">3</a>
+                    <a href="#" class="page-number">4</a>
+                    <a href="#" class="page-number">5</a>
+                    <span class="page-dots">&bull;&bull;&bull;</span>
+                    <button class="page-btn">
+                        Next
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </button>
+                    <div class="page-results-count">
+                        Showing <strong>6</strong> results
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="template-staffWriter_recentSubmissions">
+        <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+            <div class="page-header" style="margin-bottom: 4px;">
+                <h1 class="page-title">Recent Submissions</h1>
+            </div>
+            <div class="articles-card">
+                <table class="articles-table">
+                    <thead>
+                        <tr>
+                            <th style="padding-left: 28px;">Title</th>
+                            <th>Press Work</th>
+                            <th style="text-align: center;">Status</th>
+                            <th style="padding-right: 28px;">Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">Wellness Campaign Launch</td>
+                            <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-for-review">For Review</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 15 &bull; 3:10 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">Campus Wi-Fi Expansion Project</td>
+                            <td style="color: #64748b;">Tech & Innovation Series</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-for-review">For Review</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 11 &bull; 5:05 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">The Rise of Campus Creatives</td>
+                            <td style="color: #64748b;">AY 2025 - 2026 Issue 2</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-endorsed">Endorsed</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 14 &bull; 10:45 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">New Campus Laboratory Building Opens</td>
+                            <td style="color: #64748b;">Foundation Day 2026</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-published">Published</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 12 &bull; 4:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">College Fair Highlights</td>
+                            <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-published">Published</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 8 &bull; 6:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px; font-weight: 700;">College Fair Attracts Hundreds</td>
+                            <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
+                            <td style="text-align: center;">
+                                <span class="status-pill status-published">Published</span>
+                            </td>
+                            <td style="padding-right: 28px; color: #64748b;">Apr 7 &bull; 5:30 PM</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-container">
+                <div class="pagination-pill">
+                    <button class="page-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m15 18-6-6 6-6" />
+                        </svg>
+                        Previous
+                    </button>
+                    <a href="#" class="page-number active">1</a>
+                    <a href="#" class="page-number">2</a>
+                    <a href="#" class="page-number">3</a>
+                    <a href="#" class="page-number">4</a>
+                    <a href="#" class="page-number">5</a>
+                    <span class="page-dots">&bull;&bull;&bull;</span>
+                    <button class="page-btn">
+                        Next
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </button>
+                    <div class="page-results-count">
+                        Showing <strong>6</strong> results
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- SPA Router Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const container = document.getElementById("main-content-container");
+
+            // Function to load and render content from external HTML files (with file:// fallback)
+            async function loadPage(pageUrl) {
+                if (!pageUrl) return;
+                try {
+                    // Start transition
+                    container.classList.remove("fade-in");
+                    container.style.opacity = 0;
+
+                    let html = "";
+                    try {
+                        const response = await fetch(pageUrl);
+                        if (response.ok) {
+                            html = await response.text();
+                        }
+                    } catch (fetchErr) {
+                        // Fallback for file:// protocol where fetch is blocked by CORS
+                        const templateId = "template-" + pageUrl.replace(".html", "");
+                        const tmpl = document.getElementById(templateId);
+                        if (tmpl) {
+                            html = tmpl.innerHTML;
+                        } else {
+                            throw fetchErr;
+                        }
+                    }
+
+                    if (!html) {
+                        const templateId = "template-" + pageUrl.replace(".html", "");
+                        const tmpl = document.getElementById(templateId);
+                        if (tmpl) html = tmpl.innerHTML;
+                    }
+
+                    // Inject content
+                    container.innerHTML = html;
+
+                    // Trigger fade-in transition
+                    setTimeout(() => {
+                        container.classList.add("fade-in");
+                        container.style.opacity = 1;
+                    }, 50);
+                } catch (error) {
+                    console.error("Error loading page:", error);
+                    container.innerHTML = `
+                        <div class="page-header">
+                            <h1 class="page-title">Error Loading Page</h1>
+                        </div>
+                        <div class="card" style="padding: 24px; background: #fff; border-radius: 16px;">
+                            <p style="color: red;">Failed to load the page content: ${error.message}</p>
+                        </div>`;
+                }
+            }
+
+            // Expose globally so inline handlers can use it
+            window.loadPage = loadPage;
+
+            // Set up Page Navigation
+            const navLinks = document.querySelectorAll("[data-page]");
+            navLinks.forEach(link => {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+
+                    // Remove active from all nav items
+                    document.querySelectorAll(".nav-item").forEach(item => {
+                        item.classList.remove("active");
+                    });
+
+                    // Add active class
+                    link.classList.add("active");
+
+                    const page = link.getAttribute("data-page");
+                    loadPage(page);
+                });
+            });
+
+            // Load initial view
+            loadPage("staffWriter_tasks.html");
+        });
+    </script>
+</body>
+
+</html>
