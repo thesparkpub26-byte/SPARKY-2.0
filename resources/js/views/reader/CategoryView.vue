@@ -37,58 +37,78 @@
             </router-link>
           </div>
 
-          <!-- Pagination Capsule -->
-          <div class="category-pagination-wrapper">
-            <button class="page-arrow prev" :disabled="currentPage === 1" @click="currentPage--">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
-            </button>
-            <div class="page-numbers">
-              <button 
-                v-for="p in [1, 2, 3, 4]" 
-                :key="p" 
-                :class="['page-num', { active: currentPage === p }]"
-                @click="currentPage = p"
-              >{{ p }}</button>
-            </div>
-            <button class="page-arrow next" :disabled="currentPage === 4" @click="currentPage++">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="m9 18 6-6-6-6"/>
-              </svg>
-            </button>
+          <!-- Pagination Capsule Bar -->
+          <div class="pagination-wrapper">
+            <nav class="pagination-capsule">
+              <a href="#" :class="['pagination-btn', { disabled: currentPage === 1 }]" @click.prevent="prevPage">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+                Previous
+              </a>
+              <a v-for="p in [1, 2, 3, 4, 5]" :key="p" href="#" :class="['pagination-btn', { active: currentPage === p }]" @click.prevent="currentPage = p">{{ p }}</a>
+              <span style="padding: 0 4px; color: #94a3b8; font-size: 13px; font-weight: 600;">...</span>
+              <a href="#" class="pagination-btn" @click.prevent="nextPage">
+                Next
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+              </a>
+            </nav>
           </div>
         </div>
 
-        <!-- Right Sidebar: Top Stories -->
+        <!-- Right Sidebar: Popular Now -->
         <aside class="article-sidebar">
           <div class="sidebar-card-container">
             <div class="sidebar-header">
-              <h3 class="sidebar-title">Top Stories</h3>
+              <h3 class="sidebar-title">Popular Now</h3>
               <p class="sidebar-subtitle">You might like to read these posts.</p>
             </div>
 
-            <!-- Story 1 -->
+            <!-- Story 1 (Featured Card with Image) -->
             <div class="top-story-item">
               <div class="top-story-featured-img-wrapper">
-                <span class="top-story-badge-overlay badge-category">Feature</span>
-                <img src="/images/graduation.jpg" alt="Beyond the Classroom" class="top-story-featured-img">
+                <span class="top-story-badge-overlay badge-category">Sports</span>
+                <img src="/images/basketball.jpg" alt="CSPC Athletes Bring Home Regional" class="top-story-featured-img">
               </div>
-              <router-link to="/article" class="top-story-title">Beyond the Classroom: Stories of...</router-link>
-              <p class="top-story-desc">Discover the inspiring journeys of CSPC students who continue to excel in academics...</p>
+              <router-link to="/article" class="top-story-title">CSPC Athletes Bring Home Regional...</router-link>
+              <p class="top-story-desc">The college athletes showcased determination and teamwork after achieving outstanding...</p>
               <div class="top-story-footer">
-                <span>👁 11.4k &nbsp;|&nbsp; January 18, 2026</span>
+                <span>👁 402 &nbsp;|&nbsp; December 12, 2025</span>
                 <router-link to="/article" class="sidebar-read-more">Read More &rarr;</router-link>
               </div>
             </div>
 
             <!-- Story 2 -->
             <div class="top-story-item">
-              <span class="badge-category text-badge">Sports</span>
-              <router-link to="/article" class="top-story-title">CSPC Athletes Triumph in Regionals</router-link>
-              <p class="top-story-desc">The Blue Dragons secured multiple gold medals during the annual SCUAA games...</p>
+              <span class="top-story-badge">News</span>
+              <router-link to="/article" class="top-story-title">Prescribed Dress Code</router-link>
+              <p class="top-story-desc">As the new school year begins, CSPC Officially announced advisory regarding the prescribed...</p>
               <div class="top-story-footer">
-                <span>👁 8.2k &nbsp;|&nbsp; January 15, 2026</span>
+                <span>👁 9.6k &nbsp;|&nbsp; January 27, 2026</span>
+                <router-link to="/article" class="sidebar-read-more">Read More &rarr;</router-link>
+              </div>
+            </div>
+
+            <!-- Story 3 -->
+            <div class="top-story-item">
+              <span class="top-story-badge">Feature</span>
+              <router-link to="/article" class="top-story-title">Student Lead Community Outreach...</router-link>
+              <p class="top-story-desc">Student volunteers conducted an outreach program promoting education, environmental...</p>
+              <div class="top-story-footer">
+                <span>👁 1.2k &nbsp;|&nbsp; February 28, 2026</span>
+                <router-link to="/article" class="sidebar-read-more">Read More &rarr;</router-link>
+              </div>
+            </div>
+
+            <!-- Story 4 -->
+            <div class="top-story-item">
+              <span class="top-story-badge">Feature</span>
+              <router-link to="/article" class="top-story-title">Beyond the Classroom: Stories of...</router-link>
+              <p class="top-story-desc">Discover the inspiring journeys of CSPC students who continue to excel in academics...</p>
+              <div class="top-story-footer">
+                <span>👁 907 &nbsp;|&nbsp; January 18, 2026</span>
                 <router-link to="/article" class="sidebar-read-more">Read More &rarr;</router-link>
               </div>
             </div>
@@ -114,20 +134,42 @@ import NewsletterCard from '../../components/NewsletterCard.vue';
 const activeCategory = ref('News');
 const currentPage = ref(1);
 
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--;
+};
+
+const nextPage = () => {
+  if (currentPage.value < 5) currentPage.value++;
+};
+
 const articles = [
   {
     title: 'CSPC Launches New Student Portal',
     excerpt: 'NABUA, CAMARINES SUR — In a major move toward campus digitalization, Camarines Sur Polytechnic Colleges (CSPC) has officially rolled out its newly revamped Student Portal...',
-    image: '/images/student_portal.jpg',
+    image: '/images/graduation.jpg',
     views: '11.4k',
     date: 'January 18, 2026'
   },
   {
     title: 'Prescribed Dress Code for Upcoming Academic Year',
-    excerpt: 'NABUA, CAMARINES SUR — As the new academic year opens, CSPC officially announced advisory regarding prescribed campus attires and guidelines...',
+    excerpt: 'NABUA, CAMARINES SUR — In a major move toward campus digitalization, Camarines Sur Polytechnic Colleges (CSPC) has officially rolled out its newly revamped Student Portal...',
     image: '/images/dress_code.jpg',
-    views: '9.8k',
+    views: '11.4k',
     date: 'January 19, 2026'
+  },
+  {
+    title: 'CSPC Launches New Student Portal',
+    excerpt: 'NABUA, CAMARINES SUR — In a major move toward campus digitalization, Camarines Sur Polytechnic Colleges (CSPC) has officially rolled out its newly revamped Student Portal...',
+    image: '/images/graduation.jpg',
+    views: '11.4k',
+    date: 'January 18, 2026'
+  },
+  {
+    title: 'CSPC Launches New Student Portal',
+    excerpt: 'NABUA, CAMARINES SUR — In a major move toward campus digitalization, Camarines Sur Polytechnic Colleges (CSPC) has officially rolled out its newly revamped Student Portal...',
+    image: '/images/graduation.jpg',
+    views: '11.4k',
+    date: 'January 18, 2026'
   },
   {
     title: 'CSPC Athletes Bring Home Regional Championships',

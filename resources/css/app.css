@@ -14,4 +14,6 @@ html, body {
     background-color: #f8fafc;
     color: #0f172a;
     min-height: 100vh;
+    overflow-y: auto !important;
+    overflow-x: hidden;
 }

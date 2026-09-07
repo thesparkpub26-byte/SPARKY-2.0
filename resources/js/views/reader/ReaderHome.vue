@@ -50,19 +50,30 @@
         </div>
       </section>
 
-      <!-- Featured Artist Section -->
-      <section class="artist-section" style="margin-top: 48px;">
-        <h2 class="section-headline">Featured Artist</h2>
-        <p class="section-subtext">Spotlight on student creative works & digital masterpieces</p>
+      <!-- Published Issues Section -->
+      <section class="published-issues-section">
+        <h2 class="section-headline">Published Issues</h2>
+        <p class="section-subtext">The most read from TheSPARK</p>
 
-        <div class="artist-card">
-          <div class="artist-info">
-            <h3 class="artist-name">Featured Artistry</h3>
-            <p class="artist-bio">Creative expressions captured by CSPC staff artists and designers.</p>
-          </div>
-          <div class="artist-gallery">
-            <div class="gallery-card" @click="openModal('/images/hero_banner.jpg')">
-              <img src="/images/hero_banner.jpg" alt="Artist Work 1">
+        <div class="issues-grid">
+          <IssueCard v-for="(item, idx) in homeIssues" :key="idx" :issue="item" />
+        </div>
+
+        <!-- Load More Link -->
+        <div class="load-more-wrapper">
+          <router-link to="/issues" class="btn-load-more">Load More</router-link>
+        </div>
+      </section>
+
+      <!-- Artists Gallery Section -->
+      <section class="artists-gallery-section">
+        <h2 class="section-headline">Artists Gallery</h2>
+        <p class="section-subtext">Check out what our artists made!</p>
+
+        <div class="gallery-carousel-wrapper">
+          <div class="gallery-cards-row">
+            <div class="gallery-card" @click="openModal('/images/dress_code.jpg')">
+              <img src="/images/dress_code.jpg" alt="Artist Work 1">
             </div>
             <div class="gallery-card" @click="openModal('/images/student_portal.jpg')">
               <img src="/images/student_portal.jpg" alt="Artist Work 2">
@@ -91,6 +102,7 @@ import Navbar from '../../components/Navbar.vue';
 import Footer from '../../components/Footer.vue';
 import NewsletterCard from '../../components/NewsletterCard.vue';
 import ArticleCard from '../../components/ArticleCard.vue';
+import IssueCard from '../../components/IssueCard.vue';
 import LightboxModal from '../../components/LightboxModal.vue';
 
 const currentSlide = ref(0);
@@ -133,6 +145,57 @@ const popularArticles = [
     readTime: '5 mins read',
     views: '2.1k',
     likes: '890'
+  },
+  {
+    badge: 'Sports',
+    title: 'CSPC Athletes Bring Home Regional...',
+    excerpt: 'The college athletes showcased determination and teamwork after achieving outstanding...',
+    image: '/images/basketball.jpg',
+    date: 'January 17, 2026',
+    readTime: '4 mins read',
+    views: '1.8k',
+    likes: '620'
+  },
+  {
+    badge: 'Literary',
+    title: 'Whispers Between the Pages',
+    excerpt: 'A collection of poems and short literary pieces reflecting the emotions, experiences, and...',
+    image: '/images/fountain.jpg',
+    date: 'January 14, 2026',
+    readTime: '3 mins read',
+    views: '1.1k',
+    likes: '410'
+  },
+  {
+    badge: 'DevComm',
+    title: 'Student Lead Community Outreach...',
+    excerpt: 'Student volunteers conducted an outreach program promoting education, environmental...',
+    image: '/images/dress_code.jpg',
+    date: 'February 28, 2026',
+    readTime: '4 mins read',
+    views: '1.5k',
+    likes: '530'
+  }
+];
+
+const homeIssues = [
+  {
+    image: '/images/blind_idolatry.jpg',
+    title: 'NEWSLETTER | Volume XLI | No. 1',
+    desc: 'The Official Student Community Publication of CSPC | August - December 2021',
+    date: 'January 9, 2022'
+  },
+  {
+    image: '/images/blind_idolatry.jpg',
+    title: 'NEWSLETTER | Volume XLI | No. 1',
+    desc: 'The Official Student Community Publication of CSPC | August - December 2021',
+    date: 'January 9, 2022'
+  },
+  {
+    image: '/images/blind_idolatry.jpg',
+    title: 'NEWSLETTER | Volume XLI | No. 1',
+    desc: 'The Official Student Community Publication of CSPC | August - December 2021',
+    date: 'January 9, 2022'
   }
 ];
 
