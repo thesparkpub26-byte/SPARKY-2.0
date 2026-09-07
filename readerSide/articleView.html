@@ -4,17 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheSpark - Official Student Publication</title>
+    <title>CSPC Launches New Student Portal - TheSPARK</title>
+    <!-- Favicon -->
     <link rel="icon" href="../Assets/White_Spark_Logo.png">
     <link rel="stylesheet" href="readerSide.css">
 </head>
 
 <body>
-
     <!-- Header Navbar -->
     <header class="reader-navbar">
         <!-- Logo Left -->
-        <a href="#" class="reader-logo">
+        <a href="readerSide.html" class="reader-logo">
             <img src="../Assets/Spark_Logo.png" alt="TheSpark Logo" class="reader-logo-img">
             <div class="reader-logo-text">
                 <h2>TheSpark</h2>
@@ -24,7 +24,7 @@
 
         <!-- Center Floating Capsule Nav -->
         <nav class="nav-capsule">
-            <a href="readerSide.html" class="nav-capsule-link active">Home</a>
+            <a href="readerSide.html" class="nav-capsule-link">Home</a>
             <div class="nav-dropdown-wrapper">
                 <a href="categoryView.html" class="nav-capsule-link dropdown-toggle">
                     Categories
@@ -58,71 +58,177 @@
             <button class="btn-icon-menu" title="Menu" onclick="toggleReaderMenu()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="4" y1="6" x2="20" y2="6" />
-                    <line x1="4" y1="12" x2="20" y2="12" />
-                    <line x1="4" y1="18" x2="20" y2="18" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
             </button>
         </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Container -->
     <main class="main-container">
 
-        <!-- Hero Section: What's New Carousel -->
-        <section class="hero-section">
-            <h1 class="section-headline">What’s New</h1>
-            <br>
+        <!-- 2 Column Article & Sidebar Grid -->
+        <div class="article-main-grid" style="margin-top: 24px;">
 
-            <!-- Full-Width Responsive Hero Carousel -->
-            <div class="hero-carousel-container" id="heroCarousel">
-                <div class="carousel-track" id="carouselTrack">
-                    <!-- Slide 1: Main Banner Graphic -->
-                    <div class="carousel-slide">
-                        <img src="images/hero_banner.jpg" alt="TheSpark 39 Truth Knows No Limits">
-                    </div>
-                    <!-- Slide 2: Student Portal -->
-                    <div class="carousel-slide">
-                        <img src="images/student_portal.jpg" alt="CSPC Launches New Student Portal">
-                    </div>
-                    <!-- Slide 3: Graduation -->
-                    <div class="carousel-slide">
-                        <img src="images/graduation.jpg" alt="Beyond the Classroom: Celebrating CSPC 2026 Graduates">
-                    </div>
-                    <!-- Slide 4: Sports Championships -->
-                    <div class="carousel-slide">
-                        <img src="images/basketball.jpg" alt="CSPC Athletes Bring Home Regional Championships">
-                    </div>
+            <!-- Left Article Content -->
+            <article class="article-content-wrapper">
+                <!-- Title -->
+                <h1 class="article-title">CSPC Launches New Student Portal</h1>
+
+                <!-- Category & Date Header -->
+                <div class="article-meta-header">
+                    <span class="badge-category">News</span>
+                    <span class="article-date-text">January 20, 2026</span>
                 </div>
 
-                <!-- Navigation Arrow Overlay Buttons -->
-                <button class="carousel-arrow carousel-arrow-prev" id="prevBtn" title="Previous Slide">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m15 18-6-6 6-6" />
-                    </svg>
-                </button>
-                <button class="carousel-arrow carousel-arrow-next" id="nextBtn" title="Next Slide">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m9 18 6-6-6-6" />
-                    </svg>
-                </button>
-            </div>
+                <!-- Featured Image -->
+                <img src="images/student_portal.jpg" alt="CSPC Launches New Student Portal" class="article-main-cover">
 
-            <!-- Carousel Pagination Dots -->
-            <div class="carousel-dots" id="carouselDots">
-                <div class="dot active" data-slide="0"></div>
-                <div class="dot" data-slide="1"></div>
-                <div class="dot" data-slide="2"></div>
-                <div class="dot" data-slide="3"></div>
-            </div>
-        </section>
+                <!-- Author Info Row -->
+                <div class="article-author-card">
+                    <div class="author-left-info">
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="#cbd5e1" class="author-avatar-img">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"/>
+                        </svg>
+                        <div class="author-details-text">
+                            <h4>Gabrielle M. Loquias</h4>
+                            <p>Staff Writer</p>
+                        </div>
+                    </div>
+                    <button class="btn-view-contributors">
+                        View Contributors
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                    </button>
+                </div>
 
-        <!-- Popular Now Section -->
-        <section class="popular-section">
-            <h2 class="section-headline">Popular now</h2>
-            <p class="section-subtext">The most read from TheSPARK</p>
+                <!-- Article Body Paragraphs -->
+                <div class="article-body-content">
+                    <p><strong>NABUA, CAMARINES SUR —</strong> In a major move toward campus digitalization, Camarines Sur Polytechnic Colleges (CSPC) has officially rolled out its newly revamped Student Portal.</p>
+                    
+                    <p>Designed to eliminate the dreaded long lines of enrollment seasons past, the upgraded platform replaces outdated legacy servers with a high-speed, mobile-friendly interface. The new system is specifically engineered to handle high-volume traffic without crashing, allowing the CSPCian community to access services smoothly even during peak hours.</p>
+                    
+                    <p>The upgraded portal now serves as a centralized dashboard where CSPCians can manage their entire academic lifecycle with just a few clicks. It features real-time grade viewing, a streamlined online enrollment process, integrated accounting tracking for tuition balances, and a digital request system for official academic documents.</p>
+                    
+                    <p>Initial feedback from the student body has been overwhelmingly positive, with many praising the convenience of securing class schedules directly from their smartphone.</p>
+                    
+                    <p>Moving forward, the administration advises all CSPCians to log in using their official institutional credentials and to update their security settings.</p>
+                    
+                    <p>For anyone experiencing log-in issues or account glitches, the Management Information System (MIS) office has opened a virtual helpdesk to provide immediate technical support and ensure a seamless transition for everyone.</p>
+                </div>
+
+                <!-- Engagement Pill Bar -->
+                <div class="article-engagement-bar">
+                    <div class="engagement-stats">
+                        <span class="stat-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            1.4k Reads
+                        </span>
+                        <span class="stat-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            55 Comments
+                        </span>
+                        <span class="stat-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                            121 Shares
+                        </span>
+                    </div>
+                    <form class="comment-input-form" onsubmit="event.preventDefault();">
+                        <input type="text" placeholder="Write a comment..." class="comment-input-field" required>
+                        <button type="submit" class="btn-send-comment" title="Send Comment">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </article>
+
+            <!-- Right Sidebar: Top Stories -->
+            <aside class="article-sidebar">
+                <div class="sidebar-card-container">
+                    <div class="sidebar-header">
+                        <h3 class="sidebar-title">Top Stories</h3>
+                        <p class="sidebar-subtitle">You might like to read these posts.</p>
+                    </div>
+
+                    <!-- Story 1 (Featured Card with Image) -->
+                    <div class="top-story-item">
+                        <div class="top-story-featured-img-wrapper">
+                            <span class="top-story-badge-overlay badge-category">Feature</span>
+                            <img src="images/graduation.jpg" alt="Beyond the Classroom" class="top-story-featured-img">
+                        </div>
+                        <a href="#" class="top-story-title">Beyond the Classroom: Stories of...</a>
+                        <p class="top-story-desc">Discover the inspiring journeys of CSPC students who continue to excel in academics...</p>
+                        <div class="top-story-footer">
+                            <span>👁 11.4k &nbsp;|&nbsp; January 18, 2026</span>
+                            <a href="#" class="sidebar-read-more">Read More &rarr;</a>
+                        </div>
+                    </div>
+
+                    <!-- Story 2 -->
+                    <div class="top-story-item">
+                        <span class="top-story-badge">News</span>
+                        <a href="#" class="top-story-title">Prescribed Dress Code</a>
+                        <p class="top-story-desc">As the new school year begins, CSPC officially announced advisory regarding the prescribed...</p>
+                        <div class="top-story-footer">
+                            <span>👁 9.6k &nbsp;|&nbsp; January 27, 2026</span>
+                            <a href="#" class="sidebar-read-more">Read More &rarr;</a>
+                        </div>
+                    </div>
+
+                    <!-- Story 3 -->
+                    <div class="top-story-item">
+                        <span class="top-story-badge">Feature</span>
+                        <a href="#" class="top-story-title">Student Lead Community Outreach...</a>
+                        <p class="top-story-desc">Student volunteers conducted an outreach program promoting education, environmental...</p>
+                        <div class="top-story-footer">
+                            <span>👁 1.5k &nbsp;|&nbsp; February 28, 2026</span>
+                            <a href="#" class="sidebar-read-more">Read More &rarr;</a>
+                        </div>
+                    </div>
+
+                    <!-- Story 4 -->
+                    <div class="top-story-item">
+                        <span class="top-story-badge">Feature</span>
+                        <a href="#" class="top-story-title">Beyond the Classroom: Stories of...</a>
+                        <p class="top-story-desc">Discover the inspiring journeys of CSPC students who continue to excel in academics...</p>
+                        <div class="top-story-footer">
+                            <span>👁 923 &nbsp;|&nbsp; January 21, 2026</span>
+                            <a href="#" class="sidebar-read-more">Read More &rarr;</a>
+                        </div>
+                    </div>
+
+                    <!-- Story 5 -->
+                    <div class="top-story-item">
+                        <span class="top-story-badge">Sports</span>
+                        <a href="#" class="top-story-title">CSPC Athletes Bring Home Regional...</a>
+                        <p class="top-story-desc">The college athletes showcased determination and teamwork after achieving outstanding...</p>
+                        <div class="top-story-footer">
+                            <span>👁 112 &nbsp;|&nbsp; December 12, 2025</span>
+                            <a href="#" class="sidebar-read-more">Read More &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Related Posts Section (Using Popular Now Card Design) -->
+        <section class="related-posts-section" style="margin-top: 64px; width: 100%;">
+            <h2 class="section-headline">Related Posts</h2>
+            <p class="section-subtext">You might like to read these posts</p>
 
             <div class="articles-grid">
                 <!-- Card 1: News - Prescribed Dress Code -->
@@ -133,8 +239,7 @@
                     </div>
                     <div class="article-body">
                         <h3 class="article-title">Prescribed Dress Code</h3>
-                        <p class="article-excerpt">As the new school year begins, CSPC Officially announced advisory
-                            regarding the prescribed...</p>
+                        <p class="article-excerpt">As the new school year begins, CSPC Officially announced advisory regarding the prescribed...</p>
                         <div class="article-footer">
                             <div class="article-meta-left">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -142,7 +247,7 @@
                                     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                                     <circle cx="12" cy="12" r="3" />
                                 </svg>
-                                <span>1.4k</span>
+                                <span>9.6k</span>
                                 <span>&bull;</span>
                                 <span>January 27, 2026</span>
                             </div>
@@ -159,8 +264,7 @@
                     </div>
                     <div class="article-body">
                         <h3 class="article-title">CSPC Launches New Student Portal</h3>
-                        <p class="article-excerpt">The Camarines Sur Polytechnic Colleges officially introduced a new
-                            digital student por...</p>
+                        <p class="article-excerpt">The Camarines Sur Polytechnic Colleges officially introduced a new digital student por...</p>
                         <div class="article-footer">
                             <div class="article-meta-left">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -170,7 +274,7 @@
                                 </svg>
                                 <span>1.4k</span>
                                 <span>&bull;</span>
-                                <span>January 27, 2026</span>
+                                <span>January 20, 2026</span>
                             </div>
                             <a href="articleView.html" class="read-more-link">Read More</a>
                         </div>
@@ -185,11 +289,17 @@
                     </div>
                     <div class="article-body">
                         <h3 class="article-title">Beyond the Classroom: Stories of...</h3>
-                        <p class="article-excerpt">Discover the inspiring journeys of CSPC students who continue to
-                            excel in academics...</p>
+                        <p class="article-excerpt">Discover the inspiring journeys of CSPC students who continue to excel in academics...</p>
                         <div class="article-footer">
                             <div class="article-meta-left">
-                                <span>January 19, 2026</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                <span>11.4k</span>
+                                <span>&bull;</span>
+                                <span>January 18, 2026</span>
                             </div>
                             <a href="articleView.html" class="read-more-link">Read More</a>
                         </div>
@@ -204,11 +314,17 @@
                     </div>
                     <div class="article-body">
                         <h3 class="article-title">CSPC Athletes Bring Home Regional...</h3>
-                        <p class="article-excerpt">The college athletes showcased determination and teamwork after
-                            achieving outstanding...</p>
+                        <p class="article-excerpt">The college athletes showcased determination and teamwork after achieving outstanding...</p>
                         <div class="article-footer">
                             <div class="article-meta-left">
-                                <span>January 17, 2026</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                <span>112</span>
+                                <span>&bull;</span>
+                                <span>December 12, 2025</span>
                             </div>
                             <a href="articleView.html" class="read-more-link">Read More</a>
                         </div>
@@ -223,10 +339,16 @@
                     </div>
                     <div class="article-body">
                         <h3 class="article-title">Whispers Between the Pages</h3>
-                        <p class="article-excerpt">A collection of poems and short literary pieces reflecting the
-                            emotions, experiences, and...</p>
+                        <p class="article-excerpt">A collection of poems and short literary pieces reflecting the emotions, experiences, and...</p>
                         <div class="article-footer">
                             <div class="article-meta-left">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                <span>17.2k</span>
+                                <span>&bull;</span>
                                 <span>January 14, 2026</span>
                             </div>
                             <a href="articleView.html" class="read-more-link">Read More</a>
@@ -238,101 +360,26 @@
                 <article class="article-card">
                     <div class="article-thumb-wrapper">
                         <span class="article-badge">DevComm</span>
-                        <img src="images/dress_code.jpg" alt="Student Lead Community Outreach">
+                        <img src="images/hero_banner.jpg" alt="Student Lead Community Outreach">
                     </div>
                     <div class="article-body">
                         <h3 class="article-title">Student Lead Community Outreach...</h3>
-                        <p class="article-excerpt">Student volunteers conducted an outreach program promoting education,
-                            environmental...</p>
+                        <p class="article-excerpt">Student volunteers conducted an outreach program promoting education, environmental...</p>
                         <div class="article-footer">
                             <div class="article-meta-left">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                <span>921</span>
+                                <span>&bull;</span>
                                 <span>February 28, 2026</span>
                             </div>
                             <a href="articleView.html" class="read-more-link">Read More</a>
                         </div>
                     </div>
                 </article>
-            </div>
-        </section>
-
-        <!-- Published Issues Section -->
-        <section class="published-issues-section">
-            <h2 class="section-headline">Published Issues</h2>
-            <p class="section-subtext">The most read from TheSPARK</p>
-
-            <div class="issues-grid">
-                <!-- Issue Card 1 -->
-                <div class="issue-card">
-                    <div class="issue-cover-wrapper">
-                        <img src="images/blind_idolatry.jpg" alt="Blind Idolatry Issue">
-                    </div>
-                    <div class="issue-info">
-                        <h3 class="issue-title">NEWSLETTER | Volume XLI | No. 1</h3>
-                        <p class="issue-desc">The Official Student Community Publication of CSPC | August - December
-                            2021</p>
-                        <div class="issue-footer">
-                            <span>January 9, 2022</span>
-                            <a href="#" class="btn-explore-now">Explore Now</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Issue Card 2 -->
-                <div class="issue-card">
-                    <div class="issue-cover-wrapper">
-                        <img src="images/blind_idolatry.jpg" alt="Blind Idolatry Issue">
-                    </div>
-                    <div class="issue-info">
-                        <h3 class="issue-title">NEWSLETTER | Volume XLI | No. 1</h3>
-                        <p class="issue-desc">The Official Student Community Publication of CSPC | August - December
-                            2021</p>
-                        <div class="issue-footer">
-                            <span>January 9, 2022</span>
-                            <a href="#" class="btn-explore-now">Explore Now</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Issue Card 3 -->
-                <div class="issue-card">
-                    <div class="issue-cover-wrapper">
-                        <img src="images/blind_idolatry.jpg" alt="Blind Idolatry Issue">
-                    </div>
-                    <div class="issue-info">
-                        <h3 class="issue-title">NEWSLETTER | Volume XLI | No. 1</h3>
-                        <p class="issue-desc">The Official Student Community Publication of CSPC | August - December
-                            2021</p>
-                        <div class="issue-footer">
-                            <span>January 9, 2022</span>
-                            <a href="#" class="btn-explore-now">Explore Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Load More Link -->
-            <div class="load-more-wrapper">
-                <a href="#" class="btn-load-more">Load More</a>
-            </div>
-        </section>
-
-        <!-- Artists Gallery Section -->
-        <section class="artists-gallery-section">
-            <h2 class="section-headline">Artists Gallery</h2>
-            <p class="section-subtext">Check out what our artists made!</p>
-
-            <div class="gallery-carousel-wrapper">
-                <div class="gallery-cards-row">
-                    <div class="gallery-card">
-                        <img src="images/dress_code.jpg" alt="Artist Work 1">
-                    </div>
-                    <div class="gallery-card">
-                        <img src="images/student_portal.jpg" alt="Artist Work 2">
-                    </div>
-                    <div class="gallery-card">
-                        <img src="images/fountain.jpg" alt="Artist Work 3">
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -407,7 +454,7 @@
                 <div class="footer-col">
                     <h4 class="footer-heading">Navigations</h4>
                     <ul class="footer-links-list">
-                        <li><a href="#">Home</a></li>
+                        <li><a href="readerSide.html">Home</a></li>
                         <li><a href="#">Categories</a></li>
                         <li><a href="#">Articles</a></li>
                         <li><a href="#">Editorials</a></li>
@@ -427,116 +474,7 @@
                 </div>
             </div>
         </footer>
-
     </main>
-
-    <!-- Carousel Logic -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const track = document.getElementById('carouselTrack');
-            const dots = document.querySelectorAll('#carouselDots .dot');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const slidesCount = 4;
-            let currentIndex = 0;
-            let autoPlayTimer = null;
-
-            function updateCarousel(index) {
-                currentIndex = index;
-                track.style.transform = `translateX(-${currentIndex * 100}%)`;
-                dots.forEach((dot, idx) => {
-                    if (idx === currentIndex) {
-                        dot.classList.add('active');
-                    } else {
-                        dot.classList.remove('active');
-                    }
-                });
-            }
-
-            function nextSlide() {
-                const nextIndex = (currentIndex + 1) % slidesCount;
-                updateCarousel(nextIndex);
-            }
-
-            function prevSlide() {
-                const prevIndex = (currentIndex - 1 + slidesCount) % slidesCount;
-                updateCarousel(prevIndex);
-            }
-
-            function startAutoPlay() {
-                stopAutoPlay();
-                autoPlayTimer = setInterval(nextSlide, 4500);
-            }
-
-            function stopAutoPlay() {
-                if (autoPlayTimer) clearInterval(autoPlayTimer);
-            }
-
-            nextBtn.addEventListener('click', () => {
-                nextSlide();
-                startAutoPlay();
-            });
-
-            prevBtn.addEventListener('click', () => {
-                prevSlide();
-                startAutoPlay();
-            });
-
-            dots.forEach((dot, idx) => {
-                dot.addEventListener('click', () => {
-                    updateCarousel(idx);
-                    startAutoPlay();
-                });
-            });
-
-            // Pause autoplay on mouse hover
-            const carouselContainer = document.getElementById('heroCarousel');
-            carouselContainer.addEventListener('mouseenter', stopAutoPlay);
-            carouselContainer.addEventListener('mouseleave', startAutoPlay);
-
-            startAutoPlay();
-        });
-
-        function toggleReaderMenu() {
-            const overlay = document.getElementById('readerMenuOverlay');
-            const card = document.getElementById('readerMenuCard');
-            if (card.classList.contains('active')) {
-                card.classList.remove('active');
-                overlay.classList.remove('active');
-            } else {
-                card.classList.add('active');
-                overlay.classList.add('active');
-            }
-        }
-
-        function closeReaderMenu(event) {
-            if (event.target.id === 'readerMenuOverlay') {
-                document.getElementById('readerMenuOverlay').classList.remove('active');
-                document.getElementById('readerMenuCard').classList.remove('active');
-            }
-        }
-
-        function switchMenuState(state) {
-            const signedIn = document.getElementById('menuStateSignedIn');
-            const signedOut = document.getElementById('menuStateSignedOut');
-            if (state === 'signedOut') {
-                signedIn.style.display = 'none';
-                signedOut.style.display = 'block';
-            } else {
-                signedIn.style.display = 'block';
-                signedOut.style.display = 'none';
-            }
-        }
-
-        function toggleMenuStateDemo() {
-            const signedIn = document.getElementById('menuStateSignedIn');
-            if (signedIn.style.display === 'none') {
-                switchMenuState('signedIn');
-            } else {
-                switchMenuState('signedOut');
-            }
-        }
-    </script>
 
     <!-- Right Action Menu Modal Popup -->
     <div id="readerMenuOverlay" class="reader-menu-overlay" onclick="closeReaderMenu(event)"></div>
@@ -607,6 +545,48 @@
             </button>
         </div>
     </div>
+
+    <script>
+        function toggleReaderMenu() {
+            const overlay = document.getElementById('readerMenuOverlay');
+            const card = document.getElementById('readerMenuCard');
+            if (card.classList.contains('active')) {
+                card.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                card.classList.add('active');
+                overlay.classList.add('active');
+            }
+        }
+
+        function closeReaderMenu(event) {
+            if (event.target.id === 'readerMenuOverlay') {
+                document.getElementById('readerMenuOverlay').classList.remove('active');
+                document.getElementById('readerMenuCard').classList.remove('active');
+            }
+        }
+
+        function switchMenuState(state) {
+            const signedIn = document.getElementById('menuStateSignedIn');
+            const signedOut = document.getElementById('menuStateSignedOut');
+            if (state === 'signedOut') {
+                signedIn.style.display = 'none';
+                signedOut.style.display = 'block';
+            } else {
+                signedIn.style.display = 'block';
+                signedOut.style.display = 'none';
+            }
+        }
+
+        function toggleMenuStateDemo() {
+            const signedIn = document.getElementById('menuStateSignedIn');
+            if (signedIn.style.display === 'none') {
+                switchMenuState('signedIn');
+            } else {
+                switchMenuState('signedOut');
+            }
+        }
+    </script>
 </body>
 
 </html>
