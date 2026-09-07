@@ -1,0 +1,17 @@
+@import './readerSide.css';
+@import './auth.css';
+@import './admin.css';
+@import './editorInChief.css';
+@import './sectionEditor.css';
+@import './staffArtist.css';
+@import './staffWriter.css';
+
+/* Global Reset Overrides for Vue Application SPA */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+    min-height: 100vh;
+}

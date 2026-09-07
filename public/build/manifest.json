@@ -1,0 +1,17 @@
+{
+  "Assets/Fractals.png": {
+    "file": "assets/Fractals-Byv_psgN.png",
+    "src": "Assets/Fractals.png"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-BMuTgEWf.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DMyeqVt1.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  }
+}
