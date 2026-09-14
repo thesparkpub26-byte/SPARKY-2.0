@@ -20,6 +20,7 @@ import EditorInChiefDashboard from '../views/dashboards/EditorInChiefDashboard.v
 import SectionEditorDashboard from '../views/dashboards/SectionEditorDashboard.vue';
 import StaffWriterDashboard from '../views/dashboards/StaffWriterDashboard.vue';
 import StaffArtistDashboard from '../views/dashboards/StaffArtistDashboard.vue';
+import MonitoringSheetView from '../views/dashboards/MonitoringSheetView.vue';
 
 const routes = [
   // Reader Portal
@@ -42,6 +43,8 @@ const routes = [
   { path: '/editor', name: 'SectionEditorDashboard', component: SectionEditorDashboard },
   { path: '/writer', name: 'StaffWriterDashboard', component: StaffWriterDashboard },
   { path: '/artist', name: 'StaffArtistDashboard', component: StaffArtistDashboard },
+  { path: '/monitoring-sheet', name: 'MonitoringSheetView', component: MonitoringSheetView },
+  { path: '/monitoring_sheet_fullscreen.html', redirect: '/monitoring-sheet' },
 ];
 
 const router = createRouter({

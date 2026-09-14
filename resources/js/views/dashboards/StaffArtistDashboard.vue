@@ -12,7 +12,7 @@
 
             <nav class="nav-menu">
                 <!-- My Tasks Nav Item -->
-                <a href="#" class="nav-item active" data-page="staffArtist_tasks.html">
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'tasks' }" @click.prevent="activeTab = 'tasks'">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
@@ -25,7 +25,7 @@
                 </a>
 
                 <!-- Recent Submissions Nav Item -->
-                <a href="#" class="nav-item" data-page="staffArtist_recentSubmissions.html">
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'submissions' }" @click.prevent="activeTab = 'submissions'">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -39,7 +39,7 @@
                 </a>
 
                 <!-- Press Works Nav Item -->
-                <a href="#" class="nav-item" data-page="staffArtist_pressWorks.html">
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'pressWorks' }" @click.prevent="activeTab = 'pressWorks'">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="14 2 14 8 20 8" />
@@ -79,302 +79,337 @@
                     <input type="text" placeholder="Search">
                 </div>
                 <div class="top-header-right">
-                    <button class="bell-btn" style="position: relative;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                        <span style="position: absolute; top: -4px; right: -4px; background-color: #1a73e8; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #ffffff;">2</span>
-                    </button>
+                    <NotificationsPopover />
                 </div>
             </header>
 
             <!-- Dynamic Content Container -->
-            <div id="main-content-container" class="content-container fade-in">
-                <!-- External pages loaded dynamically -->
+            <div class="content-container fade-in">
+
+                <!-- MY TASKS TAB -->
+                <div v-show="activeTab === 'tasks'" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+                    <div class="page-header" style="margin-bottom: 4px;">
+                        <h1 class="page-title">My Tasks</h1>
+                    </div>
+
+                    <div class="kanban-board">
+                        <!-- Column 1: Pending (1) -->
+                        <div class="kanban-column">
+                            <h3 class="column-header">Pending (1)</h3>
+                            <div class="cards-container">
+                                <div class="task-card card-moderate" @click="openTaskModal({ title: 'Enrollment Update for Second Semester', section: 'News', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 15 • 5:00 PM', priority: 'Moderate' })" style="cursor: pointer;">
+                                    <span class="priority-badge">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                        Moderate
+                                    </span>
+                                    <h4 class="card-title">Enrollment Update for Second Semester</h4>
+                                    <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                                    <div class="card-footer">
+                                        <div class="date-pill">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                                <line x1="3" y1="10" x2="21" y2="10"/>
+                                            </svg>
+                                            Apr 15 &bull; 5:00 PM
+                                        </div>
+                                        <div class="avatar-group">
+                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member1&backgroundColor=ffd5dc" alt="Assignee" class="assignee-avatar">
+                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5" alt="Assignee" class="assignee-avatar">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Ongoing (1) -->
+                        <div class="kanban-column">
+                            <h3 class="column-header">Ongoing (1)</h3>
+                            <div class="cards-container">
+                                <div class="task-card card-high" @click="openTaskModal({ title: 'The Rise of Campus Creatives', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 14 • 10:45 PM', priority: 'High' })" style="cursor: pointer;">
+                                    <span class="priority-badge">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                        High
+                                    </span>
+                                    <h4 class="card-title">The Rise of Campus Creatives</h4>
+                                    <span class="card-subtitle">AY 2025 -2026 Issue 1</span>
+                                    <div class="card-footer">
+                                        <div class="date-pill">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                                <line x1="3" y1="10" x2="21" y2="10"/>
+                                            </svg>
+                                            Apr 14 &bull; 10:45 PM
+                                        </div>
+                                        <div class="avatar-group">
+                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
+                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Submitted (2) -->
+                        <div class="kanban-column">
+                            <h3 class="column-header">Submitted (2)</h3>
+                            <div class="cards-container">
+                                <div class="task-card card-high" @click="openTaskModal({ title: 'New Campus Laboratory Building Opens', section: 'News', coverage: 'Foundation Day 2026', deadline: 'Apr 12 • 4:00 PM', priority: 'High' })" style="cursor: pointer;">
+                                    <span class="priority-badge">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                        High
+                                    </span>
+                                    <h4 class="card-title">New Campus Laboratory Building Opens</h4>
+                                    <span class="card-subtitle">Foundation Day 2026</span>
+                                    <div class="card-footer">
+                                        <div class="date-pill">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                                <line x1="3" y1="10" x2="21" y2="10"/>
+                                            </svg>
+                                            Apr 12 &bull; 4:00 PM
+                                        </div>
+                                        <div class="avatar-group">
+                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
+                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="task-card card-high" @click="openTaskModal({ title: 'Campus Wi-Fi Expansion Project', section: 'News', coverage: 'Tech & Innovation Series', deadline: 'Apr 14 • 5:00 PM', priority: 'High' })" style="cursor: pointer;">
+                                    <span class="priority-badge">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                        High
+                                    </span>
+                                    <h4 class="card-title">Campus Wi-Fi Expansion Project</h4>
+                                    <span class="card-subtitle">Tech &amp; Innovation Series</span>
+                                    <div class="card-footer">
+                                        <div class="date-pill">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                                <line x1="3" y1="10" x2="21" y2="10"/>
+                                            </svg>
+                                            Apr 14 &bull; 5:00 PM
+                                        </div>
+                                        <div class="avatar-group">
+                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
+                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RECENT SUBMISSIONS TAB -->
+                <div v-show="activeTab === 'submissions'" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+                    <div class="page-header" style="margin-bottom: 4px;">
+                        <h1 class="page-title">Recent Submissions</h1>
+                    </div>
+
+                    <div class="articles-card">
+                        <table class="articles-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding-left: 28px;">Title</th>
+                                    <th>Coverage</th>
+                                    <th style="text-align: center;">Submission Status</th>
+                                    <th style="padding-right: 28px;">Last Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr @click="openTaskModal({ title: 'New Campus Laboratory Building Opens', section: 'News', coverage: 'Foundation Day 2026' })" style="cursor: pointer;">
+                                    <td style="padding-left: 28px; font-weight: 700;">New Campus Laboratory Building Opens</td>
+                                    <td style="color: #64748b;">Foundation Day 2026</td>
+                                    <td style="text-align: center;">
+                                        <span class="status-pill status-published">Published</span>
+                                    </td>
+                                    <td style="padding-right: 28px; color: #64748b;">Apr 15 &bull; 3:10 PM</td>
+                                </tr>
+                                <tr @click="openTaskModal({ title: 'Campus Wi-Fi Expansion Project', section: 'News', coverage: 'Tech & Innovation Series' })" style="cursor: pointer;">
+                                    <td style="padding-left: 28px; font-weight: 700;">Campus Wi-Fi Expansion Project</td>
+                                    <td style="color: #64748b;">Tech &amp; Innovation Series</td>
+                                    <td style="text-align: center;">
+                                        <span class="status-pill status-endorsed">Endorsed</span>
+                                    </td>
+                                    <td style="padding-right: 28px; color: #64748b;">Apr 11 &bull; 1:10 PM</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-container">
+                        <div class="pagination-pill">
+                            <button class="page-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                                Previous
+                            </button>
+                            <a href="#" class="page-number active">1</a>
+                            <a href="#" class="page-number">2</a>
+                            <a href="#" class="page-number">3</a>
+                            <a href="#" class="page-number">4</a>
+                            <a href="#" class="page-number">5</a>
+                            <span class="page-dots">&bull;&bull;&bull;</span>
+                            <div class="page-results-count">
+                                Showing <strong>2</strong> results
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRESS WORKS TAB -->
+                <div v-show="activeTab === 'pressWorks'" style="display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
+                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h1 class="page-title">Press Works</h1>
+                    </div>
+
+                    <div class="card" style="padding: 16px 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                        <div class="table-wrapper">
+                            <table class="activities-table articles-table">
+                                <thead>
+                                    <tr>
+                                        <th style="padding-left: 24px;">Press Works</th>
+                                        <th>Publication Type</th>
+                                        <th>Academic Year</th>
+                                        <th>Members</th>
+                                        <th>Date Created</th>
+                                        <th style="padding-right: 24px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
+                                        <td style="padding-left: 24px;">Issue 1</td>
+                                        <td><span class="pub-badge pub-newsletter">Newsletter</span></td>
+                                        <td>2025-2026</td>
+                                        <td>18</td>
+                                        <td>May 15, 2025</td>
+                                        <td style="padding-right: 24px;">
+                                            <button class="action-menu-btn">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
+                                        <td style="padding-left: 24px;">Issue 1</td>
+                                        <td><span class="pub-badge pub-tabloid">Tabloid</span></td>
+                                        <td>2025-2026</td>
+                                        <td>24</td>
+                                        <td>May 15, 2025</td>
+                                        <td style="padding-right: 24px;">
+                                            <button class="action-menu-btn">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
+                                        <td style="padding-left: 24px;">Issue 1</td>
+                                        <td><span class="pub-badge pub-magazine">Magazine</span></td>
+                                        <td>2025-2026</td>
+                                        <td>14</td>
+                                        <td>May 15, 2025</td>
+                                        <td style="padding-right: 24px;">
+                                            <button class="action-menu-btn">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
+                                        <td style="padding-left: 24px; border-bottom: none;">Issue 1</td>
+                                        <td style="border-bottom: none;"><span class="pub-badge pub-litfolio">Litfolio</span></td>
+                                        <td style="border-bottom: none;">2025-2026</td>
+                                        <td style="border-bottom: none;">12</td>
+                                        <td style="border-bottom: none;">May 15, 2025</td>
+                                        <td style="padding-right: 24px; border-bottom: none;">
+                                            <button class="action-menu-btn">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="pagination-pill">
+                        <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
+                        </button>
+                        <div class="page-numbers" style="display: flex; gap: 8px;">
+                            <button class="page-num active" style="background: #2563eb; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
+                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
+                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
+                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
+                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
+                            <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
+                        </div>
+                        <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                            Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                        <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
+                            Showing <b>4</b> Press Works
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
 
-    <!-- Embedded Templates for file:// protocol fallback -->
-    <template id="template-staffArtist_tasks">
-        <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
-            <div class="page-header" style="margin-bottom: 4px;">
-                <h1 class="page-title">My Tasks</h1>
-            </div>
+    <!-- Assigned Task Quick Modal -->
+    <AssignedTaskModal 
+        :is-open="isAssignedTaskModalOpen" 
+        :task-data="selectedTask"
+        @close="isAssignedTaskModalOpen = false" 
+        @open-workspace="handleOpenWorkspace" 
+    />
 
-            <div class="kanban-board">
-                <!-- Column 1: Pending (1) -->
-                <div class="kanban-column">
-                    <h3 class="column-header">Pending (1)</h3>
-                    <div class="cards-container">
-                        <div class="task-card card-moderate">
-                            <span class="priority-badge">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                Moderate
-                            </span>
-                            <h4 class="card-title">Enrollment Update for Second Semester</h4>
-                            <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
-                            <div class="card-footer">
-                                <div class="date-pill">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                    </svg>
-                                    Apr 15 &bull; 5:00 PM
-                                </div>
-                                <div class="avatar-group">
-                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member1&backgroundColor=ffd5dc" alt="Assignee" class="assignee-avatar">
-                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5" alt="Assignee" class="assignee-avatar">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Column 2: Ongoing (1) -->
-                <div class="kanban-column">
-                    <h3 class="column-header">Ongoing (1)</h3>
-                    <div class="cards-container">
-                        <div class="task-card card-high">
-                            <span class="priority-badge">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                High
-                            </span>
-                            <h4 class="card-title">The Rise of Campus Creatives</h4>
-                            <span class="card-subtitle">AY 2025 -2026 Issue 1</span>
-                            <div class="card-footer">
-                                <div class="date-pill">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                    </svg>
-                                    Apr 14 &bull; 10:45 PM
-                                </div>
-                                <div class="avatar-group">
-                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
-                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Column 3: Submitted (2) -->
-                <div class="kanban-column">
-                    <h3 class="column-header">Submitted (2)</h3>
-                    <div class="cards-container">
-                        <div class="task-card card-high">
-                            <span class="priority-badge">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                High
-                            </span>
-                            <h4 class="card-title">New Campus Laboratory Building Opens</h4>
-                            <span class="card-subtitle">Foundation Day 2026</span>
-                            <div class="card-footer">
-                                <div class="date-pill">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                    </svg>
-                                    Apr 12 &bull; 4:00 PM
-                                </div>
-                                <div class="avatar-group">
-                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
-                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="task-card card-high">
-                            <span class="priority-badge">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                High
-                            </span>
-                            <h4 class="card-title">Campus Wi-Fi Expansion Project</h4>
-                            <span class="card-subtitle">Tech & Innovation Series</span>
-                            <div class="card-footer">
-                                <div class="date-pill">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                    </svg>
-                                    Apr 14 &bull; 5:00 PM
-                                </div>
-                                <div class="avatar-group">
-                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
-                                    <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <template id="template-staffArtist_recentSubmissions">
-        <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
-            <div class="page-header" style="margin-bottom: 4px;">
-                <h1 class="page-title">Recent Submissions</h1>
-            </div>
-
-            <div class="articles-card">
-                <table class="articles-table">
-                    <thead>
-                        <tr>
-                            <th style="padding-left: 28px;">Title</th>
-                            <th>Coverage</th>
-                            <th style="text-align: center;">Submission Status</th>
-                            <th style="padding-right: 28px;">Last Updated</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="padding-left: 28px; font-weight: 700;">New Campus Laboratory Building Opens</td>
-                            <td style="color: #64748b;">Foundation Day 2026</td>
-                            <td style="text-align: center;">
-                                <span class="status-pill status-published">Published</span>
-                            </td>
-                            <td style="padding-right: 28px; color: #64748b;">Apr 15 &bull; 3:10 PM</td>
-                        </tr>
-                        <tr>
-                            <td style="padding-left: 28px; font-weight: 700;">Campus Wi-Fi Expansion Project</td>
-                            <td style="color: #64748b;">Tech & Innovation Series</td>
-                            <td style="text-align: center;">
-                                <span class="status-pill status-endorsed">Endorsed</span>
-                            </td>
-                            <td style="padding-right: 28px; color: #64748b;">Apr 11 &bull; 1:10 PM</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="pagination-container">
-                <div class="pagination-pill">
-                    <button class="page-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                        Previous
-                    </button>
-                    <a href="#" class="page-number active">1</a>
-                    <a href="#" class="page-number">2</a>
-                    <a href="#" class="page-number">3</a>
-                    <a href="#" class="page-number">4</a>
-                    <a href="#" class="page-number">5</a>
-                    <span class="page-dots">&bull;&bull;&bull;</span>
-                    <div class="page-results-count">
-                        Showing <strong>2</strong> results
-                    </div>
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <template id="template-staffArtist_pressWorks">
-        <div style="display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
-            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h1 class="page-title">Press Works</h1>
-            </div>
-
-            <div class="card" style="padding: 16px 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
-                <div class="table-wrapper">
-                    <table class="activities-table articles-table">
-                        <thead>
-                            <tr>
-                                <th style="padding-left: 24px;">Press Works</th>
-                                <th>Publication Type</th>
-                                <th>Academic Year</th>
-                                <th>Members</th>
-                                <th>Date Created</th>
-                                <th style="padding-right: 24px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
-                                <td style="padding-left: 24px;">Issue 1</td>
-                                <td><span class="pub-badge pub-newsletter">Newsletter</span></td>
-                                <td>2025-2026</td>
-                                <td>18</td>
-                                <td>May 15, 2025</td>
-                                <td style="padding-right: 24px;">
-                                    <button class="action-menu-btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
-                                <td style="padding-left: 24px;">Issue 1</td>
-                                <td><span class="pub-badge pub-tabloid">Tabloid</span></td>
-                                <td>2025-2026</td>
-                                <td>24</td>
-                                <td>May 15, 2025</td>
-                                <td style="padding-right: 24px;">
-                                    <button class="action-menu-btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
-                                <td style="padding-left: 24px;">Issue 1</td>
-                                <td><span class="pub-badge pub-magazine">Magazine</span></td>
-                                <td>2025-2026</td>
-                                <td>14</td>
-                                <td>May 15, 2025</td>
-                                <td style="padding-right: 24px;">
-                                    <button class="action-menu-btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
-                                <td style="padding-left: 24px; border-bottom: none;">Issue 1</td>
-                                <td style="border-bottom: none;"><span class="pub-badge pub-litfolio">Litfolio</span></td>
-                                <td style="border-bottom: none;">2025-2026</td>
-                                <td style="border-bottom: none;">12</td>
-                                <td style="border-bottom: none;">May 15, 2025</td>
-                                <td style="padding-right: 24px; border-bottom: none;">
-                                    <button class="action-menu-btn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="pagination-pill">
-                <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
-                </button>
-                <div class="page-numbers" style="display: flex; gap: 8px;">
-                    <button class="page-num active" style="background: #2563eb; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
-                    <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
-                    <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
-                    <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
-                    <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
-                    <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
-                </div>
-                <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
-                    Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                </button>
-                
-                <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
-                    Showing <b>4</b> Press Works
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <!-- SPA Router Script -->
+    <!-- Full Assignment Workspace Modal -->
+    <AssignmentWorkspaceModal 
+        :is-open="isWorkspaceModalOpen" 
+        :task-data="selectedTask"
+        @close="isWorkspaceModalOpen = false" 
+    />
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
+import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
+import NotificationsPopover from '../../components/NotificationsPopover.vue';
+
 const activeTab = ref('tasks');
+const isAssignedTaskModalOpen = ref(false);
+const isWorkspaceModalOpen = ref(false);
+const selectedTask = ref({});
+
+const openTaskModal = (task = {}) => {
+    selectedTask.value = {
+        title: task.title || 'Enrollment Update for Second Semester',
+        section: task.section || task.category || 'News',
+        coverage: task.coverage || 'AY 2025 - 2026 Issue 1',
+        deadline: task.deadline || 'Apr 16 • 5:00 PM',
+        priority: task.priority || 'Moderate',
+        articleDesc: task.articleDesc || 'Write a clear update about second semester enrollment, including dates, procedures, and registrar announcements.',
+        thumbnailDesc: task.thumbnailDesc || 'Create a clean thumbnail using campus-related visuals with readable title placement...'
+    };
+    isAssignedTaskModalOpen.value = true;
+};
+
+const handleOpenWorkspace = (taskData) => {
+    isAssignedTaskModalOpen.value = false;
+    selectedTask.value = taskData || selectedTask.value;
+    isWorkspaceModalOpen.value = true;
+};
+
+const openMonitoringSheet = () => {
+    window.open('/monitoring-sheet', '_blank');
+};
 </script>

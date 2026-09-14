@@ -53,7 +53,11 @@
             <router-link to="/forgot-password">Forgot Password?</router-link>
           </div>
           
-          <button type="submit" class="submit-btn">Sign In</button>
+          <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+
+          <button type="submit" class="submit-btn" :disabled="loading">
+            {{ loading ? 'Signing in…' : 'Sign In' }}
+          </button>
         </form>
         
         <p class="signup-text">Don't have an account yet? <router-link to="/signup">Sign Up</router-link></p>
@@ -69,9 +73,68 @@ import { useRouter } from 'vue-router';
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
+const errorMsg = ref('');
+const loading = ref(false);
 const router = useRouter();
 
-const handleLogin = () => {
-  router.push('/');
+// Role → dashboard route mapping
+const roleDashboard = {
+  admin:          '/admin',
+  eic:            '/eic',
+  section_editor: '/editor',
+  staff_writer:   '/writer',
+  staff_artist:   '/artist',
+};
+
+const handleLogin = async () => {
+  errorMsg.value = '';
+  loading.value = true;
+
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Show validation error from API
+      errorMsg.value = data.message || (data.errors?.email?.[0]) || 'Invalid credentials.';
+      return;
+    }
+
+    // Persist auth data
+    localStorage.setItem('sparky_token', data.token);
+    localStorage.setItem('sparky_user', JSON.stringify(data.user));
+
+    // Redirect to role-appropriate dashboard
+    const destination = roleDashboard[data.user.role] || '/';
+    router.push(destination);
+
+  } catch (err) {
+    errorMsg.value = 'Could not connect to the server. Please try again.';
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
+
+<style scoped>
+.error-msg {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

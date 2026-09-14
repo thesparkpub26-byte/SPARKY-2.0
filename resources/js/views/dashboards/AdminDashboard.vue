@@ -18,23 +18,29 @@
                     </div>
                 </a>
                 
-                <a href="#" class="nav-item" @click.prevent="activeTab = 'user-management'" :class="{ active: activeTab === 'user-management' }">
+                <a href="#" class="nav-item has-dropdown" @click.prevent="openDropdown = openDropdown === 'user-management' ? null : 'user-management'" :class="{ active: activeTab === 'user-management' || activeTab === 'editorial-board' || activeTab === 'staff-writers' || activeTab === 'readers' }">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         User Management
                     </div>
                     <!-- Chevron Down for collapsed -->
-                    <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    <svg class="chevron" :style="{ transform: openDropdown === 'user-management' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </a>
                 
                 <!-- Sub Menu -->
-                <div class="sub-menu">
-                    <a href="#" class="sub-item active">
+                <div class="sub-menu" v-show="openDropdown === 'user-management'" :class="{ open: openDropdown === 'user-management' }">
+                    <a href="#" class="sub-item" @click.prevent="activeTab = 'user-management'; openDropdown = 'user-management'" :class="{ active: activeTab === 'user-management' || activeTab === 'editorial-board' }">
                         Editorial Board
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        <svg v-if="activeTab === 'user-management' || activeTab === 'editorial-board'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                     </a>
-                    <a href="#" class="sub-item">Staff Writers</a>
-                    <a href="#" class="sub-item">Readers</a>
+                    <a href="#" class="sub-item" @click.prevent="activeTab = 'staff-writers'; openDropdown = 'user-management'" :class="{ active: activeTab === 'staff-writers' }">
+                        Staff Writers
+                        <svg v-if="activeTab === 'staff-writers'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                    </a>
+                    <a href="#" class="sub-item" @click.prevent="activeTab = 'readers'; openDropdown = 'user-management'" :class="{ active: activeTab === 'readers' }">
+                        Readers
+                        <svg v-if="activeTab === 'readers'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                    </a>
                 </div>
                 
                 <a href="#" class="nav-item" @click.prevent="activeTab = 'articles'" :class="{ active: activeTab === 'articles' }">
@@ -91,14 +97,17 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     <input type="text" placeholder="Search">
                 </div>
-                <button class="new-user-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    New User
-                </button>
+                <div class="top-header-right" style="display: flex; align-items: center; gap: 16px;">
+                    <button class="new-user-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        New User
+                    </button>
+                    <NotificationsPopover />
+                </div>
             </header>
 
             <!-- Overview Section -->
-            <section id="section-overview" class="content-section active" v-show="activeTab === 'overview'">
+            <section id="section-overview" class="content-section" :class="{ active: activeTab === 'overview' }" v-show="activeTab === 'overview'">
                 <div class="page-header">
                 <h1 class="page-title">Overview</h1>
             </div>
@@ -266,9 +275,9 @@
             </section>
 
             <!-- User-management Section -->
-            <section id="section-user-management" class="content-section" v-show="activeTab === 'user-management'">
+            <section id="section-user-management" class="content-section" :class="{ active: activeTab === 'user-management' || activeTab === 'editorial-board' || activeTab === 'staff-writers' || activeTab === 'readers' }" v-show="activeTab === 'user-management' || activeTab === 'editorial-board' || activeTab === 'staff-writers' || activeTab === 'readers'">
                 <div class="page-header" style="align-items: center;">
-                <h1 class="page-title">User Management</h1>
+                <h1 class="page-title">{{ activeTab === 'staff-writers' ? 'Staff Writers' : activeTab === 'readers' ? 'Readers' : activeTab === 'editorial-board' ? 'Editorial Board' : 'User Management' }}</h1>
                 <div class="filters">
                     <button class="filter-dropdown">
                         AY 2025 - 2026
@@ -310,7 +319,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'editorial-board'">
                                 <td>Fernan Matthew A. Enimedez</td>
                                 <td>fenimedez@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Editor-in-Chief</span></td>
@@ -337,7 +346,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'editorial-board'">
                                 <td>Dustin Jake E. Nas</td>
                                 <td>dujanas@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Copy Editor</span></td>
@@ -364,7 +373,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'editorial-board'">
                                 <td>Emher Kenji A. Turiano</td>
                                 <td>emturiano@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Video Editor</span></td>
@@ -391,7 +400,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'staff-writers'">
                                 <td>Johan Abinal</td>
                                 <td>jabinal@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Sports Writer</span></td>
@@ -418,7 +427,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'staff-writers'">
                                 <td>Gabrielle M. Loquias</td>
                                 <td>gloquias@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Feature Writer</span></td>
@@ -445,7 +454,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'staff-writers'">
                                 <td>Alaissa Nolasco</td>
                                 <td>alnolasco@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Layout Artist</span></td>
@@ -472,10 +481,10 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>Rica Subang</td>
-                                <td>rsubang@my.cspc.edu.ph</td>
-                                <td><span class="role-pill">Reader</span></td>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'staff-writers'">
+                                <td>Samantha Ciscon</td>
+                                <td>samciscon@my.cspc.edu.ph</td>
+                                <td><span class="role-pill">Copyreader</span></td>
                                 <td><span class="role-pill"
                                         style="background-color: #b9d5ff; color: #1a73e8;">BSBA-FM</span></td>
                                 <td>3C</td>
@@ -499,14 +508,41 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>Samantha Ciscon</td>
-                                <td>samciscon@my.cspc.edu.ph</td>
-                                <td><span class="role-pill">Copyreader</span></td>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'readers'">
+                                <td>Rica Subang</td>
+                                <td>rsubang@my.cspc.edu.ph</td>
+                                <td><span class="role-pill" style="background-color: #f1f5f9; color: #475569;">Reader</span></td>
                                 <td><span class="role-pill"
                                         style="background-color: #b9d5ff; color: #1a73e8;">BSBA-FM</span></td>
                                 <td>3C</td>
                                 <td>Apr 4, 2026 17:07:42</td>
+                                <td>
+                                    <div class="action-icons">
+                                        <button class="action-btn edit"><svg xmlns="http://www.w3.org/2000/svg"
+                                                width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                                                <path d="m15 5 4 4"></path>
+                                            </svg></button>
+                                        <button class="action-btn delete"><svg xmlns="http://www.w3.org/2000/svg"
+                                                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 6h18"></path>
+                                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                            </svg></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr v-show="activeTab === 'user-management' || activeTab === 'readers'">
+                                <td>Angelica Belano</td>
+                                <td>angebelano@my.cspc.edu.ph</td>
+                                <td><span class="role-pill" style="background-color: #f1f5f9; color: #475569;">Reader</span></td>
+                                <td><span class="role-pill"
+                                        style="background-color: #b9d5ff; color: #1a73e8;">BSBA</span></td>
+                                <td>1A</td>
+                                <td>Apr 5, 2026 10:15:00</td>
                                 <td>
                                     <div class="action-icons">
                                         <button class="action-btn edit"><svg xmlns="http://www.w3.org/2000/svg"
@@ -567,7 +603,7 @@
             </section>
 
             <!-- Articles Section -->
-            <section id="section-articles" class="content-section" v-show="activeTab === 'articles'">
+            <section id="section-articles" class="content-section" :class="{ active: activeTab === 'articles' }" v-show="activeTab === 'articles'">
                 <div class="page-header" style="align-items: center;">
                 <h1 class="page-title">Articles</h1>
                 <div class="filters">
@@ -770,7 +806,7 @@
             </section>
 
             <!-- Press Works Section -->
-            <section id="section-press-works" class="content-section" v-show="activeTab === 'press-works'">
+            <section id="section-press-works" class="content-section" :class="{ active: activeTab === 'press-works' }" v-show="activeTab === 'press-works'">
                 <div class="page-header" style="align-items: center; margin-bottom: 20px;">
                     <h1 class="page-title">Press Works</h1>
                 </div>
@@ -789,7 +825,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                                <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
                                     <td style="padding-left: 24px;">Issue 1</td>
                                     <td><span class="pub-badge pub-newsletter">Newsletter</span></td>
                                     <td>2025-2026</td>
@@ -801,7 +837,7 @@
                                         </button>
                                     </td>
                                 </tr>
-                                <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                                <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
                                     <td style="padding-left: 24px;">Issue 1</td>
                                     <td><span class="pub-badge pub-tabloid">Tabloid</span></td>
                                     <td>2025-2026</td>
@@ -813,7 +849,7 @@
                                         </button>
                                     </td>
                                 </tr>
-                                <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                                <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
                                     <td style="padding-left: 24px;">Issue 1</td>
                                     <td><span class="pub-badge pub-magazine">Magazine</span></td>
                                     <td>2025-2026</td>
@@ -825,7 +861,7 @@
                                         </button>
                                     </td>
                                 </tr>
-                                <tr onclick="window.open('../sectionEditor/monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                                <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
                                     <td style="padding-left: 24px; border-bottom: none;">Issue 1</td>
                                     <td style="border-bottom: none;"><span class="pub-badge pub-litfolio">Litfolio</span></td>
                                     <td style="border-bottom: none;">2025-2026</td>
@@ -866,7 +902,7 @@
             </section>
 
             <!-- Archive Section -->
-            <section id="section-archive" class="content-section" v-show="activeTab === 'archive'">
+            <section id="section-archive" class="content-section" :class="{ active: activeTab === 'archive' }" v-show="activeTab === 'archive'">
                 <div class="page-header" style="align-items: center;">
                 <h1 class="page-title">Archive</h1>
                 <div class="filters">
@@ -896,7 +932,18 @@
                 </svg>
 
                 <!-- Cards -->
-                
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2025 - 2026</h4><p>218 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2024 - 2025</h4><p>206 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2023 - 2024</h4><p>194 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2022 - 2023</h4><p>181 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2021 - 2022</h4><p>169 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2020 - 2021</h4><p>158 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2019 - 2020</h4><p>147 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2018 - 2019</h4><p>136 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2017 - 2018</h4><p>125 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2016 - 2017</h4><p>114 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2015 - 2016</h4><p>103 articles</p></div></div>
+                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2014 - 2015</h4><p>92 articles</p></div></div>
             </div>
 
             <!-- Floating Pagination -->
@@ -924,7 +971,7 @@
             </section>
 
             <!-- Analytics Section -->
-            <section id="section-analytics" class="content-section" v-show="activeTab === 'analytics'">
+            <section id="section-analytics" class="content-section" :class="{ active: activeTab === 'analytics' }" v-show="activeTab === 'analytics'">
                 <div class="page-header" style="align-items: center;">
                 <h1 class="page-title">Analytics</h1>
                 <div class="filters">
@@ -1132,195 +1179,6 @@
                 </div>
             </div>
 
-            <!-- Dashboard Grid -->
-            <div class="overview-grid" style="grid-template-columns: 1.5fr 1fr;">
-                
-                <!-- Left Column -->
-                <div class="left-col" style="display: flex; flex-direction: column; gap: 24px;">
-                    
-                    <!-- Content Performance -->
-                    <div class="card">
-                        <h3 class="card-header">Content Performance</h3>
-                        
-                        <div class="analytics-list-item">
-                            <div class="analytics-item-left">
-                                <div class="analytics-item-title">CSPC Launches New Digital Learning Hub</div>
-                                <div class="analytics-item-meta">
-                                    <span class="section">News</span>
-                                    <span>Jhea Nicole N. Comandante</span>
-                                </div>
-                            </div>
-                            <div class="analytics-item-right">
-                                <div class="metric-pill">
-                                    2,031
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 9.2-9.2M17 17V7H7"/></svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="analytics-list-item">
-                            <div class="analytics-item-left">
-                                <div class="analytics-item-title">Blue Stallions Dominate Regional Meet...</div>
-                                <div class="analytics-item-meta">
-                                    <span class="section">Sports</span>
-                                    <span>Hanna Grace A. Clevillas</span>
-                                </div>
-                            </div>
-                            <div class="analytics-item-right">
-                                <div class="metric-pill">
-                                    1,245
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="analytics-list-item">
-                            <div class="analytics-item-left">
-                                <div class="analytics-item-title">The Rise of Campus Creatives</div>
-                                <div class="analytics-item-meta">
-                                    <span class="section">Feature</span>
-                                    <span>Gabrielle M. Loquias</span>
-                                </div>
-                            </div>
-                            <div class="analytics-item-right">
-                                <div class="metric-pill">
-                                    1,102
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="#" class="view-all">View All <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="m9 18 6-6-6-6"/></svg></a>
-                    </div>
-
-                    <!-- Recent Publications -->
-                    <div class="card">
-                        <h3 class="card-header">Recent Publications</h3>
-                        <table style="margin-top: 10px;">
-                            <thead>
-                                <tr class="table-header-rounded">
-                                    <th style="background-color: #f1f5f9;">Title</th>
-                                    <th style="background-color: #f1f5f9;">Category</th>
-                                    <th style="background-color: #f1f5f9;">Published Date</th>
-                                    <th style="background-color: #f1f5f9;">Views</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td style="border-bottom: none;">Blue Stallions Dominate Regional Me...</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">Sports</span></td>
-                                    <td style="border-bottom: none;">Apr 4, 2026</td>
-                                    <td style="border-bottom: none; font-weight: 600;">1,245 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-left: 4px;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></td>
-                                </tr>
-                                <tr>
-                                    <td style="border-bottom: none;">CSPC Launches New Digital Learning...</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">News</span></td>
-                                    <td style="border-bottom: none;">Apr 4, 2026</td>
-                                    <td style="border-bottom: none; font-weight: 600;">2,031 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-left: 4px;"><path d="m7 17 9.2-9.2M17 17V7H7"/></svg></td>
-                                </tr>
-                                <tr>
-                                    <td style="border-bottom: none;">Sa Likod ng Tinta</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">Literary</span></td>
-                                    <td style="border-bottom: none;">Apr 4, 2026</td>
-                                    <td style="border-bottom: none; font-weight: 600;">876 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-left: 4px;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></td>
-                                </tr>
-                                <tr>
-                                    <td style="border-bottom: none;">The Rise of Campus Creatives</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">Feature</span></td>
-                                    <td style="border-bottom: none;">Apr 4, 2026</td>
-                                    <td style="border-bottom: none; font-weight: 600;">1,102 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-left: 4px;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <a href="#" class="view-all">View All <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="m9 18 6-6-6-6"/></svg></a>
-                    </div>
-                    
-                </div>
-
-                <!-- Right Column -->
-                <div class="right-col" style="display: flex; flex-direction: column; gap: 24px;">
-                    
-                    <!-- Engagement Metrics -->
-                    <div class="card">
-                        <h3 class="card-header">Engagement Metrics</h3>
-                        <div class="engagement-grid">
-                            <div style="display: flex; flex-direction: column; gap: 16px;">
-                                <div class="engagement-box" style="flex: 1;">
-                                    <div class="engagement-label">Total Views</div>
-                                    <div class="engagement-value">82.5K</div>
-                                </div>
-                                <div class="engagement-box" style="flex: 1;">
-                                    <div class="engagement-label">Average Views per Article</div>
-                                    <div class="engagement-value">341</div>
-                                </div>
-                            </div>
-                            <div class="engagement-box tall">
-                                <div class="engagement-label" style="margin-bottom: 16px;">Most Viewed Categories</div>
-                                
-                                <div class="category-bar news">
-                                    <span>News</span>
-                                    <span>7.1K</span>
-                                </div>
-                                <div class="category-bar sports">
-                                    <span>Sports</span>
-                                    <span>2.9K</span>
-                                </div>
-                                <div class="category-bar literary">
-                                    <span>Literary</span>
-                                    <span>1.3K</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Workflow Efficiency -->
-                    <div class="card">
-                        <h3 class="card-header">Workflow Efficiency</h3>
-                        <div class="workflow-grid">
-                            <div class="workflow-box">
-                                <div class="workflow-label">Avg. Time to Publish</div>
-                                <div class="workflow-value-large">2.4<span style="font-size: 16px;">d</span></div>
-                            </div>
-                            <div class="workflow-box">
-                                <div class="workflow-label">Articles to Review</div>
-                                <div class="workflow-value-large">88</div>
-                            </div>
-                            <div class="workflow-box">
-                                <div class="workflow-label">Revision Rate</div>
-                                <div class="workflow-value-large">28<span style="font-size: 16px;">%</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Article Status Overview -->
-                    <div class="card">
-                        <h3 class="card-header">Article Status Overview</h3>
-                        <div class="status-list">
-                            <div class="status-list-item">
-                                <span>Draft</span>
-                                <div class="status-count">45</div>
-                            </div>
-                            <div class="status-list-item">
-                                <span>In Review</span>
-                                <div class="status-count">88</div>
-                            </div>
-                            <div class="status-list-item">
-                                <span>Under Revision</span>
-                                <div class="status-count">32</div>
-                            </div>
-                            <div class="status-list-item">
-                                <span>Approved</span>
-                                <div class="status-count">217</div>
-                            </div>
-                            <div class="status-list-item">
-                                <span>Published</span>
-                                <div class="status-count">1.9K</div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
             </section>
 
         </main>
@@ -1444,9 +1302,54 @@
             </div>
         </div>
     </div>
+    <!-- Assigned Task Quick Modal -->
+    <AssignedTaskModal 
+        :is-open="isAssignedTaskModalOpen" 
+        :task-data="selectedTask"
+        @close="isAssignedTaskModalOpen = false" 
+        @open-workspace="handleOpenWorkspace" 
+    />
+
+    <!-- Full Assignment Workspace Modal -->
+    <AssignmentWorkspaceModal 
+        :is-open="isWorkspaceModalOpen" 
+        :task-data="selectedTask"
+        @close="isWorkspaceModalOpen = false" 
+    />
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
+import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
+import NotificationsPopover from '../../components/NotificationsPopover.vue';
+
 const activeTab = ref('overview');
+const openDropdown = ref(null);
+const isAssignedTaskModalOpen = ref(false);
+const isWorkspaceModalOpen = ref(false);
+const selectedTask = ref({});
+
+const openTaskModal = (task = {}) => {
+    selectedTask.value = {
+        title: task.title || 'Enrollment Update for Second Semester',
+        section: task.section || task.category || 'News',
+        coverage: task.coverage || 'AY 2025 - 2026 Issue 1',
+        deadline: task.deadline || 'Apr 16 • 5:00 PM',
+        priority: task.priority || 'Moderate',
+        articleDesc: task.articleDesc || 'Write a clear update about second semester enrollment, including dates, procedures, and registrar announcements.',
+        thumbnailDesc: task.thumbnailDesc || 'Create a clean thumbnail using campus-related visuals with readable title placement...'
+    };
+    isAssignedTaskModalOpen.value = true;
+};
+
+const handleOpenWorkspace = (taskData) => {
+    isAssignedTaskModalOpen.value = false;
+    selectedTask.value = taskData || selectedTask.value;
+    isWorkspaceModalOpen.value = true;
+};
+
+const openMonitoringSheet = () => {
+    window.open('/monitoring-sheet', '_blank');
+};
 </script>

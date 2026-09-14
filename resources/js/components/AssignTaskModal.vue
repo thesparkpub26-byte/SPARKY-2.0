@@ -1,0 +1,560 @@
+<template>
+    <div class="assign-task-modal-overlay" v-if="isOpen" @click.self="closeModal">
+        <div class="assign-task-modal-card">
+            
+            <!-- STEP 1 & 2 HEADER -->
+            <div class="modal-hdr" v-if="currentStep < 3">
+                <h2 class="modal-blue-title">Assign New Task</h2>
+                <button class="modal-x-btn" @click="closeModal" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- STEP 1: Article Info, Coverage, Section, Priority, Deadline -->
+            <div class="modal-body-step" v-if="currentStep === 1">
+                <div class="field-group">
+                    <label class="field-label">Article Title</label>
+                    <input type="text" class="pill-input" v-model="form.title" placeholder="Write Title Here..." />
+                </div>
+
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Coverage</label>
+                        <div class="select-wrapper">
+                            <select class="pill-select" v-model="form.coverage">
+                                <option value="">Choose</option>
+                                <option value="AY 2025 - 2026 Issue 1">AY 2025 - 2026 Issue 1</option>
+                                <option value="Election Coverage 2026">Election Coverage 2026</option>
+                                <option value="Student Wellness">Student Wellness</option>
+                                <option value="Foundation Day 2026">Foundation Day 2026</option>
+                                <option value="Tech & Innovation Series">Tech & Innovation Series</option>
+                            </select>
+                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Section</label>
+                        <div class="select-wrapper">
+                            <select class="pill-select" v-model="form.section">
+                                <option value="News">News (Default)</option>
+                                <option value="Feature">Feature</option>
+                                <option value="Editorial">Editorial</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Literary">Literary</option>
+                                <option value="DevComm">DevComm</option>
+                            </select>
+                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Priority</label>
+                        <div class="select-wrapper">
+                            <select class="pill-select" v-model="form.priority">
+                                <option value="">Choose Level</option>
+                                <option value="Low">Low</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                            </select>
+                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Deadline</label>
+                        <div class="deadline-inputs-row">
+                            <div class="input-with-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                <input type="date" class="pill-input-inner" v-model="form.dueDate" />
+                            </div>
+                            <div class="input-with-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <input type="time" class="pill-input-inner" v-model="form.dueTime" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-row">
+                    <button class="back-link-btn" @click="closeModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        Back
+                    </button>
+                    <button class="btn-blue-pill" @click="currentStep = 2">Next</button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Assignees & Description -->
+            <div class="modal-body-step" v-if="currentStep === 2">
+                <div class="field-group">
+                    <label class="field-label">Writer Assignee</label>
+                    <div class="select-wrapper">
+                        <select class="pill-select" v-model="form.writer">
+                            <option value="">Select People</option>
+                            <option value="Johan Abinal">Johan Abinal (News Writer)</option>
+                            <option value="Gabrielle Loquias">Gabrielle Loquias (Feature Writer)</option>
+                            <option value="Alaissa Tapar">Alaissa Tapar (Sports Writer)</option>
+                            <option value="Samantha Belle">Samantha Belle (Literary Writer)</option>
+                        </select>
+                        <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Thumbnail Assignee</label>
+                        <div class="select-wrapper">
+                            <select class="pill-select" v-model="form.thumbnailArtist">
+                                <option value="">Select Artists</option>
+                                <option value="Dustin Jake Nas">Dustin Jake Nas</option>
+                                <option value="Emher Valenzuela">Emher Valenzuela</option>
+                            </select>
+                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Media Assignee</label>
+                        <div class="select-wrapper">
+                            <select class="pill-select" v-model="form.mediaArtist">
+                                <option value="">Select Artists</option>
+                                <option value="Fernan Enimedez">Fernan Enimedez</option>
+                                <option value="Dustin Jake Nas">Dustin Jake Nas</option>
+                            </select>
+                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Description</label>
+                    <div class="textarea-container">
+                        <textarea class="pill-textarea" v-model="form.description" maxlength="500" placeholder="Write something here..."></textarea>
+                        <div class="char-count">{{ form.description.length }}/500</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-row">
+                    <button class="back-link-btn" @click="currentStep = 1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        Back
+                    </button>
+                    <button class="btn-blue-pill" @click="currentStep = 3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Done
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3: SE_AssignmentDone Confirmation -->
+            <div class="modal-body-step confirmation-step" v-if="currentStep === 3">
+                <div class="success-icon-circle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                
+                <h3 class="success-title">Assignment Created Successfully</h3>
+                <p class="success-subtitle">
+                    The task has been assigned to the selected contributors and is now ready for progress tracking
+                </p>
+
+                <div class="success-actions-col">
+                    <button class="btn-grey-pill" @click="closeModal">Close</button>
+                    <button class="btn-blue-pill btn-full-width" @click="onViewAssignments">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                        View Assignments
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, watch } from 'vue';
+
+const props = defineProps({
+    isOpen: {
+        type: Boolean,
+        default: false
+    },
+    defaultSection: {
+        type: String,
+        default: 'News'
+    }
+});
+
+const emit = defineEmits(['close', 'view-assignments']);
+
+const currentStep = ref(1);
+
+const form = ref({
+    title: '',
+    coverage: '',
+    section: props.defaultSection || 'News',
+    priority: '',
+    dueDate: '',
+    dueTime: '',
+    writer: '',
+    thumbnailArtist: '',
+    mediaArtist: '',
+    description: ''
+});
+
+watch(() => props.isOpen, (newVal) => {
+    if (newVal) {
+        currentStep.value = 1;
+    }
+});
+
+const closeModal = () => {
+    emit('close');
+    setTimeout(() => {
+        currentStep.value = 1;
+    }, 200);
+};
+
+const onViewAssignments = () => {
+    emit('view-assignments');
+    closeModal();
+};
+</script>
+
+<style scoped>
+.assign-task-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.assign-task-modal-card {
+    background: #ffffff;
+    border-radius: 28px;
+    width: 100%;
+    max-width: 480px;
+    padding: 32px 36px;
+    box-sizing: border-box;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPopIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-blue-title {
+    color: #1d6bf3;
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+    font-family: 'Manrope', -apple-system, sans-serif;
+}
+
+.modal-x-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.modal-x-btn:hover {
+    background: #f1f5f9;
+}
+
+.modal-body-step {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+}
+
+.field-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    text-align: left;
+    font-family: 'Manrope', sans-serif;
+}
+
+.pill-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #0f172a;
+    box-sizing: border-box;
+    outline: none;
+    transition: all 0.2s;
+    background: #ffffff;
+    font-family: 'Manrope', sans-serif;
+}
+
+.pill-input:focus {
+    border-color: #1d6bf3;
+    box-shadow: 0 0 0 3px rgba(29, 107, 243, 0.12);
+}
+
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.pill-select {
+    width: 100%;
+    height: 44px;
+    padding: 0 38px 0 16px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #0f172a;
+    box-sizing: border-box;
+    outline: none;
+    appearance: none;
+    background: #ffffff;
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    transition: all 0.2s;
+}
+
+.pill-select:focus {
+    border-color: #1d6bf3;
+    box-shadow: 0 0 0 3px rgba(29, 107, 243, 0.12);
+}
+
+.select-chevron {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.deadline-inputs-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.input-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0 12px;
+    height: 44px;
+    flex: 1;
+    box-sizing: border-box;
+    background: #ffffff;
+    transition: all 0.2s;
+}
+
+.input-with-icon:focus-within {
+    border-color: #1d6bf3;
+    box-shadow: 0 0 0 3px rgba(29, 107, 243, 0.12);
+}
+
+.pill-input-inner {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    color: #0f172a;
+    width: 100%;
+    font-family: 'Manrope', sans-serif;
+}
+
+.textarea-container {
+    position: relative;
+    width: 100%;
+}
+
+.pill-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 14px;
+    color: #0f172a;
+    box-sizing: border-box;
+    outline: none;
+    resize: vertical;
+    font-family: 'Manrope', sans-serif;
+    transition: all 0.2s;
+}
+
+.pill-textarea:focus {
+    border-color: #1d6bf3;
+    box-shadow: 0 0 0 3px rgba(29, 107, 243, 0.12);
+}
+
+.char-count {
+    position: absolute;
+    right: 14px;
+    bottom: 12px;
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.modal-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    width: 100%;
+}
+
+.back-link-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.back-link-btn:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+.btn-blue-pill {
+    background-color: #1d6bf3;
+    color: #ffffff;
+    border: none;
+    padding: 12px 36px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(29, 107, 243, 0.3);
+    transition: all 0.2s;
+}
+
+.btn-blue-pill:hover {
+    background-color: #1557b0;
+    box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-blue-pill:active {
+    transform: translateY(0);
+}
+
+.btn-full-width {
+    width: 100%;
+}
+
+.confirmation-step {
+    align-items: center;
+    text-align: center;
+    padding: 12px 0 0 0;
+}
+
+.success-icon-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background-color: #dcfce7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.success-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+    font-family: 'Manrope', sans-serif;
+}
+
+.success-subtitle {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0 0 28px 0;
+    font-family: 'Manrope', sans-serif;
+    max-width: 340px;
+}
+
+.success-actions-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-grey-pill {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Manrope', sans-serif;
+}
+
+.btn-grey-pill:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
+</style>

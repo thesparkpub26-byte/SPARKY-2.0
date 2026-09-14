@@ -12,7 +12,7 @@
 
             <nav class="nav-menu">
                 <!-- Overview Nav Item -->
-                <a href="#" class="nav-item active" @click.prevent="activeTab = 'overview'" :class="{ active: activeTab === 'overview' }">
+                <a href="#" class="nav-item" @click.prevent="activeTab = 'overview'" :class="{ active: activeTab === 'overview' }">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                         Overview
@@ -21,48 +21,53 @@
                 
                 <!-- Content Dropdown -->
                 <div>
-                    <a href="#" class="nav-item has-dropdown">
+                    <a href="#" class="nav-item has-dropdown" @click.prevent="openDropdown = openDropdown === 'content' ? null : 'content'" :class="{ active: activeTab === 'articles' || activeTab === 'press-works' }">
                         <div class="nav-item-left">
                             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                             Content
                         </div>
-                        <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg class="chevron" :style="{ transform: openDropdown === 'content' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </a>
-                    <div class="sub-menu">
-                        <a href="#" class="sub-item" @click.prevent="activeTab = 'articles'" :class="{ active: activeTab === 'articles' }">Published Articles</a>
-                        <a href="#" class="sub-item" @click.prevent="activeTab = 'press-works'" :class="{ active: activeTab === 'press-works' }">Press Works</a>
+                    <div class="sub-menu" v-show="openDropdown === 'content'" :class="{ open: openDropdown === 'content' }">
+                        <a href="#" class="sub-item" @click.prevent="activeTab = 'articles'; openDropdown = 'content'" :class="{ active: activeTab === 'articles' }">
+                            Articles
+                            <svg v-if="activeTab === 'articles'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" @click.prevent="activeTab = 'press-works'; openDropdown = 'content'" :class="{ active: activeTab === 'press-works' }">
+                            Press Works
+                            <svg v-if="activeTab === 'press-works'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
                     </div>
                 </div>
                 
                 <!-- Workflow Dropdown -->
                 <div>
-                    <a href="#" class="nav-item has-dropdown">
+                    <a href="#" class="nav-item has-dropdown" @click.prevent="openDropdown = openDropdown === 'workflow' ? null : 'workflow'" :class="{ active: activeTab === 'assignments' || activeTab === 'submissions' }">
                         <div class="nav-item-left">
                             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                             Workflow
                         </div>
-                        <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg class="chevron" :style="{ transform: openDropdown === 'workflow' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </a>
-                    <div class="sub-menu">
-                        <a href="#" class="sub-item" @click.prevent="activeTab = 'workflow'" :class="{ active: activeTab === 'workflow' }">Assignments</a>
-                        <a href="#" class="sub-item" @click.prevent="activeTab = 'workflow'" :class="{ active: activeTab === 'workflow' }">Review Pipeline</a>
+                    <div class="sub-menu" v-show="openDropdown === 'workflow'" :class="{ open: openDropdown === 'workflow' }">
+                        <a href="#" class="sub-item" @click.prevent="activeTab = 'assignments'; openDropdown = 'workflow'" :class="{ active: activeTab === 'assignments' }">
+                            Assignments
+                            <svg v-if="activeTab === 'assignments'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" @click.prevent="activeTab = 'submissions'; openDropdown = 'workflow'" :class="{ active: activeTab === 'submissions' }">
+                            Submissions
+                            <svg v-if="activeTab === 'submissions'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
                     </div>
                 </div>
                 
-                <!-- Contributors Dropdown -->
-                <div>
-                    <a href="#" class="nav-item has-dropdown">
-                        <div class="nav-item-left">
-                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                            Contributors
-                        </div>
-                        <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </a>
-                    <div class="sub-menu">
-                        <a href="#" class="sub-item" @click.prevent="activeTab = 'contributors'" :class="{ active: activeTab === 'contributors' }">Writers Directory</a>
-                        <a href="#" class="sub-item" @click.prevent="activeTab = 'contributors'" :class="{ active: activeTab === 'contributors' }">Artists Directory</a>
+                <!-- Contributors Nav Item -->
+                <a href="#" class="nav-item" @click.prevent="activeTab = 'contributors'" :class="{ active: activeTab === 'contributors' }">
+                    <div class="nav-item-left">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Contributors
                     </div>
-                </div>
+                </a>
             </nav>
 
             <div class="user-profile">
@@ -92,13 +97,11 @@
                     <input type="text" placeholder="Search">
                 </div>
                 <div class="top-header-right">
-                    <button class="assign-task-btn" id="main-action-btn">
+                    <button class="assign-task-btn" id="main-action-btn" @click.prevent="isAssignTaskModalOpen = true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span id="main-action-text">Assign Task</span>
                     </button>
-                    <button class="bell-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    </button>
+                    <NotificationsPopover />
                 </div>
             </header>
 
@@ -412,7 +415,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr onclick="window.open('monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
                         <td style="padding-left: 24px;">Issue 1</td>
                         <td><span class="pub-badge pub-newsletter">Newsletter</span></td>
                         <td>2025-2026</td>
@@ -424,7 +427,7 @@
                             </button>
                         </td>
                     </tr>
-                    <tr onclick="window.open('monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
                         <td style="padding-left: 24px;">Issue 1</td>
                         <td><span class="pub-badge pub-tabloid">Tabloid</span></td>
                         <td>2025-2026</td>
@@ -436,7 +439,7 @@
                             </button>
                         </td>
                     </tr>
-                    <tr onclick="window.open('monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
                         <td style="padding-left: 24px;">Issue 1</td>
                         <td><span class="pub-badge pub-magazine">Magazine</span></td>
                         <td>2025-2026</td>
@@ -448,7 +451,7 @@
                             </button>
                         </td>
                     </tr>
-                    <tr onclick="window.open('monitoring_sheet_fullscreen.html', '_blank')" style="cursor: pointer;" class="clickable-row">
+                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
                         <td style="padding-left: 24px; border-bottom: none;">Issue 1</td>
                         <td style="border-bottom: none;"><span class="pub-badge pub-litfolio">Litfolio</span></td>
                         <td style="border-bottom: none;">2025-2026</td>
@@ -488,31 +491,337 @@
 </div>
 <!-- </body> -->
     </div>
-    <div v-show="activeTab === 'contributors'">
-        <div class="page-header">
-    <h1 class="page-title">Contributors directory</h1>
-</div>
-<div class="card">
-    <p>Contributors list and tracking directory placeholder page.</p>
-</div>
+    <div v-show="activeTab === 'assignments'">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 class="page-title">Assignments</h1>
+                <div class="filters" style="display: flex; gap: 12px;">
+                    <button class="filter-btn">Status <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                    <button class="filter-btn">Date Range <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrapper">
+                    <table class="activities-table articles-table">
+                        <thead>
+                            <tr>
+                                <th style="padding-left: 24px;">Title</th>
+                                <th>Assigned To</th>
+                                <th>Deadline</th>
+                                <th style="padding-right: 24px;">Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr @click="openTaskModal({ title: 'Enrollment Update for Second Semester', section: 'News', deadline: 'Apr 15 • 5:00 PM', priority: 'Moderate' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px;">Enrollment Update for Second Semester</td>
+                                <td><b>Gabrielle M. Loquias</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+2</span></td>
+                                <td>Apr 15 &bull; 5:00 PM</td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-under-revision">Ongoing</span></td>
+                            </tr>
+                            <tr @click="openTaskModal({ title: 'Wellness Campaign Launch', section: 'Feature', deadline: 'Apr 12 • 5:00 PM', priority: 'Moderate' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px;">Wellness Campaign Launch</td>
+                                <td><b>Alyssa Nolasco</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+1</span></td>
+                                <td>Apr 12 &bull; 17:00</td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-under-revision">Ongoing</span></td>
+                            </tr>
+                            <tr @click="openTaskModal({ title: 'Student Election Coverage', section: 'News', deadline: 'Apr 12 • 5:00 PM', priority: 'Low' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px;">Student Election Coverage</td>
+                                <td><b>Gabrielle M. Loquias</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+2</span></td>
+                                <td>Apr 12 &bull; 17:00</td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-under-revision">Ongoing</span></td>
+                            </tr>
+                            <tr @click="openTaskModal({ title: 'Intramural Opening Highlights', section: 'Sports', deadline: 'Apr 12 • 5:00 PM', priority: 'High' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px; border-bottom: none;">Intramural Opening Highlights</td>
+                                <td style="border-bottom: none;"><b>Samantha Ciscon</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+2</span></td>
+                                <td style="border-bottom: none;">Apr 12 &bull; 17:00</td>
+                                <td style="padding-right: 24px; border-bottom: none;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Submitted</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-pill">
+                    <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
+                    </button>
+                    <div class="page-numbers" style="display: flex; gap: 8px;">
+                        <button class="page-num active" style="background: #1a73e8; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
+                        <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
+                    </div>
+                    <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                        Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                    <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
+                        Showing <b>12</b> results
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div v-show="activeTab === 'workflow'">
-        <div class="page-header">
-    <h1 class="page-title">Workflow Pipeline</h1>
-</div>
-<div class="card">
-    <p>Workflow task progression pipeline placeholder page.</p>
-</div>
+
+    <div v-show="activeTab === 'submissions'">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 class="page-title">Submissions</h1>
+                <div class="filters" style="display: flex; gap: 12px;">
+                    <button class="filter-btn">Status <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                    <button class="filter-btn">Date Range <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrapper">
+                    <table class="activities-table articles-table">
+                        <thead>
+                            <tr>
+                                <th style="padding-left: 24px;">Title</th>
+                                <th>Submitted By</th>
+                                <th>Submitted Date</th>
+                                <th style="padding-right: 24px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr @click="openTaskModal({ title: 'Enrollment Update for Second Semester', section: 'News' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px;">Enrollment Update for Second Semester</td>
+                                <td><b>Gabrielle M. Loquias</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+2</span></td>
+                                <td>Apr 14 &bull; 10:00 PM</td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-for-review">For Review</span></td>
+                            </tr>
+                            <tr @click="openTaskModal({ title: 'Student Election Coverage', section: 'News' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px;">Student Election Coverage</td>
+                                <td><b>Alyssa Nolasco</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+1</span></td>
+                                <td>Apr 15 &bull; 1:00 PM</td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-for-review">For Review</span></td>
+                            </tr>
+                            <tr @click="openTaskModal({ title: 'Wellness Campaign Launch', section: 'Feature' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px;">Wellness Campaign Launch</td>
+                                <td><b>Samantha Ciscon</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+2</span></td>
+                                <td>Apr 15 &bull; 4:15 PM</td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-under-revision">Returned</span></td>
+                            </tr>
+                            <tr @click="openTaskModal({ title: 'The Rise of Campus Creatives', section: 'Feature' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px;">The Rise of Campus Creatives</td>
+                                <td><b>Gabrielle M. Loquias</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+2</span></td>
+                                <td>Apr 16 &bull; 9:00 AM</td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-endorsed">Endorsed</span></td>
+                            </tr>
+                            <tr @click="openTaskModal({ title: 'AI Tools in Education', section: 'News' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px;">AI Tools in Education</td>
+                                <td><b>Karl Lumactod</b> <span class="avatar-badge" style="background: #1a73e8; color: white;">+1</span></td>
+                                <td>Apr 16 &bull; 11:20 AM</td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-published">Published</span></td>
+                            </tr>
+                            <tr @click="openTaskModal({ title: 'AI Tools in Education', section: 'News' })" style="cursor: pointer;">
+                                <td style="padding-left: 24px; border-bottom: none;">AI Tools in Education</td>
+                                <td style="border-bottom: none;"><b>Vien Lacoste</b></td>
+                                <td style="border-bottom: none;">Apr 16 &bull; 2:45 PM</td>
+                                <td style="padding-right: 24px; border-bottom: none;"><span class="status-badge status-published">Published</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-pill">
+                    <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
+                    </button>
+                    <div class="page-numbers" style="display: flex; gap: 8px;">
+                        <button class="page-num active" style="background: #1a73e8; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
+                        <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
+                    </div>
+                    <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                        Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                    <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
+                        Showing <b>6</b> results
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-show="activeTab === 'contributors'">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 class="page-title">Contributors</h1>
+                <div class="filters" style="display: flex; gap: 12px;">
+                    <button class="filter-btn">Status <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-wrapper">
+                    <table class="activities-table articles-table">
+                        <thead>
+                            <tr>
+                                <th style="padding-left: 24px;">Name</th>
+                                <th>Role</th>
+                                <th>Email</th>
+                                <th>Tasks</th>
+                                <th style="padding-right: 24px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding-left: 24px;">Gabrielle Loquias</td>
+                                <td><span class="role-pill">News Writer</span></td>
+                                <td style="color: #64748b; font-weight: 500;">gabloquias@my.cspc.edu.ph</td>
+                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">3</span></td>
+                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 24px;">Vien Lacoste</td>
+                                <td><span class="role-pill">News Writer</span></td>
+                                <td style="color: #64748b; font-weight: 500;">vienlacoste@my.cspc.edu.ph</td>
+                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
+                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 24px;">Alaissa Nolasco</td>
+                                <td><span class="role-pill">News Writer</span></td>
+                                <td style="color: #64748b; font-weight: 500;">alnolasco@my.cspc.edu.ph</td>
+                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
+                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 24px;">Samantha Ciscon</td>
+                                <td><span class="role-pill">News Writer</span></td>
+                                <td style="color: #64748b; font-weight: 500;">samciscon@my.cspc.edu.ph</td>
+                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
+                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 24px;">Mark Marmol</td>
+                                <td><span class="role-pill">Copyreader</span></td>
+                                <td style="color: #64748b; font-weight: 500;">markmarmol@my.cspc.edu.ph</td>
+                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">1</span></td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-draft">Available</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 24px;">Jell Reginaldo</td>
+                                <td><span class="role-pill">Copyreader</span></td>
+                                <td style="color: #64748b; font-weight: 500;">jellreginaldo@my.cspc.edu.ph</td>
+                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
+                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 24px;">Johnrey Frongoso</td>
+                                <td><span class="role-pill">Photojournalist</span></td>
+                                <td style="color: #64748b; font-weight: 500;">jofrongoso@my.cspc.edu.ph</td>
+                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
+                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 24px;">Nicole Orcine</td>
+                                <td><span class="role-pill">Layout Artist</span></td>
+                                <td style="color: #64748b; font-weight: 500;">nicorcine@my.cspc.edu.ph</td>
+                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">1</span></td>
+                                <td style="padding-right: 24px;"><span class="status-badge status-draft">Available</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 24px; border-bottom: none;">Angelica Belano</td>
+                                <td style="border-bottom: none;"><span class="role-pill">Graphic Artist</span></td>
+                                <td style="border-bottom: none; color: #64748b; font-weight: 500;">angebelano@my.cspc.edu.ph</td>
+                                <td style="border-bottom: none;"><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">1</span></td>
+                                <td style="padding-right: 24px; border-bottom: none;"><span class="status-badge status-draft">Available</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-pill" style="margin: 24px auto; align-self: center;">
+                    <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
+                    </button>
+                    <div class="page-numbers" style="display: flex; gap: 8px;">
+                        <button class="page-num active" style="background: #1a73e8; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
+                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
+                        <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
+                    </div>
+                    <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                        Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                    <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
+                        Showing <b>9</b> results
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
         </main>
     </div>
 
-    <!-- SPA Router Script -->
+    <!-- Assign Task Modal -->
+    <AssignTaskModal 
+        :is-open="isAssignTaskModalOpen" 
+        @close="isAssignTaskModalOpen = false" 
+        @view-assignments="activeTab = 'assignments'; openDropdown = 'workflow'" 
+    />
+
+    <!-- Assigned Task Quick Modal -->
+    <AssignedTaskModal 
+        :is-open="isAssignedTaskModalOpen" 
+        :task-data="selectedTask"
+        @close="isAssignedTaskModalOpen = false" 
+        @open-workspace="handleOpenWorkspace" 
+    />
+
+    <!-- Full Assignment Workspace Modal -->
+    <AssignmentWorkspaceModal 
+        :is-open="isWorkspaceModalOpen" 
+        :task-data="selectedTask"
+        @close="isWorkspaceModalOpen = false" 
+    />
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import AssignTaskModal from '../../components/AssignTaskModal.vue';
+import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
+import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
+import NotificationsPopover from '../../components/NotificationsPopover.vue';
+
 const activeTab = ref('overview');
+const openDropdown = ref(null);
+const isAssignTaskModalOpen = ref(false);
+const isAssignedTaskModalOpen = ref(false);
+const isWorkspaceModalOpen = ref(false);
+const selectedTask = ref({});
+
+const openTaskModal = (task = {}) => {
+    selectedTask.value = {
+        title: task.title || 'Enrollment Update for Second Semester',
+        section: task.section || task.category || 'News',
+        coverage: task.coverage || 'AY 2025 - 2026 Issue 1',
+        deadline: task.deadline || 'Apr 16 • 5:00 PM',
+        priority: task.priority || 'Moderate',
+        articleDesc: task.articleDesc || 'Write a clear update about second semester enrollment, including dates, procedures, and registrar announcements.',
+        thumbnailDesc: task.thumbnailDesc || 'Create a clean thumbnail using campus-related visuals with readable title placement...'
+    };
+    isAssignedTaskModalOpen.value = true;
+};
+
+const handleOpenWorkspace = (taskData) => {
+    isAssignedTaskModalOpen.value = false;
+    selectedTask.value = taskData || selectedTask.value;
+    isWorkspaceModalOpen.value = true;
+};
+
+const openMonitoringSheet = () => {
+    window.open('/monitoring-sheet', '_blank');
+};
 </script>

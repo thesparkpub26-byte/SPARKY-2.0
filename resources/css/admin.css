@@ -109,8 +109,10 @@ body {
     transition: max-height 0.3s ease-in-out, margin-top 0.3s, margin-bottom 0.3s;
 }
 
-.sub-menu.open {
-    max-height: 200px;
+.sub-menu.open,
+.sub-menu[style*="display: flex"],
+.sub-menu[style*="display: block"] {
+    max-height: 300px;
     margin-top: 5px;
     margin-bottom: 10px;
 }
@@ -891,8 +893,10 @@ td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
     animation: fadeIn 0.3s ease-in-out;
 }
 
-.content-section.active {
-    display: block;
+.content-section.active,
+.content-section[style*="display: block"],
+.content-section[style*="display: flex"] {
+    display: block !important;
 }
 
 @keyframes fadeIn {
