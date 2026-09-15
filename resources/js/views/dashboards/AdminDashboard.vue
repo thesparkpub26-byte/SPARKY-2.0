@@ -11,7 +11,7 @@
             </div>
 
             <nav class="nav-menu">
-                <a href="#" class="nav-item active" @click.prevent="activeTab = 'overview'" :class="{ active: activeTab === 'overview' }">
+                <a href="#" class="nav-item" @click.prevent="activeTab = 'overview'" :class="{ active: activeTab === 'overview' }">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                         Overview
@@ -29,7 +29,7 @@
                 
                 <!-- Sub Menu -->
                 <div class="sub-menu" v-show="openDropdown === 'user-management'" :class="{ open: openDropdown === 'user-management' }">
-                    <a href="#" class="sub-item" @click.prevent="activeTab = 'user-management'; openDropdown = 'user-management'" :class="{ active: activeTab === 'user-management' || activeTab === 'editorial-board' }">
+                    <a href="#" class="sub-item" @click.prevent="activeTab = 'editorial-board'; openDropdown = 'user-management'" :class="{ active: activeTab === 'user-management' || activeTab === 'editorial-board' }">
                         Editorial Board
                         <svg v-if="activeTab === 'user-management' || activeTab === 'editorial-board'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                     </a>
@@ -73,18 +73,18 @@
             </nav>
 
             <div class="user-profile">
-                <img src="https://picsum.photos/200?random=1" alt="Profile">
+                <img :src="adminUser.profile_picture_url || 'https://picsum.photos/200?random=1'" alt="Profile">
                 <div class="user-info">
-                    <span class="role-badge">Administrator</span>
-                    <h4>Administrator's Name</h4>
-                    <p>admin@thesparkpub.com</p>
+                    <span class="role-badge">{{ adminUser.role || 'admin' }}</span>
+                    <h4>{{ adminUser.name || 'Administrator' }}</h4>
+                    <p>{{ adminUser.email || 'admin@sparky.com' }}</p>
                 </div>
-                <button class="settings-btn">
+                <button class="settings-btn" type="button" aria-label="Open administrator profile" @click="router.push('/profile')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path><path d="M12 2v2"></path><path d="M12 22v-2"></path><path d="m17 4-1.5 1.5"></path><path d="M22 12h-2"></path><path d="m17 20-1.5-1.5"></path><path d="M2 12h2"></path><path d="m7 4 1.5 1.5"></path><path d="m7 20 1.5-1.5"></path></svg>
                 </button>
             </div>
             
-            <button class="sign-out-btn" style="margin-top: 15px;" @click.prevent="$router.push('/login')">
+                    <button class="sign-out-btn" style="margin-top: 15px;" @click.prevent="performSignOut(router)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Sign Out
             </button>
@@ -98,9 +98,13 @@
                     <input type="text" placeholder="Search">
                 </div>
                 <div class="top-header-right" style="display: flex; align-items: center; gap: 16px;">
-                    <button class="new-user-btn">
+                    <button v-if="activeTab !== 'press-works'" class="new-user-btn" type="button" @click="openNewUserModal">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         New User
+                    </button>
+                    <button v-else class="new-user-btn" type="button" @click="openPressworkModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Add Presswork
                     </button>
                     <NotificationsPopover />
                 </div>
@@ -118,7 +122,7 @@
                     <h3 class="card-header">System Summary</h3>
                     <div class="metric-grid">
                         <div class="metric-box blue">
-                            <div class="metric-value">2.1K</div>
+                            <div class="metric-value">{{ formatCount(overview.summary.articles) }}</div>
                             <div class="metric-label">Total Articles</div>
                             <div class="metric-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none">
@@ -129,7 +133,7 @@
                             </div>
                         </div>
                         <div class="metric-box users">
-                            <div class="metric-value">61</div>
+                            <div class="metric-value">{{ formatCount(overview.summary.users) }}</div>
                             <div class="metric-label">Total Users</div>
                             <div class="metric-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none">
@@ -140,7 +144,7 @@
                             </div>
                         </div>
                         <div class="metric-box light">
-                            <div class="metric-value">225</div>
+                            <div class="metric-value">{{ formatCount(overview.summary.pending) }}</div>
                             <div class="metric-label">Pending</div>
                             <div class="metric-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none">
@@ -153,7 +157,7 @@
                             </div>
                         </div>
                         <div class="metric-box dark">
-                            <div class="metric-value">1.9K</div>
+                            <div class="metric-value">{{ formatCount(overview.summary.published) }}</div>
                             <div class="metric-label">Published</div>
                             <div class="metric-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none">
@@ -163,7 +167,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="updated-text">Updated just now</p>
+                    <p class="updated-text">{{ updatedLabel }}</p>
                 </div>
 
                 <!-- Right Column: User Activity & Workflow Status -->
@@ -175,25 +179,19 @@
                             <div class="sub-card">
                                 <p class="sub-card-title">Active Now</p>
                                 <div class="avatar-stack">
-                                    <img src="https://picsum.photos/200?random=2" alt="User">
-                                    <img src="https://picsum.photos/200?random=3" alt="User">
-                                    <img src="https://picsum.photos/200?random=4" alt="User">
-                                    <img src="https://picsum.photos/200?random=5" alt="User">
-                                    <div class="avatar-more">+ 57</div>
+                                    <img v-for="member in overview.user_activity.active.slice(0, 4)" :key="`active-${member.id}`" :src="member.profile_picture_url || avatarFallback(member.name)" :alt="member.name">
+                                    <div class="avatar-more">+ {{ Math.max(overview.user_activity.active_count - overview.user_activity.active.slice(0, 4).length, 0) }}</div>
                                 </div>
                             </div>
                             <div class="sub-card">
                                 <p class="sub-card-title">New Users</p>
                                 <div class="avatar-stack">
-                                    <img src="https://picsum.photos/200?random=6" alt="User">
-                                    <img src="https://picsum.photos/200?random=7" alt="User">
-                                    <img src="https://picsum.photos/200?random=8" alt="User">
-                                    <img src="https://picsum.photos/200?random=9" alt="User">
-                                    <div class="avatar-more">+ 57</div>
+                                    <img v-for="member in overview.user_activity.new.slice(0, 4)" :key="`new-${member.id}`" :src="member.profile_picture_url || avatarFallback(member.name)" :alt="member.name">
+                                    <div class="avatar-more">+ {{ Math.max(overview.user_activity.new_count - overview.user_activity.new.slice(0, 4).length, 0) }}</div>
                                 </div>
                             </div>
                         </div>
-                        <p class="updated-text">Updated just now</p>
+                        <p class="updated-text">{{ updatedLabel }}</p>
                     </div>
 
                     <!-- Workflow Status Summary -->
@@ -203,7 +201,7 @@
                             <div class="sub-card" style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <p class="sub-card-title" style="margin-bottom: 4px;">Submitted</p>
-                                    <div class="workflow-value">137</div>
+                                    <div class="workflow-value">{{ overview.workflow.submitted }}</div>
                                 </div>
                                 <div class="metric-icon" style="position: static; background-color: #e2e8f0; color: #555;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -212,14 +210,14 @@
                             <div class="sub-card" style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <p class="sub-card-title" style="margin-bottom: 4px;">In Review</p>
-                                    <div class="workflow-value">88</div>
+                                    <div class="workflow-value">{{ overview.workflow.in_review }}</div>
                                 </div>
                                 <div class="metric-icon" style="position: static; background-color: #111; color: white;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 </div>
                             </div>
                         </div>
-                        <p class="updated-text">Updated just now</p>
+                        <p class="updated-text">{{ updatedLabel }}</p>
                     </div>
                 </div>
             </div>
@@ -238,35 +236,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Submitted an article</td>
-                                <td>Gabrielle M. Loquias</td>
-                                <td><span class="role-pill">News Writer</span></td>
-                                <td>Apr 4, 2026 17:07:42</td>
+                            <tr v-for="activity in overview.activities" :key="activity.id">
+                                <td>{{ activity.action }}<span v-if="activity.subject">: {{ activity.subject }}</span></td>
+                                <td>{{ activity.user }}</td>
+                                <td><span class="role-pill">{{ formatRole(activity.role) }}</span></td>
+                                <td>{{ formatDate(activity.created_at) }}</td>
                             </tr>
-                            <tr>
-                                <td>Reviewed an article</td>
-                                <td>Dustin Jake E. Nas</td>
-                                <td><span class="role-pill">Copy Editor</span></td>
-                                <td>Apr 4, 2026 09:01:52</td>
-                            </tr>
-                            <tr>
-                                <td>Approved an article</td>
-                                <td>Fernan Matthew A. Enimedez</td>
-                                <td><span class="role-pill">Editor-in-Chief</span></td>
-                                <td>Apr 3, 2026 07:07:42</td>
-                            </tr>
-                            <tr>
-                                <td>Added as Video Editor</td>
-                                <td>Emher Kenji A. Turiano</td>
-                                <td><span class="role-pill">Video Editor</span></td>
-                                <td>Apr 1, 2026 21:37:12</td>
-                            </tr>
-                            <tr>
-                                <td>Logged in</td>
-                                <td>Ma. Katrina P. Oliveros</td>
-                                <td><span class="role-pill">Managing Editor</span></td>
-                                <td>Apr 1, 2026 23:08:22</td>
+                            <tr v-if="!overview.activities.length">
+                                <td colspan="4" class="empty-activity">No activity has been recorded yet.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -319,7 +296,30 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'editorial-board'">
+                            <template v-if="['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab)">
+                            <tr v-for="member in paginatedManagementUsers" :key="member.id">
+                                <td>{{ member.name }}</td>
+                                <td>{{ member.email }}</td>
+                                <td><span class="role-pill">{{ formatRole(member.role) }}</span></td>
+                                <td>—</td>
+                                <td>—</td>
+                                <td>{{ formatDate(member.created_at) }}</td>
+                                <td>
+                                    <div class="action-icons">
+                                        <button class="action-btn edit" type="button" aria-label="Edit user" @click="openEditUser(member)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
+                                        </button>
+                                        <button class="action-btn delete" type="button" aria-label="Delete user" @click="openDeleteUser(member)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 1 2 1 2v2"></path></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            </template>
+                            <tr v-if="['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab) && !filteredManagementUsers.length">
+                                <td colspan="7" class="empty-activity">No matching users found.</td>
+                            </tr>
+                            <tr v-show="false">
                                 <td>Fernan Matthew A. Enimedez</td>
                                 <td>fenimedez@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Editor-in-Chief</span></td>
@@ -346,7 +346,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'editorial-board'">
+                            <tr v-show="false">
                                 <td>Dustin Jake E. Nas</td>
                                 <td>dujanas@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Copy Editor</span></td>
@@ -373,7 +373,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'editorial-board'">
+                            <tr v-show="false">
                                 <td>Emher Kenji A. Turiano</td>
                                 <td>emturiano@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Video Editor</span></td>
@@ -400,7 +400,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'staff-writers'">
+                            <tr v-show="false">
                                 <td>Johan Abinal</td>
                                 <td>jabinal@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Sports Writer</span></td>
@@ -427,7 +427,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'staff-writers'">
+                            <tr v-show="false">
                                 <td>Gabrielle M. Loquias</td>
                                 <td>gloquias@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Feature Writer</span></td>
@@ -454,7 +454,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'staff-writers'">
+                            <tr v-show="false">
                                 <td>Alaissa Nolasco</td>
                                 <td>alnolasco@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Layout Artist</span></td>
@@ -481,7 +481,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'staff-writers'">
+                            <tr v-show="false">
                                 <td>Samantha Ciscon</td>
                                 <td>samciscon@my.cspc.edu.ph</td>
                                 <td><span class="role-pill">Copyreader</span></td>
@@ -508,7 +508,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'readers'">
+                            <tr v-show="false">
                                 <td>Rica Subang</td>
                                 <td>rsubang@my.cspc.edu.ph</td>
                                 <td><span class="role-pill" style="background-color: #f1f5f9; color: #475569;">Reader</span></td>
@@ -535,7 +535,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-show="activeTab === 'user-management' || activeTab === 'readers'">
+                            <tr v-show="false">
                                 <td>Angelica Belano</td>
                                 <td>angebelano@my.cspc.edu.ph</td>
                                 <td><span class="role-pill" style="background-color: #f1f5f9; color: #475569;">Reader</span></td>
@@ -570,7 +570,18 @@
                 <div
                     style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
                     <div style="flex: 1; display: flex; justify-content: center;">
-                        <div class="pagination">
+                        <div v-if="['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab)" class="pagination">
+                            <button class="page-nav" :disabled="managementPage === 1" @click="managementPage--">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="m15 18-6-6 6-6" /></svg>
+                                Previous
+                            </button>
+                            <button v-for="page in managementPageCount" :key="page" class="page-btn" :class="{ active: managementPage === page }" @click="managementPage = page">{{ page }}</button>
+                            <button class="page-nav" :disabled="managementPage === managementPageCount" @click="managementPage++">
+                                Next
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m9 18 6-6-6-6" /></svg>
+                            </button>
+                        </div>
+                        <div v-else class="pagination">
                             <button class="page-nav">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -596,7 +607,7 @@
                         </div>
                     </div>
                     <div class="page-info">
-                        Showing <strong>12</strong> of <strong>61</strong> users
+                        Showing <strong>{{ ['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab) ? paginatedManagementUsers.length : 12 }}</strong> of <strong>{{ ['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab) ? filteredManagementUsers.length : 61 }}</strong> users
                     </div>
                 </div>
             </div>
@@ -642,6 +653,18 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <tr v-for="article in paginatedArticles" :key="article.id">
+                                <td>{{ article.title }}</td>
+                                <td><span class="section-pill">{{ article.section?.name || 'Unassigned' }}</span></td>
+                                <td>{{ article.monitoring_sheet_url || '—' }}</td>
+                                <td>{{ article.author?.name || 'Unknown' }}</td>
+                                <td><span class="status-pill" :class="articleStatusClass(article.status)">{{ articleStatusLabel(article.status) }}</span></td>
+                                <td>{{ formatDate(article.created_at) }}</td>
+                                <td><div class="action-icons"><button class="action-btn edit" type="button" aria-label="Edit article" @click="openEditArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></button><button class="action-btn delete" type="button" aria-label="Delete article" @click="openDeleteArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg></button></div></td>
+                            </tr>
+                            <tr v-if="!articles.length"><td colspan="7" class="empty-activity">No articles found.</td></tr>
+                        </tbody>
+                        <tbody v-if="false">
                             <tr>
                                 <td>Enrollment Update</td>
                                 <td><span class="section-pill">Sports</span></td>
@@ -782,6 +805,16 @@
                 <div style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
                     <div style="flex: 1; display: flex; justify-content: center;">
                         <div class="pagination">
+                            <button class="page-nav" :disabled="articlePage === 1" @click="articlePage--">Previous</button>
+                            <button v-for="page in articlePageCount" :key="page" class="page-btn" :class="{ active: articlePage === page }" @click="articlePage = page">{{ page }}</button>
+                            <button class="page-nav" :disabled="articlePage === articlePageCount" @click="articlePage++">Next</button>
+                        </div>
+                    </div>
+                    <div class="page-info">Showing <strong>{{ paginatedArticles.length }}</strong> of <strong>{{ articles.length }}</strong> articles</div>
+                </div>
+                <div v-if="false" style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
+                    <div style="flex: 1; display: flex; justify-content: center;">
+                        <div class="pagination">
                             <button class="page-nav">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="m15 18-6-6 6-6"/></svg>
                                 Previous
@@ -825,54 +858,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                    <td style="padding-left: 24px;">Issue 1</td>
-                                    <td><span class="pub-badge pub-newsletter">Newsletter</span></td>
-                                    <td>2025-2026</td>
-                                    <td>18</td>
-                                    <td>May 15, 2025</td>
-                                    <td style="padding-right: 24px;">
-                                        <button class="action-menu-btn">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                        </button>
-                                    </td>
+                                <tr v-for="sheet in pressworkSheets" :key="sheet.id" @click="openMonitoringSheet(sheet)" style="cursor: pointer;" class="clickable-row">
+                                    <td style="padding-left: 24px;">{{ sheet.press_work.title }}</td>
+                                    <td><span class="pub-badge" :class="pressworkBadgeClass(sheet.publication_type)">{{ sheet.publication_type }}</span></td>
+                                    <td>{{ sheet.press_work?.academic_year || '—' }}</td>
+                                    <td>—</td>
+                                    <td>{{ formatDate(sheet.created_at) }}</td>
+                                    <td style="padding-right: 24px;"><button class="action-menu-btn" type="button" @click.stop="openMonitoringSheet(sheet)" aria-label="Open monitoring sheet"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button></td>
                                 </tr>
-                                <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                    <td style="padding-left: 24px;">Issue 1</td>
-                                    <td><span class="pub-badge pub-tabloid">Tabloid</span></td>
-                                    <td>2025-2026</td>
-                                    <td>24</td>
-                                    <td>May 15, 2025</td>
-                                    <td style="padding-right: 24px;">
-                                        <button class="action-menu-btn">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                    <td style="padding-left: 24px;">Issue 1</td>
-                                    <td><span class="pub-badge pub-magazine">Magazine</span></td>
-                                    <td>2025-2026</td>
-                                    <td>14</td>
-                                    <td>May 15, 2025</td>
-                                    <td style="padding-right: 24px;">
-                                        <button class="action-menu-btn">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                    <td style="padding-left: 24px; border-bottom: none;">Issue 1</td>
-                                    <td style="border-bottom: none;"><span class="pub-badge pub-litfolio">Litfolio</span></td>
-                                    <td style="border-bottom: none;">2025-2026</td>
-                                    <td style="border-bottom: none;">12</td>
-                                    <td style="border-bottom: none;">May 15, 2025</td>
-                                    <td style="padding-right: 24px; border-bottom: none;">
-                                        <button class="action-menu-btn">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                        </button>
-                                    </td>
-                                </tr>
+                                <tr v-if="!pressWorks.length"><td colspan="6" class="empty-activity">No press works found.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -880,23 +874,12 @@
 
                 <div class="floating-pagination" style="margin-top: 20px;">
                     <div class="pagination" style="margin-top: 0;">
-                        <button class="page-nav">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="m15 18-6-6 6-6"/></svg>
-                            Previous
-                        </button>
+                        <button class="page-nav" disabled>Previous</button>
                         <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                        <button class="page-btn">3</button>
-                        <button class="page-btn">4</button>
-                        <button class="page-btn">5</button>
-                        <span style="margin: 0 4px; color: #555; font-weight: 700;">...</span>
-                        <button class="page-nav">
-                            Next
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m9 18 6-6-6-6"/></svg>
-                        </button>
+                        <button class="page-nav" disabled>Next</button>
                     </div>
                     <div class="page-info" style="margin-left: 0; padding-left: 32px; border-left: 1px solid #eef0f4;">
-                        Showing <strong>4</strong> Press Works
+                        Showing <strong>{{ pressworkSheets.length }}</strong> Monitoring Sheets
                     </div>
                 </div>
             </section>
@@ -1185,83 +1168,62 @@
     </div>
 
     <!-- Add New User Modal -->
-    <div class="modal-overlay" id="newUserModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Add New User</h2>
-                <button class="close-modal" id="closeModalBtnTop">
+    <div v-if="isNewUserModalOpen" class="new-user-modal-overlay" @click.self="closeNewUserModal">
+        <div class="new-user-modal" role="dialog" aria-modal="true" aria-labelledby="new-user-modal-title">
+            <div class="new-user-modal-header">
+                <h2 id="new-user-modal-title">Add New User</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="closeNewUserModal">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
 
             <!-- Step 1 -->
-            <div class="modal-step active" id="step1">
+            <div v-if="newUserStep === 1" class="new-user-step">
                 <div class="form-group">
                     <label class="form-label">Display Picture</label>
                     <div class="upload-box">
-                        <div class="upload-circle">
+                        <div class="upload-circle" :class="{ 'has-preview': newUserImagePreview }">
+                            <img v-if="newUserImagePreview" :src="newUserImagePreview" alt="Uploaded profile preview">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                         </div>
                         <div class="upload-info">
                             <p>Choose a file or drag & drop it here.<br>jpeg, png - Up to 10MB</p>
-                            <button class="btn-upload">Upload image <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></button>
+                            <input ref="newUserFileInput" type="file" accept="image/jpeg,image/png" hidden @change="handleNewUserImage">
+                            <button class="btn-upload" type="button" @click="newUserFileInput?.click()">Upload image <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="7" y2="8"></line></svg></button>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" class="form-control" placeholder="Given Names" style="margin-bottom: 12px;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <input type="text" class="form-control" placeholder="Middle Name">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" class="form-control" placeholder="Last Name">
-                        </div>
-                    </div>
+                    <label class="form-label">Username</label>
+                    <input v-model="newUserForm.name" type="text" class="form-control" placeholder="Username">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">CSPC Mail</label>
-                    <input type="email" class="form-control" placeholder="handle@my.cspc.edu.ph">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Academic Information</label>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <div class="input-icon-wrap">
-                                <input type="text" class="form-control" placeholder="Program" style="color: #1a73e8;">
-                                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" class="form-control" placeholder="Year & Section">
-                        </div>
-                    </div>
+                    <label class="form-label">Email</label>
+                    <input v-model="newUserForm.email" type="email" class="form-control" placeholder="handle@my.cspc.edu.ph">
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn-back" id="closeModalBtnBottom"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back</button>
-                    <button class="btn-next" onclick="goToStep(2)">Next</button>
+                    <button class="btn-back" type="button" @click="closeNewUserModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back</button>
+                    <button class="btn-next" type="button" @click="newUserStep = 2">Next</button>
                 </div>
             </div>
 
             <!-- Step 2 -->
-            <div class="modal-step" id="step2">
+            <div v-else-if="newUserStep === 2" class="new-user-step">
                 <div class="form-group">
                     <label class="form-label">Account Details</label>
                     <div class="form-row">
                         <div class="form-group">
                             <div class="input-icon-wrap">
-                                <input type="text" class="form-control" placeholder="Role" style="color: #1a73e8;">
+                                <select v-model="newUserForm.role" class="form-control select-control"><option value="" disabled>Role</option><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="reader">Reader</option></select>
                                 <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="input-icon-wrap">
-                                <input type="text" class="form-control" placeholder="Status" style="color: #1a73e8;">
+                                <select v-model="newUserForm.status" class="form-control select-control"><option value="" disabled>Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
                                 <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                             </div>
                         </div>
@@ -1271,36 +1233,95 @@
                 <div class="form-group">
                     <label class="form-label">Set Password</label>
                     <div class="input-icon-wrap" style="margin-bottom: 12px;">
-                        <input type="password" class="form-control" placeholder="Create Password">
+                        <input v-model="newUserForm.password" type="password" class="form-control" placeholder="Create Password">
                         <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </div>
                     <div class="input-icon-wrap">
-                        <input type="password" class="form-control" placeholder="Retype Password">
+                        <input v-model="newUserForm.passwordConfirmation" type="password" class="form-control" placeholder="Retype Password">
                         <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn-back" onclick="goToStep(1)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back</button>
-                    <button class="btn-next" onclick="goToStep(3)">Save Details</button>
+                    <button class="btn-back" type="button" @click="newUserStep = 1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back</button>
+                    <button class="btn-next" type="button" :disabled="newUserSaving" @click="saveNewUser">{{ newUserSaving ? 'Saving...' : 'Save Details' }}</button>
                 </div>
+                <p v-if="newUserError" class="new-user-error">{{ newUserError }}</p>
             </div>
 
             <!-- Step 3 (Success) -->
-            <div class="modal-step" id="step3">
-                <div class="modal-header" style="border:none; margin-bottom: 0;">
-                    <div></div> <!-- spacer -->
-                </div>
+            <div v-else class="new-user-step">
                 <div class="success-step">
                     <div class="success-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
                     <h3 class="success-title">User Added Successfully</h3>
                     <p class="success-text">A new user has been successfully created</p>
-                    <button class="btn-next btn-full" id="closeModalBtnSuccess">Close</button>
+                    <button class="btn-next btn-full" type="button" @click="closeNewUserModal">Close</button>
                 </div>
             </div>
         </div>
+    </div>
+    <div v-if="isEditUserModalOpen" class="new-user-modal-overlay" @click.self="closeEditUser">
+        <form class="new-user-modal" role="dialog" aria-modal="true" @submit.prevent="saveEditedUser">
+            <div class="new-user-modal-header">
+                <h2>Edit User</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="closeEditUser">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="new-user-step">
+                <div class="form-group"><label class="form-label">Username</label><input v-model="editUserForm.name" class="form-control" required></div>
+                <div class="form-group"><label class="form-label">Email</label><input v-model="editUserForm.email" type="email" class="form-control" required></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Role</label><select v-model="editUserForm.role" class="form-control select-control" required><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="reader">Reader</option></select></div>
+                    <div class="form-group"><label class="form-label">Status</label><select v-model="editUserForm.is_active" class="form-control select-control"><option :value="true">Active</option><option :value="false">Inactive</option></select></div>
+                </div>
+                <div class="form-group"><label class="form-label">New Password <span class="optional">(leave blank to keep)</span></label><input v-model="editUserForm.password" type="password" class="form-control" minlength="8"></div>
+                <p v-if="editUserError" class="new-user-error">{{ editUserError }}</p>
+                <div class="modal-footer"><button class="btn-back" type="button" @click="closeEditUser">Cancel</button><button class="btn-next" type="submit" :disabled="editUserSaving">{{ editUserSaving ? 'Saving...' : 'Save Changes' }}</button></div>
+            </div>
+        </form>
+    </div>
+    <div v-if="isDeleteUserModalOpen" class="new-user-modal-overlay" @click.self="closeDeleteUser">
+        <div class="new-user-modal new-user-confirm-modal" role="dialog" aria-modal="true">
+            <div class="new-user-modal-header"><h2>Delete User?</h2><button class="new-user-close" type="button" aria-label="Close" @click="closeDeleteUser"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+            <p>Delete <strong>{{ selectedUser?.name }}</strong>? This action cannot be undone.</p>
+            <p v-if="deleteUserError" class="new-user-error">{{ deleteUserError }}</p>
+            <div class="modal-footer"><button class="btn-back" type="button" @click="closeDeleteUser">Cancel</button><button class="btn-next btn-danger" type="button" :disabled="deleteUserSaving" @click="deleteSelectedUser">{{ deleteUserSaving ? 'Deleting...' : 'Delete User' }}</button></div>
+        </div>
+    </div>
+    <div v-if="isEditArticleModalOpen" class="new-user-modal-overlay" @click.self="closeEditArticle">
+        <form class="new-user-modal" role="dialog" aria-modal="true" @submit.prevent="saveEditedArticle">
+            <div class="new-user-modal-header"><h2>Edit Article</h2><button class="new-user-close" type="button" aria-label="Close" @click="closeEditArticle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+            <div class="new-user-step">
+                <div class="form-group"><label class="form-label">Title</label><input v-model="editArticleForm.title" class="form-control" required></div>
+                <div class="form-group"><label class="form-label">Status</label><select v-model="editArticleForm.status" class="form-control select-control"><option value="draft">Draft</option><option value="submitted">Submitted</option><option value="under_review">Under Review</option><option value="endorsed">Endorsed</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="published">Published</option></select></div>
+                <div class="form-group"><label class="form-label">Excerpt</label><textarea v-model="editArticleForm.excerpt" class="form-control article-excerpt-input" rows="8"></textarea></div>
+                <p v-if="editArticleError" class="new-user-error">{{ editArticleError }}</p>
+                <div class="modal-footer"><button class="btn-back" type="button" @click="closeEditArticle">Cancel</button><button class="btn-next" type="submit" :disabled="editArticleSaving">{{ editArticleSaving ? 'Saving...' : 'Save Changes' }}</button></div>
+            </div>
+        </form>
+    </div>
+    <div v-if="isDeleteArticleModalOpen" class="new-user-modal-overlay" @click.self="closeDeleteArticle">
+        <div class="new-user-modal new-user-confirm-modal" role="dialog" aria-modal="true">
+            <div class="new-user-modal-header"><h2>Delete Article?</h2><button class="new-user-close" type="button" aria-label="Close" @click="closeDeleteArticle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="2" y2="6"></line></svg></button></div>
+            <p>Delete <strong>{{ selectedArticle?.title }}</strong>? This action cannot be undone.</p>
+            <p v-if="deleteArticleError" class="new-user-error">{{ deleteArticleError }}</p>
+            <div class="modal-footer"><button class="btn-back" type="button" @click="closeDeleteArticle">Cancel</button><button class="btn-next btn-danger" type="button" :disabled="deleteArticleSaving" @click="deleteSelectedArticle">{{ deleteArticleSaving ? 'Deleting...' : 'Delete Article' }}</button></div>
+        </div>
+    </div>
+    <div v-if="isPressworkModalOpen" class="new-user-modal-overlay" @click.self="closePressworkModal">
+        <form class="new-user-modal" role="dialog" aria-modal="true" @submit.prevent="createPresswork">
+            <div class="new-user-modal-header"><h2>Add Presswork</h2><button class="new-user-close" type="button" aria-label="Close" @click="closePressworkModal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+            <div class="new-user-step">
+                <p class="presswork-modal-note">This creates one monitoring sheet for Newsletter, Tabloid, Magazine, and Litfolio.</p>
+                <div class="form-group"><label class="form-label" for="presswork-title">Presswork Name</label><input id="presswork-title" v-model="pressworkForm.title" class="form-control" placeholder="Issue 1" required></div>
+                <div class="form-group"><label class="form-label" for="presswork-year">Academic Year</label><input id="presswork-year" v-model="pressworkForm.academic_year" class="form-control" placeholder="2025-2026" required></div>
+                <p v-if="pressworkError" class="new-user-error">{{ pressworkError }}</p>
+                <div class="modal-footer"><button class="btn-back" type="button" @click="closePressworkModal">Cancel</button><button class="btn-next" type="submit" :disabled="pressworkSaving">{{ pressworkSaving ? 'Creating...' : 'Create Presswork' }}</button></div>
+            </div>
+        </form>
     </div>
     <!-- Assigned Task Quick Modal -->
     <AssignedTaskModal 
@@ -1319,16 +1340,372 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
+import { signOut as performSignOut } from '../../utils/auth';
 
+const router = useRouter();
 const activeTab = ref('overview');
+const adminUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
+const overview = ref({
+    summary: { articles: 0, users: 0, pending: 0, published: 0 },
+    user_activity: { active: [], new: [], active_count: 0, new_count: 0 },
+    workflow: { submitted: 0, in_review: 0 },
+    activities: [],
+    updated_at: null,
+});
+const users = ref([]);
+const articles = ref([]);
+const pressWorks = ref([]);
+const isPressworkModalOpen = ref(false);
+const pressworkSaving = ref(false);
+const pressworkError = ref('');
+const pressworkForm = ref({ title: '', academic_year: '2025-2026' });
+const articlePage = ref(1);
+const articlePageSize = 8;
+const managementPage = ref(1);
+const managementPageSize = 8;
+
+const filteredManagementUsers = computed(() => {
+    const rolesByTab = {
+        'user-management': ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'reader'],
+        'editorial-board': ['eic', 'section_editor'],
+        'staff-writers': ['staff_writer', 'staff_artist'],
+        readers: ['reader'],
+    };
+    return users.value
+    .filter(user => rolesByTab[activeTab.value]?.includes(user.role))
+    .sort((first, second) => first.name.localeCompare(second.name));
+});
+
+const managementPageCount = computed(() => Math.max(1, Math.ceil(filteredManagementUsers.value.length / managementPageSize)));
+const paginatedManagementUsers = computed(() => {
+    const start = (managementPage.value - 1) * managementPageSize;
+    return filteredManagementUsers.value.slice(start, start + managementPageSize);
+});
+
+const articlePageCount = computed(() => Math.max(1, Math.ceil(articles.value.length / articlePageSize)));
+const paginatedArticles = computed(() => {
+    const start = (articlePage.value - 1) * articlePageSize;
+    return articles.value.slice(start, start + articlePageSize);
+});
+
+const pressworkSheets = computed(() => pressWorks.value.flatMap(work => work.monitoring_sheets.map(sheet => ({ ...sheet, press_work: work }))));
+
+watch([managementPageCount, activeTab], ([pageCount]) => {
+    if (managementPage.value > pageCount) managementPage.value = pageCount;
+    if (activeTab.value !== 'user-management') managementPage.value = 1;
+});
+
+watch(articlePageCount, (pageCount) => {
+    if (articlePage.value > pageCount) articlePage.value = pageCount;
+});
+
+const updatedLabel = computed(() => overview.value.updated_at
+    ? `Updated ${new Date(overview.value.updated_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+    : 'Loading...');
+
+const formatCount = (value) => Number(value || 0).toLocaleString();
+
+const formatRole = (role) => {
+    if (role === 'system') return 'System';
+    if (role === 'eic') return 'Editor in Chief';
+    return (role || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
+const formatDate = (date) => date
+    ? new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+    : '—';
+
+const articleStatusLabel = (status) => (status || 'unknown').replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+const articleStatusClass = (status) => ({
+    published: 'published',
+    draft: 'draft',
+    rejected: 'revision',
+    under_review: 'review',
+    submitted: 'review',
+    endorsed: 'approved',
+    approved: 'approved',
+}[status] || 'draft');
+
+const avatarFallback = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=dbeafe&color=1d4ed8`;
+
+const loadOverview = async () => {
+    try {
+        const response = await fetch('/api/admin/overview', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) overview.value = await response.json();
+    } catch {
+        // Keep the zero-state visible if the overview endpoint is unavailable.
+    }
+};
+
+const loadUsers = async () => {
+    try {
+        const response = await fetch('/api/users', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) users.value = await response.json();
+    } catch {
+        users.value = [];
+    }
+};
+
+const loadArticles = async () => {
+    try {
+        const response = await fetch('/api/articles', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) articles.value = await response.json();
+    } catch {
+        articles.value = [];
+    }
+};
+
+const loadPressWorks = async () => {
+    try {
+        const response = await fetch('/api/press-works', { headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' } });
+        if (response.ok) pressWorks.value = await response.json();
+    } catch {
+        pressWorks.value = [];
+    }
+};
+
+onMounted(() => {
+    loadOverview();
+    loadUsers();
+    loadArticles();
+    loadPressWorks();
+});
 const openDropdown = ref(null);
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
 const selectedTask = ref({});
+const isNewUserModalOpen = ref(false);
+const newUserStep = ref(1);
+const newUserFileInput = ref(null);
+const newUserImagePreview = ref('');
+const newUserSaving = ref(false);
+const newUserError = ref('');
+const isEditUserModalOpen = ref(false);
+const isDeleteUserModalOpen = ref(false);
+const selectedUser = ref(null);
+const editUserSaving = ref(false);
+const deleteUserSaving = ref(false);
+const editUserError = ref('');
+const deleteUserError = ref('');
+const editUserForm = ref({ name: '', email: '', role: '', is_active: true, password: '' });
+const isEditArticleModalOpen = ref(false);
+const isDeleteArticleModalOpen = ref(false);
+const selectedArticle = ref(null);
+const editArticleSaving = ref(false);
+const deleteArticleSaving = ref(false);
+const editArticleError = ref('');
+const deleteArticleError = ref('');
+const editArticleForm = ref({ title: '', status: 'draft', excerpt: '' });
+const newUserForm = ref({
+    name: '',
+    email: '',
+    role: '',
+    status: '',
+    password: '',
+    passwordConfirmation: '',
+    image: null,
+});
+
+const openNewUserModal = () => {
+    newUserStep.value = 1;
+    newUserError.value = '';
+    isNewUserModalOpen.value = true;
+};
+
+const closeNewUserModal = () => {
+    isNewUserModalOpen.value = false;
+    newUserImagePreview.value = '';
+    newUserForm.value = { name: '', email: '', role: '', status: '', password: '', passwordConfirmation: '', image: null };
+};
+
+const handleNewUserImage = (event) => {
+    const image = event.target.files?.[0] || null;
+    newUserForm.value.image = image;
+    newUserImagePreview.value = image ? URL.createObjectURL(image) : '';
+};
+
+const openEditUser = (member) => {
+    selectedUser.value = member;
+    editUserForm.value = { name: member.name, email: member.email, role: member.role, is_active: member.is_active !== false, password: '' };
+    editUserError.value = '';
+    isEditUserModalOpen.value = true;
+};
+
+const closeEditUser = () => { isEditUserModalOpen.value = false; };
+
+const saveEditedUser = async () => {
+    if (!selectedUser.value) return;
+    editUserSaving.value = true;
+    editUserError.value = '';
+    const payload = { ...editUserForm.value };
+    if (!payload.password) delete payload.password;
+    try {
+        const response = await fetch(`/api/users/${selectedUser.value.id}`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || Object.values(data.errors || {})[0]?.[0] || 'Could not update user.');
+        const index = users.value.findIndex(user => user.id === data.id);
+        if (index !== -1) users.value[index] = data;
+        closeEditUser();
+    } catch (error) {
+        editUserError.value = error.message;
+    } finally {
+        editUserSaving.value = false;
+    }
+};
+
+const openDeleteUser = (member) => {
+    selectedUser.value = member;
+    deleteUserError.value = '';
+    isDeleteUserModalOpen.value = true;
+};
+
+const closeDeleteUser = () => { isDeleteUserModalOpen.value = false; };
+
+const deleteSelectedUser = async () => {
+    if (!selectedUser.value) return;
+    deleteUserSaving.value = true;
+    deleteUserError.value = '';
+    try {
+        const response = await fetch(`/api/users/${selectedUser.value.id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'Could not delete user.');
+        users.value = users.value.filter(user => user.id !== selectedUser.value.id);
+        closeDeleteUser();
+    } catch (error) {
+        deleteUserError.value = error.message;
+    } finally {
+        deleteUserSaving.value = false;
+    }
+};
+
+const openEditArticle = (article) => {
+    selectedArticle.value = article;
+    editArticleForm.value = { title: article.title, status: article.status, excerpt: article.excerpt || '' };
+    editArticleError.value = '';
+    isEditArticleModalOpen.value = true;
+};
+
+const closeEditArticle = () => { isEditArticleModalOpen.value = false; };
+
+const saveEditedArticle = async () => {
+    if (!selectedArticle.value) return;
+    editArticleSaving.value = true;
+    editArticleError.value = '';
+    try {
+        const response = await fetch(`/api/articles/${selectedArticle.value.id}`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(editArticleForm.value),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || Object.values(data.errors || {})[0]?.[0] || 'Could not update article.');
+        const index = articles.value.findIndex(article => article.id === data.id);
+        if (index !== -1) articles.value[index] = data;
+        closeEditArticle();
+    } catch (error) {
+        editArticleError.value = error.message;
+    } finally {
+        editArticleSaving.value = false;
+    }
+};
+
+const openDeleteArticle = (article) => {
+    selectedArticle.value = article;
+    deleteArticleError.value = '';
+    isDeleteArticleModalOpen.value = true;
+};
+
+const closeDeleteArticle = () => { isDeleteArticleModalOpen.value = false; };
+
+const deleteSelectedArticle = async () => {
+    if (!selectedArticle.value) return;
+    deleteArticleSaving.value = true;
+    deleteArticleError.value = '';
+    try {
+        const response = await fetch(`/api/articles/${selectedArticle.value.id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || 'Could not delete article.');
+        articles.value = articles.value.filter(article => article.id !== selectedArticle.value.id);
+        closeDeleteArticle();
+    } catch (error) {
+        deleteArticleError.value = error.message;
+    } finally {
+        deleteArticleSaving.value = false;
+    }
+};
+
+const saveNewUser = async () => {
+    newUserError.value = '';
+    if (!newUserForm.value.name || !newUserForm.value.email || !newUserForm.value.role || !newUserForm.value.password) {
+        newUserError.value = 'Please complete all required fields.';
+        return;
+    }
+    if (newUserForm.value.password !== newUserForm.value.passwordConfirmation) {
+        newUserError.value = 'Passwords do not match.';
+        return;
+    }
+
+    newUserSaving.value = true;
+    const payload = new FormData();
+    payload.append('name', newUserForm.value.name);
+    payload.append('email', newUserForm.value.email);
+    payload.append('role', newUserForm.value.role);
+    payload.append('password', newUserForm.value.password);
+    payload.append('is_active', newUserForm.value.status !== 'inactive' ? '1' : '0');
+    if (newUserForm.value.image) payload.append('profile_picture', newUserForm.value.image);
+
+    try {
+        const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+            body: payload,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const validationError = data.errors ? Object.values(data.errors)[0]?.[0] : data.message;
+            throw new Error(validationError || `Could not create user (${response.status}).`);
+        }
+        if (data.id) users.value.push(data);
+        newUserStep.value = 3;
+    } catch (error) {
+        newUserError.value = error.message || 'Could not connect to the server.';
+    } finally {
+        newUserSaving.value = false;
+    }
+};
 
 const openTaskModal = (task = {}) => {
     selectedTask.value = {
@@ -1349,7 +1726,42 @@ const handleOpenWorkspace = (taskData) => {
     isWorkspaceModalOpen.value = true;
 };
 
-const openMonitoringSheet = () => {
-    window.open('/monitoring-sheet', '_blank');
+const pressworkBadgeClass = (type) => ({
+    Newsletter: 'pub-newsletter',
+    Tabloid: 'pub-tabloid',
+    Magazine: 'pub-magazine',
+    Litfolio: 'pub-litfolio',
+}[type] || 'pub-newsletter');
+
+const openPressworkModal = () => {
+    pressworkForm.value = { title: '', academic_year: '2025-2026' };
+    pressworkError.value = '';
+    isPressworkModalOpen.value = true;
+};
+
+const closePressworkModal = () => { isPressworkModalOpen.value = false; };
+
+const createPresswork = async () => {
+    pressworkSaving.value = true;
+    pressworkError.value = '';
+    try {
+        const response = await fetch('/api/press-works', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(pressworkForm.value),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || Object.values(data.errors || {})[0]?.[0] || 'Could not create presswork.');
+        pressWorks.value.unshift(data);
+        closePressworkModal();
+    } catch (error) {
+        pressworkError.value = error.message;
+    } finally {
+        pressworkSaving.value = false;
+    }
+};
+
+const openMonitoringSheet = (sheet) => {
+    window.open(`/monitoring-sheet/${sheet.id}`, '_blank');
 };
 </script>

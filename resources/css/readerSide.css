@@ -1575,6 +1575,23 @@ body {
     border: 2px solid #ffffff;
 }
 
+.user-capsule-avatar-initials {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid #ffffff;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
+}
+
+
 .user-capsule-info {
     flex: 1;
     min-width: 0;

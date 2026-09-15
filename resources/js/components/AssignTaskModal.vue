@@ -13,7 +13,7 @@
                 </button>
             </div>
 
-            <!-- STEP 1: Article Info, Coverage, Section, Priority, Deadline -->
+            <!-- STEP 1: Article Info, Section, Priority, Deadline -->
             <div class="modal-body-step" v-if="currentStep === 1">
                 <div class="field-group">
                     <label class="field-label">Article Title</label>
@@ -21,20 +21,6 @@
                 </div>
 
                 <div class="field-row">
-                    <div class="field-group">
-                        <label class="field-label">Coverage</label>
-                        <div class="select-wrapper">
-                            <select class="pill-select" v-model="form.coverage">
-                                <option value="">Choose</option>
-                                <option value="AY 2025 - 2026 Issue 1">AY 2025 - 2026 Issue 1</option>
-                                <option value="Election Coverage 2026">Election Coverage 2026</option>
-                                <option value="Student Wellness">Student Wellness</option>
-                                <option value="Foundation Day 2026">Foundation Day 2026</option>
-                                <option value="Tech & Innovation Series">Tech & Innovation Series</option>
-                            </select>
-                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </div>
-                    </div>
                     <div class="field-group">
                         <label class="field-label">Section</label>
                         <div class="select-wrapper">
@@ -242,7 +228,7 @@ const onViewAssignments = () => {
     background: #ffffff;
     border-radius: 28px;
     width: 100%;
-    max-width: 480px;
+    max-width: 600px;
     padding: 32px 36px;
     box-sizing: border-box;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -304,6 +290,10 @@ const onViewAssignments = () => {
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     width: 100%;
+}
+
+.modal-body-step > .field-row:has(.field-group:only-child) {
+    grid-template-columns: 1fr;
 }
 
 .field-label {

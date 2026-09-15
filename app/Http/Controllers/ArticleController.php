@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Activity;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 
@@ -52,6 +53,7 @@ class ArticleController extends Controller
 
         $validated['author_id'] = $request->user()->id;
         $article = Article::create($validated);
+        Activity::record($request->user(), 'Created an article', $article);
 
         return response()->json($article->load(['author', 'section']), 201);
     }
@@ -73,6 +75,7 @@ class ArticleController extends Controller
         ]);
 
         $article->update($validated);
+        Activity::record($request->user(), 'Updated an article', $article);
 
         return response()->json($article->load(['author', 'section']));
     }
@@ -80,6 +83,7 @@ class ArticleController extends Controller
     /** Delete an article */
     public function destroy(Article $article)
     {
+        Activity::record(request()->user(), 'Deleted an article', $article);
         $article->delete();
         return response()->json(['message' => 'Article deleted successfully.']);
     }
@@ -91,6 +95,7 @@ class ArticleController extends Controller
             'status'       => Article::STATUS_SUBMITTED,
             'submitted_at' => now(),
         ]);
+        Activity::record($request->user(), 'Submitted an article', $article);
 
         // Notify section editors
         $this->notifySectionEditors($article, 'Article Submitted', "'{$article->title}' has been submitted for review.");
@@ -108,6 +113,7 @@ class ArticleController extends Controller
             'endorsed_at'  => now(),
             'editor_notes' => $request->editor_notes,
         ]);
+        Activity::record($request->user(), 'Endorsed an article', $article);
 
         // Notify EICs
         $this->notifyEICs($article, 'Article Endorsed', "'{$article->title}' has been endorsed and is awaiting your approval.");
@@ -134,6 +140,7 @@ class ArticleController extends Controller
             'approved_at' => now(),
             'eic_notes'   => $request->eic_notes,
         ]);
+        Activity::record($request->user(), 'Approved an article', $article);
 
         Notification::create([
             'user_id' => $article->author_id,
@@ -156,6 +163,7 @@ class ArticleController extends Controller
             'rejected_at'      => now(),
             'rejection_reason' => $request->rejection_reason,
         ]);
+        Activity::record($request->user(), 'Rejected an article', $article);
 
         Notification::create([
             'user_id' => $article->author_id,

@@ -77,13 +77,14 @@ const errorMsg = ref('');
 const loading = ref(false);
 const router = useRouter();
 
-// Role → dashboard route mapping
+// Role → destination mapping
 const roleDashboard = {
   admin:          '/admin',
   eic:            '/eic',
   section_editor: '/editor',
   staff_writer:   '/writer',
   staff_artist:   '/artist',
+  reader:         '/',   // Readers go to the public reader portal
 };
 
 const handleLogin = async () => {

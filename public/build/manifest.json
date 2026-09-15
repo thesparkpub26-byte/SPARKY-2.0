@@ -4,17 +4,17 @@
     "src": "Assets/Fractals.png"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CksH5_KN.css",
+    "file": "assets/app-DhTjvAMN.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BUiqeF4o.js",
+    "file": "assets/app-D-T8WqIc.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-BkE-iuMs.css"
+      "assets/app-Drjfgm0H.css"
     ]
   }
 }

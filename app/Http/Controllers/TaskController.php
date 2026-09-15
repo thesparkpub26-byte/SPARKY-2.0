@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\Activity;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 
@@ -57,6 +58,7 @@ class TaskController extends Controller
 
         $validated['assigned_by'] = $request->user()->id;
         $task = Task::create($validated);
+        Activity::record($request->user(), 'Assigned a task', $task);
 
         // Notify the assignee
         Notification::create([
@@ -88,6 +90,7 @@ class TaskController extends Controller
         ]);
 
         $task->update($validated);
+        Activity::record($request->user(), 'Updated a task', $task);
 
         return response()->json($task->load(['assignee', 'assignedBy', 'section', 'article']));
     }
@@ -95,6 +98,7 @@ class TaskController extends Controller
     /** Delete a task */
     public function destroy(Task $task)
     {
+        Activity::record(request()->user(), 'Deleted a task', $task);
         $task->delete();
         return response()->json(['message' => 'Task deleted successfully.']);
     }
@@ -108,6 +112,7 @@ class TaskController extends Controller
             'status' => Task::STATUS_SUBMITTED,
             'notes'  => $request->notes ?? $task->notes,
         ]);
+        Activity::record($request->user(), 'Submitted a task', $task);
 
         // Notify the task creator
         Notification::create([
@@ -130,6 +135,7 @@ class TaskController extends Controller
             'status' => Task::STATUS_RETURNED,
             'notes'  => $request->notes,
         ]);
+        Activity::record($request->user(), 'Returned a task', $task);
 
         Notification::create([
             'user_id' => $task->assignee_id,
@@ -149,6 +155,7 @@ class TaskController extends Controller
             'status'       => Task::STATUS_COMPLETED,
             'completed_at' => now(),
         ]);
+        Activity::record(request()->user(), 'Completed a task', $task);
 
         Notification::create([
             'user_id' => $task->assignee_id,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,7 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('sparky-token')->plainTextToken;
+        Activity::record($user, 'Logged in');
 
         return response()->json([
             'token' => $token,
@@ -44,6 +46,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        Activity::record($request->user(), 'Logged out');
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out successfully.']);
     }

@@ -3,17 +3,16 @@
 <div class="header-bar">
         <div class="header-title">
             <img src="/assets/Spark_Logo.png" alt="Logo">
-            <h1>TheSPARK Newsletter Monitoring Sheet</h1>
-        </div>
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="color: #64748b; font-size: 13px; font-weight: 500;">
-                Auto-saving enabled
+            <div>
+                <p class="eyebrow">{{ sheet?.press_work?.academic_year || 'Publication workspace' }}</p>
+                <h1>{{ sheet?.press_work?.title || 'TheSPARK' }} <span>{{ sheet?.publication_type || 'Newsletter' }} Monitoring Sheet</span></h1>
             </div>
-            <button @click.prevent="isAddTaskModalOpen = true"
-                style="background-color: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2); display: flex; align-items: center; gap: 8px; transition: background-color 0.2s;"
-                onmouseover="this.style.backgroundColor='#1d4ed8'" onmouseout="this.style.backgroundColor='#2563eb'">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        </div>
+        <div class="header-actions">
+            <span class="save-status"><i></i> Auto-saving enabled</span>
+            <button class="back-button" type="button" @click="goBack">Back to Press Works</button>
+            <button class="add-task-button" type="button" @click.prevent="isAddTaskModalOpen = true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
@@ -275,13 +274,23 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { onMounted, ref, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import AssignTaskModal from '../../components/AssignTaskModal.vue';
 
 const router = useRouter();
+const route = useRoute();
+const sheet = ref(null);
 const isAddTaskModalOpen = ref(false);
 const isUploadModalOpen = ref(false);
+
+onMounted(async () => {
+    if (!route.params.monitoringSheet) return;
+    const response = await fetch(`/api/monitoring-sheets/${route.params.monitoringSheet}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
+    });
+    if (response.ok) sheet.value = await response.json();
+});
 
 const selectedCategory = ref('');
 
@@ -657,5 +666,239 @@ body {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .monitoring-page-wrapper {
+            background: #eef3f8;
+            color: #172033;
+        }
+
+        .header-bar {
+            min-height: 82px;
+            padding: 16px 28px;
+            background: #ffffff;
+            border-bottom: 1px solid #dbe4ee;
+            box-shadow: 0 8px 24px rgba(32, 54, 78, 0.06);
+        }
+
+        .header-title {
+            gap: 14px;
+        }
+
+        .header-title img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+        }
+
+        .header-title h1 {
+            font-size: 19px;
+            letter-spacing: -0.2px;
+        }
+
+        .header-title h1 span {
+            color: #2563eb;
+        }
+
+        .eyebrow {
+            margin: 0 0 4px;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .save-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-right: 8px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .save-status i {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 0 3px #dcfce7;
+        }
+
+        .back-button,
+        .add-task-button {
+            min-height: 38px;
+            padding: 0 15px;
+            border-radius: 9px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .back-button {
+            border: 1px solid #d7e0ea;
+            background: #ffffff;
+            color: #475569;
+        }
+
+        .back-button:hover {
+            background: #f8fafc;
+            border-color: #b8c7d8;
+        }
+
+        .add-task-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 0;
+            background: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 5px 12px rgba(37, 99, 235, 0.22);
+        }
+
+        .add-task-button:hover {
+            background: #1d4ed8;
+        }
+
+        .table-container {
+            margin: 18px 12px 24px;
+            width: calc(100% - 24px);
+            box-sizing: border-box;
+            border: 1px solid #dbe4ee;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 12px 30px rgba(32, 54, 78, 0.08);
+            padding-right: 0;
+        }
+
+        .table-container table {
+            width: 100%;
+            min-width: 1040px;
+            margin-right: 0;
+            table-layout: fixed;
+        }
+
+        .table-container th {
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .table-container td {
+            white-space: normal;
+        }
+
+        .table-container thead tr:first-child th {
+            height: 61px;
+            min-height: 61px;
+            padding-top: 0;
+            padding-bottom: 0;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+
+        .table-container thead tr:nth-child(2) th.col-header {
+            top: 61px;
+            z-index: 11;
+            border-top: 1px solid #dbe4ee;
+        }
+
+        .table-container thead tr:first-child th:last-child {
+            border-top-right-radius: 10px;
+        }
+
+        .table-container tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 10px;
+        }
+
+        th,
+        td {
+            padding: 13px 16px;
+            font-size: 12px;
+            border-color: #e8eef5;
+        }
+
+        th.group-header {
+            padding-top: 15px;
+            padding-bottom: 15px;
+            font-size: 11px;
+            letter-spacing: 0.9px;
+        }
+
+        th.col-header {
+            padding-top: 11px;
+            padding-bottom: 11px;
+            font-size: 11px;
+            letter-spacing: 0.2px;
+        }
+
+        .sticky-col {
+            min-width: 230px;
+            max-width: 280px;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: #fbfdff;
+        }
+
+        tbody tr:hover td,
+        tbody tr:hover .sticky-col {
+            background: #eff6ff;
+        }
+
+        .pub-badge {
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 10px;
+        }
+
+        .inline-select {
+            min-width: 105px;
+            padding: 7px 9px;
+            border-radius: 7px;
+            font-size: 11px;
+        }
+
+        input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+        }
+
+        @media (max-width: 760px) {
+            .header-bar {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 14px;
+                padding: 16px 18px;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .save-status {
+                width: 100%;
+                margin: 0;
+            }
+
+            .table-container {
+                margin: 14px 12px 18px;
+            }
+        }
+
+        @media (min-width: 761px) {
+            .table-container {
+                overflow-x: hidden;
+                overflow-y: hidden;
+            }
         }
 </style>

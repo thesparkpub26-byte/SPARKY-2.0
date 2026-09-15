@@ -62,7 +62,11 @@
             <p v-if="isMismatch" style="color: #d93025; font-size: 13px; font-weight: 500; margin-top: 10px;">Passwords do not match.</p>
           </div>
           
-          <button type="submit" class="submit-btn" :disabled="isMismatch">Sign Up</button>
+          <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+
+        <button type="submit" class="submit-btn" :disabled="isMismatch || loading">
+            {{ loading ? 'Sending code…' : 'Sign Up' }}
+          </button>
         </form>
         
         <p class="signup-text">Already have an account? <router-link to="/login">Sign In</router-link></p>
@@ -81,15 +85,71 @@ const password = ref('');
 const confirmPassword = ref('');
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+const errorMsg = ref('');
+const loading = ref(false);
 const router = useRouter();
 
 const isMismatch = computed(() => {
   return confirmPassword.value.length > 0 && password.value !== confirmPassword.value;
 });
 
-const handleSignUp = () => {
-  if (!isMismatch.value) {
+const handleSignUp = async () => {
+  if (isMismatch.value) return;
+
+  errorMsg.value = '';
+  loading.value = true;
+
+  try {
+    const response = await fetch('/api/register/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        name: name.value,
+        email: email.value,
+        password: password.value,
+        password_confirmation: confirmPassword.value,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Show first validation error found
+      const firstError = data.errors
+        ? Object.values(data.errors)[0][0]
+        : data.message;
+      errorMsg.value = firstError || 'Something went wrong. Please try again.';
+      return;
+    }
+
+    // Save email so OtpView can use it for verification
+    sessionStorage.setItem('otp_email', email.value);
+    sessionStorage.setItem('otp_name', name.value);
+
     router.push('/otp');
+
+  } catch (err) {
+    errorMsg.value = 'Could not connect to the server. Please try again.';
+  } finally {
+    loading.value = false;
   }
 };
 </script>
+
+<style scoped>
+.error-msg {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

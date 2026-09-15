@@ -2,11 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SectionController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\PressWorkController;
+use App\Http\Controllers\MonitoringSheetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,7 +20,10 @@ use App\Http\Controllers\SectionController;
 */
 
 // Public routes (no auth required)
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login',          [AuthController::class,  'login']);
+Route::post('/register/send-otp',   [RegisterController::class, 'sendOtp']);
+Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp']);
+Route::post('/register/resend-otp', [RegisterController::class, 'resendOtp']);
 
 // Protected routes (require Sanctum token)
 Route::middleware('auth:sanctum')->group(function () {
@@ -24,6 +31,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/admin/overview', [AdminController::class, 'overview']);
+    Route::get('/press-works', [PressWorkController::class, 'index']);
+    Route::post('/press-works', [PressWorkController::class, 'store']);
+    Route::get('/monitoring-sheets/{monitoringSheet}', [MonitoringSheetController::class, 'show']);
+
+    // Self-service profile
+    Route::post('/profile',         [UserController::class, 'updateProfile']);   // multipart/form-data
+    Route::delete('/profile',       [UserController::class, 'deleteAccount']);
 
     // Users (Admin only actions wrapped in frontend)
     Route::apiResource('users', UserController::class);

@@ -62,31 +62,36 @@
       </button>
     </div>
 
-    <!-- State 1: Logged In User -->
-    <div v-if="isSignedIn" class="menu-state-content">
+    <!-- State 1: Logged In -->
+    <div v-if="isLoggedIn" class="menu-state-content">
       <div class="user-capsule-card">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="#cbd5e1" class="user-capsule-avatar">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"/>
-        </svg>
+      <router-link to="/profile" @click="closeMenu" class="avatar-link" title="View Profile">
+          <img
+            v-if="currentUser.profile_picture_url"
+            :src="currentUser.profile_picture_url"
+            class="user-capsule-avatar"
+            alt="Profile"
+          />
+          <div v-else class="user-capsule-avatar-initials">
+            {{ userInitials }}
+          </div>
+        </router-link>
         <div class="user-capsule-info">
-          <div class="user-capsule-name">Kenji Turiano</div>
-          <div class="user-capsule-email">sec.editor@thesparkpub.com</div>
+          <div class="user-capsule-name">{{ currentUser.name }}</div>
+          <div class="user-capsule-email">{{ currentUser.email }}</div>
         </div>
-        <router-link to="/editor" class="user-capsule-icon-btn" title="Control Settings" @click="closeMenu">
+        <!-- Dashboard shortcut — only for staff roles -->
+        <router-link v-if="isStaff" :to="staffDashboardPath" class="user-capsule-icon-btn" title="Go to Dashboard" @click="closeMenu">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="4" y1="21" x2="4" y2="14"/>
-            <line x1="4" y1="10" x2="4" y2="3"/>
-            <line x1="12" y1="21" x2="12" y2="12"/>
-            <line x1="12" y1="8" x2="12" y2="3"/>
-            <line x1="20" y1="21" x2="20" y2="16"/>
-            <line x1="20" y1="12" x2="20" y2="3"/>
-            <line x1="1" y1="14" x2="7" y2="14"/>
-            <line x1="9" y1="8" x2="15" y2="8"/>
+            <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+            <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+            <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/>
             <line x1="17" y1="16" x2="23" y2="16"/>
           </svg>
         </router-link>
       </div>
-      <button class="btn-menu-signout" @click="isSignedIn = false">
+      <button class="btn-menu-signout" @click="signOut">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
           <polyline points="16 17 21 12 16 7"/>
@@ -96,7 +101,7 @@
       </button>
     </div>
 
-    <!-- State 2: Logged Out / Sign In -->
+    <!-- State 2: Not Logged In -->
     <div v-else class="menu-state-content">
       <router-link to="/login" class="signin-capsule-card" @click="closeMenu">
         <div class="signin-icon-circle">
@@ -112,34 +117,56 @@
       </router-link>
     </div>
 
-    <!-- State Switcher Toggle -->
-    <div class="menu-state-toggle-row">
-      <button class="menu-state-toggle-btn" @click="isSignedIn = !isSignedIn">
-        Switch View (Signed In &harr; Signed Out)
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { signOut as performSignOut } from '../utils/auth';
 
-const route = useRoute();
+const route  = useRoute();
+const router = useRouter();
 const currentRoute = computed(() => route.path);
 
 const isMenuOpen = ref(false);
-const isSignedIn = ref(true);
 
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value;
+// ── Real auth state from localStorage ────────────────────────────────────────
+const rawUser    = localStorage.getItem('sparky_user');
+const currentUser = ref(rawUser ? JSON.parse(rawUser) : null);
+const isLoggedIn  = computed(() => !!currentUser.value);
+
+// Re-read user from localStorage on mount (picks up profile_picture_url set after upload)
+onMounted(() => {
+  const stored = localStorage.getItem('sparky_user');
+  if (stored) currentUser.value = JSON.parse(stored);
+});
+
+const userInitials = computed(() => {
+  const name = currentUser.value?.name || '';
+  return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2) || '?';
+});
+
+const STAFF_ROLES = ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist'];
+const isStaff     = computed(() => STAFF_ROLES.includes(currentUser.value?.role));
+
+const dashMap = {
+  admin:          '/admin',
+  eic:            '/eic',
+  section_editor: '/editor',
+  staff_writer:   '/writer',
+  staff_artist:   '/artist',
 };
+const staffDashboardPath = computed(() => dashMap[currentUser.value?.role] || '/');
 
-const closeMenu = () => {
-  isMenuOpen.value = false;
-};
+// ── Actions ───────────────────────────────────────────────────────────────────
+const toggleMenu   = () => { isMenuOpen.value = !isMenuOpen.value; };
+const closeMenu    = () => { isMenuOpen.value = false; };
+const toggleSearch = () => { /* expand search overlay */ };
 
-const toggleSearch = () => {
-  // Can expand search overlay or navigate
+const signOut = async () => {
+  currentUser.value = null;
+  closeMenu();
+  await performSignOut(router);
 };
 </script>

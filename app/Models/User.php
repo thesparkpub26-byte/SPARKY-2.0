@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -20,7 +21,10 @@ class User extends Authenticatable
         'avatar',
         'bio',
         'is_active',
+        'profile_picture',
     ];
+
+    protected $appends = ['profile_picture_url'];
 
     protected $hidden = [
         'password',
@@ -37,11 +41,12 @@ class User extends Authenticatable
     }
 
     // Role constants
-    const ROLE_ADMIN = 'admin';
-    const ROLE_EIC = 'eic';
+    const ROLE_ADMIN          = 'admin';
+    const ROLE_EIC            = 'eic';
     const ROLE_SECTION_EDITOR = 'section_editor';
-    const ROLE_STAFF_WRITER = 'staff_writer';
-    const ROLE_STAFF_ARTIST = 'staff_artist';
+    const ROLE_STAFF_WRITER   = 'staff_writer';
+    const ROLE_STAFF_ARTIST   = 'staff_artist';
+    const ROLE_READER         = 'reader';
 
     // Relationships
     public function section()
@@ -70,9 +75,30 @@ class User extends Authenticatable
     }
 
     // Role helpers
-    public function isAdmin(): bool { return $this->role === self::ROLE_ADMIN; }
-    public function isEIC(): bool { return $this->role === self::ROLE_EIC; }
+    public function isAdmin(): bool         { return $this->role === self::ROLE_ADMIN; }
+    public function isEIC(): bool           { return $this->role === self::ROLE_EIC; }
     public function isSectionEditor(): bool { return $this->role === self::ROLE_SECTION_EDITOR; }
-    public function isStaffWriter(): bool { return $this->role === self::ROLE_STAFF_WRITER; }
-    public function isStaffArtist(): bool { return $this->role === self::ROLE_STAFF_ARTIST; }
+    public function isStaffWriter(): bool   { return $this->role === self::ROLE_STAFF_WRITER; }
+    public function isStaffArtist(): bool   { return $this->role === self::ROLE_STAFF_ARTIST; }
+    public function isReader(): bool        { return $this->role === self::ROLE_READER; }
+
+    public function isStaff(): bool
+    {
+        return in_array($this->role, [
+            self::ROLE_ADMIN, self::ROLE_EIC,
+            self::ROLE_SECTION_EDITOR, self::ROLE_STAFF_WRITER, self::ROLE_STAFF_ARTIST,
+        ]);
+    }
+
+    /**
+     * Full public URL for the profile picture.
+     * Returns null if no picture has been set.
+     */
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        if (!$this->profile_picture) {
+            return null;
+        }
+        return Storage::disk('public')->url($this->profile_picture);
+    }
 }
