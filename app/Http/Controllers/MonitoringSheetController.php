@@ -49,15 +49,15 @@ class MonitoringSheetController extends Controller
 
         $validated = $request->validate([
             'topic' => 'nullable|string|max:500',
-            'section' => 'sometimes|string|max:50',
+            'section' => 'nullable|string|max:50',
             'article_type' => 'nullable|string|max:100',
             'medium' => 'nullable|string|max:50',
             'writer_assigned' => 'nullable|string|max:255',
             'media_type' => 'nullable|string|max:50',
             'artist_assigned' => 'nullable|string|max:255',
-            'interview_completed' => 'boolean',
+            'interview_completed' => 'nullable|boolean',
             'storage_url' => 'nullable|string|max:500',
-            'has_files' => 'boolean',
+            'has_files' => 'nullable|boolean',
             'current_status' => 'nullable|string|max:100',
             'description' => 'nullable|string',
             'priority' => 'nullable|in:Low,Moderate,High,Urgent',

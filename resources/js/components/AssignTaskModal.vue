@@ -142,11 +142,12 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                         Back
                     </button>
-                    <button class="btn-blue-pill" @click="submitTask">
+                    <button class="btn-blue-pill" @click="submitTask" :disabled="isSubmitting">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Done
+                        {{ isSubmitting ? 'Adding...' : 'Done' }}
                     </button>
                 </div>
+                <p v-if="errorMessage" class="assign-task-error">{{ errorMessage }}</p>
             </div>
 
             <!-- STEP 3: SE_AssignmentDone Confirmation -->
@@ -194,6 +195,8 @@ const props = defineProps({
 const emit = defineEmits(['close', 'view-assignments', 'task-added']);
 
 const currentStep = ref(1);
+const errorMessage = ref('');
+const isSubmitting = ref(false);
 
 const articleTypeMap = {
     'News': ['Special Report', 'Full News', 'News Bit', 'News Features', 'In-Depth News'],
@@ -229,6 +232,7 @@ watch(() => form.value.section, () => {
 watch(() => props.isOpen, (newVal) => {
     if (newVal) {
         currentStep.value = 1;
+        errorMessage.value = '';
     }
 });
 
@@ -245,6 +249,35 @@ const onViewAssignments = () => {
 };
 
 const submitTask = async () => {
+    errorMessage.value = '';
+    isSubmitting.value = true;
+
+    // Validation: Check required fields
+    const requiredFields = [
+        { field: form.value.title, name: 'Article Title' },
+        { field: form.value.section, name: 'Section' },
+        { field: form.value.article_type, name: 'Type of Article' },
+        { field: form.value.priority, name: 'Priority' },
+        { field: form.value.dueDate, name: 'Deadline Date' },
+        { field: form.value.writer, name: 'Writer Assignee' }
+    ];
+
+    const missingFields = requiredFields.filter(({ field }) => !field || field.trim() === '');
+
+    if (missingFields.length > 0) {
+        const fieldNames = missingFields.map(({ name }) => name).join(', ');
+        errorMessage.value = `Please fill in the following required fields: ${fieldNames}`;
+        isSubmitting.value = false;
+        return;
+    }
+
+    // Validate artist assignment if graphics are needed
+    if (!form.value.noGraphics && !form.value.mediaArtist) {
+        errorMessage.value = 'Please select a PJ/Artist Assignee or check "No Graphics Needed"';
+        isSubmitting.value = false;
+        return;
+    }
+
     try {
         const response = await fetch(`/api/monitoring-sheets/${props.monitoringSheetId}/entries`, {
             method: 'POST',
@@ -275,11 +308,13 @@ const submitTask = async () => {
             currentStep.value = 3;
         } else {
             console.error('Failed to add task');
-            alert('Failed to add task. Please try again.');
+            errorMessage.value = 'Failed to add task. Please try again.';
         }
     } catch (error) {
         console.error('Error adding task:', error);
-        alert('An error occurred. Please try again.');
+        errorMessage.value = 'An error occurred. Please try again.';
+    } finally {
+        isSubmitting.value = false;
     }
 };
 </script>
@@ -549,9 +584,25 @@ const submitTask = async () => {
 }
 
 .btn-blue-pill:hover {
-    background-color: #1557b0;
-    box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
+    background-color: #1558c6;
     transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
+}
+
+.btn-blue-pill:disabled {
+    background-color: #93c5fd;
+    cursor: wait;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
+.assign-task-error {
+    margin: 12px 0 0;
+    color: #c62828;
+    font-size: 12px;
+    text-align: right;
+    font-weight: 600;
 }
 
 .btn-blue-pill:active {
