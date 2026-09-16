@@ -21,6 +21,7 @@ import SectionEditorDashboard from '../views/dashboards/SectionEditorDashboard.v
 import StaffWriterDashboard from '../views/dashboards/StaffWriterDashboard.vue';
 import StaffArtistDashboard from '../views/dashboards/StaffArtistDashboard.vue';
 import MonitoringSheetView from '../views/dashboards/MonitoringSheetView.vue';
+import FileStorageView from '../views/dashboards/FileStorageView.vue';
 import ProfileView from '../views/ProfileView.vue';
 
 // Staff roles that can access dashboards
@@ -50,6 +51,7 @@ const routes = [
   { path: '/monitoring-sheet', name: 'MonitoringSheetView', component: MonitoringSheetView, meta: { requiresStaff: true } },
   { path: '/monitoring-sheet/:monitoringSheet', name: 'MonitoringSheetDetailView', component: MonitoringSheetView, meta: { requiresStaff: true } },
   { path: '/monitoring_sheet_fullscreen.html', redirect: '/monitoring-sheet' },
+  { path: '/storage/:entryId', name: 'FileStorageView', component: FileStorageView, meta: { requiresStaff: true } },
 
   // Profile (any logged-in user)
   { path: '/profile', name: 'ProfileView', component: ProfileView, meta: { requiresAuth: true } },

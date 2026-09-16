@@ -40,193 +40,85 @@
 
                     <th class="col-header group-data">Interview</th>
                     <th class="col-header group-data">Storage</th>
-                    <th class="col-header group-data">Upload</th>
+                    <th class="col-header group-data">Upload Article</th>
 
                     <th class="col-header group-edit">Current Status</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Row 1 -->
-                <tr>
-                    <td class="sticky-col">Renovation of Canteen</td>
-                    <td><strong>News</strong></td>
-                    <td><span class="pub-badge" style="background: #fce7f3; color: #db2777;">Special Report</span></td>
-                    <td>English</td>
-                    <td>Samantha</td>
-                    <td>Photo/s</td>
-                    <td>
-                        <select class="inline-select" onchange="handleArtistAssignment(this)">
-                            <option selected>Sheyn</option>
-                            <option>Jp</option>
-                            <option>Dan</option>
-                            <option>N/A</option>
-                        </select>
-                    </td>
+                <template v-for="(sectionEntries, section) in groupedEntries" :key="section">
+                    <tr v-for="entry in sectionEntries" :key="entry.id">
+                        <td class="sticky-col" style="text-align: center;">{{ entry.topic || 'Untitled' }}</td>
+                        <td><strong>{{ entry.section }}</strong></td>
+                        <td>
+                            <span v-if="entry.article_type" class="pub-badge" :style="getArticleTypeStyle(entry.article_type)">
+                                {{ entry.article_type }}
+                            </span>
+                            <span v-else style="color: #94a3b8; font-size: 12px;">-</span>
+                        </td>
+                        <td>{{ entry.medium || 'English' }}</td>
+                        <td>{{ entry.writer_assigned || '-' }}</td>
+                        <td>{{ entry.media_type || 'Photo/s' }}</td>
+                        <td>
+                            <span v-if="entry.artist_assigned" style="font-weight: 600; color: #334155; font-size: 12px;">
+                                {{ entry.artist_assigned }}
+                            </span>
+                            <span v-else style="color: #94a3b8; font-size: 12px;">-</span>
+                        </td>
 
-                    <td><input type="checkbox" checked></td>
-                    <td>
-                        <a href="#"
-                            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            Files
-                        </a>
-                    </td>
-                    <td>
-                        <button @click.prevent="isUploadModalOpen = true"
-                            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;"
-                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
-                            onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                        </button>
-                    </td>
+                        <td><input type="checkbox" v-model="entry.interview_completed" @change="updateEntry(entry)"></td>
+                        <td>
+                            <!-- No Graphics case -->
+                            <span v-if="entry.artist_assigned === 'No Graphics'"
+                                style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; background: #fef2f2; color: #ef4444; font-weight: 700; font-size: 11px; border-radius: 999px; border: 1px dashed #fca5a5; white-space: nowrap;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                No Graphics Needed
+                            </span>
+                            <!-- Has files — pressable folder -->
+                            <button v-else-if="entry.has_files"
+                                @click="openStorage(entry)"
+                                style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; border: 1px solid #bae6fd; border-radius: 6px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.background='#bae6fd'"
+                                onmouseout="this.style.background='#e0f2fe'">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                                Open Folder
+                            </button>
+                            <!-- No files yet — empty folder -->
+                            <button v-else
+                                @click="openStorage(entry)"
+                                style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #f8fafc; color: #94a3b8; font-weight: 700; font-size: 12px; border: 1px dashed #cbd5e1; border-radius: 6px; cursor: pointer; transition: all 0.2s;"
+                                onmouseover="this.style.background='#f1f5f9'; this.style.color='#475569'"
+                                onmouseout="this.style.background='#f8fafc'; this.style.color='#94a3b8'">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                                Empty Folder
+                            </button>
+                        </td>
+                        <td>
+                            <button @click="openUploadModal(entry)"
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s; z-index: 10; position: relative;"
+                                onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'; this.style.borderColor='#94a3b8'"
+                                onmouseout="this.style.background='white'; this.style.color='#475569'; this.style.borderColor='#cbd5e1'" title="Upload Article">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                            </button>
+                        </td>
 
-                    <td><span class="pub-badge" style="background: #fef08a; color: #a16207;">Copyreader</span></td>
-                </tr>
-                <!-- Row 2 -->
-                <tr>
-                    <td class="sticky-col">SSC Water and Sanitary Dispenser</td>
-                    <td><strong>News</strong></td>
-                    <td><span class="pub-badge" style="background: #fef08a; color: #a16207;">Full News</span></td>
-                    <td>English</td>
-                    <td>Alaissa</td>
-                    <td>Photo/s</td>
-                    <td>
-                        <select class="inline-select" onchange="handleArtistAssignment(this)">
-                            <option>Sheyn</option>
-                            <option selected>Jp</option>
-                            <option>Dan</option>
-                            <option>N/A</option>
-                        </select>
+                        <td>
+                            <span class="pub-badge" :style="getStatusStyle(entry.current_status)">
+                                {{ entry.current_status || 'Pending' }}
+                            </span>
+                        </td>
+                    </tr>
+                </template>
+                <tr v-if="entries.length === 0">
+                    <td colspan="11" style="text-align: center; padding: 40px; color: #94a3b8;">
+                        No entries yet. Click "Add Task" to create your first entry.
                     </td>
-
-                    <td><input type="checkbox" checked></td>
-                    <td>
-                        <a href="#"
-                            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            Files
-                        </a>
-                    </td>
-                    <td>
-                        <button @click.prevent="isUploadModalOpen = true"
-                            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;"
-                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
-                            onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                        </button>
-                    </td>
-
-                    <td><span class="pub-badge" style="background: #dbeafe; color: #1d4ed8;">Section Editor</span></td>
-                </tr>
-                <!-- Row 3 -->
-                <tr>
-                    <td class="sticky-col">RLE Fee (Promissory, Transparency)</td>
-                    <td><strong>News</strong></td>
-                    <td><span class="pub-badge" style="background: #fae8ff; color: #c026d3;">In-Depth News</span></td>
-                    <td>English</td>
-                    <td>Johan</td>
-                    <td>Graphic/s</td>
-                    <td>
-                        <select class="inline-select" onchange="handleArtistAssignment(this)">
-                            <option>Sheyn</option>
-                            <option>Jp</option>
-                            <option selected>Dan</option>
-                            <option>N/A</option>
-                        </select>
-                    </td>
-
-                    <td><input type="checkbox"></td>
-                    <td>
-                        <a href="#"
-                            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #e0f2fe; color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none; border-radius: 6px; border: 1px solid #bae6fd;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            Files
-                        </a>
-                    </td>
-                    <td>
-                        <button @click.prevent="isUploadModalOpen = true"
-                            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;"
-                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
-                            onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                        </button>
-                    </td>
-
-                    <td><span class="pub-badge" style="background: #dcfce7; color: #15803d;">For Layouting</span></td>
-                </tr>
-                <!-- Row 4 -->
-                <tr>
-                    <td class="sticky-col">Thesis Using AI</td>
-                    <td><strong>Op-Ed</strong></td>
-                    <td><span class="pub-badge" style="background: #f3e8ff; color: #7e22ce;">Opinion</span></td>
-                    <td>English</td>
-                    <td>Rosezhen</td>
-                    <td>No Media</td>
-                    <td>
-                        <select class="inline-select" onchange="handleArtistAssignment(this)">
-                            <option>Sheyn</option>
-                            <option>Jp</option>
-                            <option>Dan</option>
-                            <option selected>N/A</option>
-                        </select>
-                    </td>
-
-                    <td><input type="checkbox" disabled></td>
-                    <td>
-                        <span style="color: #94a3b8; font-size: 12px; font-weight: 600;">No Files</span>
-                    </td>
-                    <td>
-                        <button @click.prevent="isUploadModalOpen = true"
-                            style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; color: #475569; transition: all 0.2s;"
-                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a'"
-                            onmouseout="this.style.background='white'; this.style.color='#475569'" title="Upload Files">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                        </button>
-                    </td>
-
-                    <td><span class="pub-badge" style="background: #f1f5f9; color: #475569;">Pending</span></td>
                 </tr>
             </tbody>
         </table>
@@ -235,36 +127,55 @@
     <!-- Add Task Modal -->
     <AssignTaskModal 
         :is-open="isAddTaskModalOpen" 
+        :monitoring-sheet-id="sheet?.id"
         @close="isAddTaskModalOpen = false" 
+        @task-added="loadEntries"
     />
 
     <!-- Upload Article Modal -->
-    <div class="modal-overlay" :style="{ display: isUploadModalOpen ? 'flex' : 'none' }">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Upload Article</h2>
-                <button class="modal-close" @click.prevent="isUploadModalOpen = false">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+    <div id="uploadModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; padding: 32px; border-radius: 16px; width: 80%; max-width: 1200px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 24px; font-weight: 800; color: #0f172a; font-family: 'Manrope', sans-serif;">Upload Article</h2>
+                    <p style="margin: 0; color: #64748b; font-size: 14px;">Enter the article details below</p>
+                </div>
+                <button onclick="window.closeUploadModal()" style="background: #f1f5f9; border: none; cursor: pointer; font-size: 20px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'; this.style.color='#0f172a'" onmouseout="this.style.background='#f1f5f9'; this.style.color='#64748b'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Headline</label>
-                <input type="text" class="form-input" placeholder="Enter headline...">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #1e293b; font-size: 14px; font-family: 'Manrope', sans-serif;">Headline</label>
+                <input id="articleHeadline" type="text" placeholder="Enter headline..." style="width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: #0f172a; font-family: 'Inter', sans-serif; transition: all 0.2s;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Article Text</label>
-                <textarea class="form-textarea" placeholder="Paste article content here..."></textarea>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #1e293b; font-size: 14px; font-family: 'Manrope', sans-serif;">Author</label>
+                <input id="articleAuthor" type="text" placeholder="Enter author name..." style="width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: #0f172a; font-family: 'Inter', sans-serif; transition: all 0.2s;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
             </div>
 
-            <div class="modal-actions">
-                <button class="btn-outline" @click.prevent="isUploadModalOpen = false">Cancel</button>
-                <button class="btn-primary" @click.prevent="isUploadModalOpen = false">Submit Article</button>
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #1e293b; font-size: 14px; font-family: 'Manrope', sans-serif;">Article Content</label>
+                
+                <!-- Editing Toolbar -->
+                <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 8px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <button onclick="window.highlightText('#fef08a')" style="padding: 6px 12px; background: #fef08a; border: 1px solid #eab308; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #854d0e; transition: all 0.2s;" onmouseover="this.style.background='#fde047'" onmouseout="this.style.background='#fef08a'">🖍️ Yellow</button>
+                    <button onclick="window.highlightText('#fecaca')" style="padding: 6px 12px; background: #fecaca; border: 1px solid #ef4444; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #991b1b; transition: all 0.2s;" onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fecaca'">🔴 Red</button>
+                    <button onclick="window.highlightText('#bbf7d0')" style="padding: 6px 12px; background: #bbf7d0; border: 1px solid #22c55e; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #166534; transition: all 0.2s;" onmouseover="this.style.background='#86efac'" onmouseout="this.style.background='#bbf7d0'">✅ Green</button>
+                    <button onclick="window.highlightText('#bfdbfe')" style="padding: 6px 12px; background: #bfdbfe; border: 1px solid #3b82f6; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #1e40af; transition: all 0.2s;" onmouseover="this.style.background='#93c5fd'" onmouseout="this.style.background='#bfdbfe'">🔵 Blue</button>
+                    <button onclick="window.clearHighlights()" style="padding: 6px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #475569; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'">🗑️ Clear</button>
+                </div>
+                
+                <!-- Editable Content Area -->
+                <div id="articleContentEditable" contenteditable="true" placeholder="Paste article content here..." style="width: 100%; padding: 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: #0f172a; font-family: 'Inter', sans-serif; line-height: 1.6; min-height: 200px; max-height: 300px; overflow-y: auto; resize: vertical; transition: all 0.2s; white-space: pre-wrap;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"></div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                <button onclick="window.closeUploadModal()" style="padding: 12px 24px; background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600; color: #475569; font-size: 15px; font-family: 'Manrope', sans-serif; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'" onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0'">Cancel</button>
+                <button onclick="window.saveArticle()" id="saveArticleBtn" style="padding: 12px 32px; background: #2563eb; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 15px; font-family: 'Manrope', sans-serif; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); transition: all 0.2s;" onmouseover="this.style.background='#1d4ed8'; this.style.boxShadow='0 6px 18px rgba(37, 99, 235, 0.4)'" onmouseout="this.style.background='#2563eb'; this.style.boxShadow='0 4px 14px rgba(37, 99, 235, 0.3)'">
+                    Save Article
+                </button>
             </div>
         </div>
     </div>
@@ -281,16 +192,56 @@ import AssignTaskModal from '../../components/AssignTaskModal.vue';
 const router = useRouter();
 const route = useRoute();
 const sheet = ref(null);
+const entries = ref([]);
 const isAddTaskModalOpen = ref(false);
 const isUploadModalOpen = ref(false);
+const selectedEntry = ref(null);
+const isSaving = ref(false);
+const articleForm = ref({
+    headline: '',
+    author: '',
+    content: ''
+});
+
+// Debug: log initial state
+console.log('Component mounted, isUploadModalOpen:', isUploadModalOpen.value);
 
 onMounted(async () => {
     if (!route.params.monitoringSheet) return;
+    await loadSheet();
+    await loadEntries();
+    
+    // Make functions globally available after component is mounted
+    window.closeUploadModal = closeUploadModal;
+    window.saveArticle = saveArticle;
+    window.highlightText = highlightText;
+    window.clearHighlights = clearHighlights;
+});
+
+const loadSheet = async () => {
     const response = await fetch(`/api/monitoring-sheets/${route.params.monitoringSheet}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
     });
     if (response.ok) sheet.value = await response.json();
-});
+};
+
+const loadEntries = async () => {
+    const response = await fetch(`/api/monitoring-sheets/${route.params.monitoringSheet}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
+    });
+    if (response.ok) {
+        const data = await response.json();
+        entries.value = data.entries || [];
+        // Save per-entry metadata so FileStorageView can read topic/section
+        entries.value.forEach(entry => {
+            localStorage.setItem(`sparky_entry_meta_${entry.id}`, JSON.stringify({
+                topic: entry.topic,
+                section: entry.section,
+                sheetId: route.params.monitoringSheet
+            }));
+        });
+    }
+};
 
 const selectedCategory = ref('');
 
@@ -308,12 +259,246 @@ const availableArticleTypes = computed(() => {
     return articleTypesMap[selectedCategory.value] || [];
 });
 
+const groupedEntries = computed(() => {
+    const groups = {};
+    entries.value.forEach(entry => {
+        const section = entry.section || 'News';
+        if (!groups[section]) {
+            groups[section] = [];
+        }
+        groups[section].push(entry);
+    });
+    return groups;
+});
+
+const allSections = ['News', 'Feature', 'Editorial', 'Sports', 'Literary', 'DevComm'];
+
+const getArticleTypeStyle = (type) => {
+    const styles = {
+        'Special Report': { background: '#fce7f3', color: '#db2777' },
+        'Full News': { background: '#fef08a', color: '#a16207' },
+        'In-Depth News': { background: '#fae8ff', color: '#c026d3' },
+        'Opinion': { background: '#f3e8ff', color: '#7e22ce' },
+        'News Bit': { background: '#dbeafe', color: '#1d4ed8' },
+        'News Feature': { background: '#dcfce7', color: '#15803d' },
+        'SciTech': { background: '#e0f2fe', color: '#0284c7' },
+        'General Feature': { background: '#fef3c7', color: '#d97706' },
+        'Feature-Style': { background: '#f1f5f9', color: '#475569' },
+        'Poem/Tula': { background: '#fce7f3', color: '#db2777' },
+        'Flash Fiction/Dagli': { background: '#ddd6fe', color: '#7c3aed' },
+        'Short Story/Maikling Kwento': { background: '#fecaca', color: '#dc2626' },
+        'Screenplay': { background: '#fed7aa', color: '#ea580c' },
+    };
+    return styles[type] || { background: '#f1f5f9', color: '#475569' };
+};
+
+const getStatusStyle = (status) => {
+    const styles = {
+        'Pending': { background: '#f1f5f9', color: '#475569' },
+        'Copyreader': { background: '#fef08a', color: '#a16207' },
+        'Section Editor': { background: '#dbeafe', color: '#1d4ed8' },
+        'For Layouting': { background: '#dcfce7', color: '#15803d' },
+        'Completed': { background: '#dcfce7', color: '#15803d' },
+        'In Progress': { background: '#dbeafe', color: '#1d4ed8' },
+    };
+    return styles[status] || { background: '#f1f5f9', color: '#475569' };
+};
+
+const updateEntry = async (entry) => {
+    try {
+        const response = await fetch(`/api/monitoring-sheets/${route.params.monitoringSheet}/entries/${entry.id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                artist_assigned: entry.artist_assigned,
+                interview_completed: entry.interview_completed,
+                current_status: entry.current_status
+            })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to update entry');
+        }
+    } catch (error) {
+        console.error('Error updating entry:', error);
+    }
+};
+
 const goBack = () => {
     if (window.history.length > 1) {
         router.back();
     } else {
         router.push('/editor');
     }
+};
+
+const openStorage = (entry) => {
+    window.open(`/storage/${entry.id}`, '_blank');
+};
+
+const openUploadModal = (entry) => {
+    console.log('openUploadModal called with entry:', entry);
+    selectedEntry.value = entry;
+    
+    // Populate form fields using DOM
+    document.getElementById('articleHeadline').value = entry.topic || '';
+    document.getElementById('articleAuthor').value = entry.writer_assigned || '';
+    
+    // Load existing article content if available
+    const existingContent = entry.article_content || '';
+    document.getElementById('articleContentEditable').innerHTML = existingContent;
+    
+    // Show modal using DOM
+    document.getElementById('uploadModal').style.display = 'flex';
+};
+
+const testUploadModal = () => {
+    console.log('testUploadModal called');
+    console.log('Current isUploadModalOpen value:', isUploadModalOpen.value);
+    console.log('Type of isUploadModalOpen:', typeof isUploadModalOpen.value);
+    
+    try {
+        selectedEntry.value = entries.value[0] || null;
+        articleForm.value = {
+            headline: 'Test Headline',
+            author: 'Test Author',
+            content: 'Test content here...'
+        };
+        
+        isUploadModalOpen.value = true;
+        
+        console.log('After setting to true, isUploadModalOpen:', isUploadModalOpen.value);
+        
+        // Direct DOM manipulation as fallback
+        const modal = document.querySelector('.modal-overlay');
+        if (modal) {
+            modal.style.display = 'flex';
+            console.log('Modal shown via DOM manipulation');
+        } else {
+            console.log('Modal element not found in DOM');
+        }
+        
+        // Force a reactivity check
+        setTimeout(() => {
+            console.log('After timeout, isUploadModalOpen:', isUploadModalOpen.value);
+        }, 100);
+    } catch (error) {
+        console.error('Error in testUploadModal:', error);
+    }
+};
+
+const closeUploadModal = () => {
+    isUploadModalOpen.value = false;
+    selectedEntry.value = null;
+    articleForm.value = {
+        headline: '',
+        author: '',
+        content: ''
+    };
+    
+    // Hide modal using DOM
+    document.getElementById('uploadModal').style.display = 'none';
+};
+
+const saveArticle = async () => {
+    if (!selectedEntry.value) return;
+    
+    isSaving.value = true;
+    const saveBtn = document.getElementById('saveArticleBtn');
+    if (saveBtn) saveBtn.textContent = 'Saving...';
+    
+    try {
+        const headline = document.getElementById('articleHeadline').value;
+        const author = document.getElementById('articleAuthor').value;
+        const content = document.getElementById('articleContentEditable').innerHTML;
+        
+        const response = await fetch(`/api/monitoring-sheets/${route.params.monitoringSheet}/entries/${selectedEntry.value.id}/article`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                headline: headline,
+                author: author,
+                content: content
+            })
+        });
+
+        if (response.ok) {
+            // Update the entry to show that article has been uploaded
+            await loadEntries();
+            // Don't close modal - allow continued editing
+            alert('Article saved successfully! You can continue editing.');
+        } else {
+            console.error('Failed to save article');
+            alert('Failed to save article. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error saving article:', error);
+        alert('An error occurred while saving the article.');
+    } finally {
+        isSaving.value = false;
+        if (saveBtn) saveBtn.textContent = 'Save Article';
+    }
+};
+
+// Highlight functions
+const highlightText = (color) => {
+    const editableDiv = document.getElementById('articleContentEditable');
+    const selection = window.getSelection();
+    
+    // Only proceed if selection is within the editable div
+    if (selection.rangeCount > 0 && editableDiv.contains(selection.anchorNode)) {
+        const range = selection.getRangeAt(0);
+        
+        // Create highlight span
+        const span = document.createElement('span');
+        span.style.backgroundColor = color;
+        span.style.padding = '2px 4px';
+        span.style.borderRadius = '2px';
+        
+        try {
+            // Check if selection is entirely within text nodes
+            if (range.startContainer.nodeType === Node.TEXT_NODE && range.endContainer.nodeType === Node.TEXT_NODE) {
+                range.surroundContents(span);
+            } else {
+                // For complex selections, use execCommand as fallback
+                document.execCommand('hiliteColor', false, color);
+            }
+            selection.removeAllRanges();
+        } catch (e) {
+            console.error('Error highlighting text:', e);
+            // Fallback to execCommand
+            try {
+                document.execCommand('hiliteColor', false, color);
+            } catch (e2) {
+                console.error('Fallback highlight failed:', e2);
+            }
+        }
+    }
+};
+
+const clearHighlights = () => {
+    const editableDiv = document.getElementById('articleContentEditable');
+    
+    // Remove highlight spans
+    const highlights = editableDiv.querySelectorAll('span[style*="background-color"]');
+    highlights.forEach(span => {
+        const parent = span.parentNode;
+        while (span.firstChild) {
+            parent.insertBefore(span.firstChild, span);
+        }
+        parent.removeChild(span);
+    });
+    
+    // Also try to remove any inline background styles
+    document.execCommand('removeFormat', false, null);
 };
 </script>
 
@@ -463,7 +648,7 @@ body {
             background: #ffffff;
             z-index: 6;
             box-shadow: 1px 0 0 #e2e8f0;
-            text-align: left;
+            text-align: center;
             font-weight: 700;
             color: #0f172a;
             max-width: 320px;
@@ -515,7 +700,7 @@ body {
 
         /* Modals */
         .modal-overlay {
-            display: none;
+            display: flex;
             position: fixed;
             inset: 0;
             background: rgba(15, 23, 42, 0.4);

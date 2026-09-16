@@ -842,44 +842,44 @@
             <section id="section-press-works" class="content-section" :class="{ active: activeTab === 'press-works' }" v-show="activeTab === 'press-works'">
                 <div class="page-header" style="align-items: center; margin-bottom: 20px;">
                     <h1 class="page-title">Press Works</h1>
+                    <button class="new-user-btn" type="button" @click="openPressworkModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        New Academic Year
+                    </button>
                 </div>
 
-                <div class="card" style="padding: 16px 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
-                    <div class="table-wrapper">
-                        <table class="activities-table articles-table">
-                            <thead>
-                                <tr>
-                                    <th style="padding-left: 24px;">Press Works</th>
-                                    <th>Publication Type</th>
-                                    <th>Academic Year</th>
-                                    <th>Members</th>
-                                    <th>Date Created</th>
-                                    <th style="padding-right: 24px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="sheet in pressworkSheets" :key="sheet.id" @click="openMonitoringSheet(sheet)" style="cursor: pointer;" class="clickable-row">
-                                    <td style="padding-left: 24px;">{{ sheet.press_work.title }}</td>
-                                    <td><span class="pub-badge" :class="pressworkBadgeClass(sheet.publication_type)">{{ sheet.publication_type }}</span></td>
-                                    <td>{{ sheet.press_work?.academic_year || '—' }}</td>
-                                    <td>—</td>
-                                    <td>{{ formatDate(sheet.created_at) }}</td>
-                                    <td style="padding-right: 24px;"><button class="action-menu-btn" type="button" @click.stop="openMonitoringSheet(sheet)" aria-label="Open monitoring sheet"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button></td>
-                                </tr>
-                                <tr v-if="!pressWorks.length"><td colspan="6" class="empty-activity">No press works found.</td></tr>
-                            </tbody>
-                        </table>
+                <div class="card" style="padding: 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                    <div v-if="academicYears.length === 0" class="empty-activity" style="text-align: center; padding: 40px;">
+                        No academic years found. Click "New Academic Year" to create one.
                     </div>
-                </div>
-
-                <div class="floating-pagination" style="margin-top: 20px;">
-                    <div class="pagination" style="margin-top: 0;">
-                        <button class="page-nav" disabled>Previous</button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-nav" disabled>Next</button>
-                    </div>
-                    <div class="page-info" style="margin-left: 0; padding-left: 32px; border-left: 1px solid #eef0f4;">
-                        Showing <strong>{{ pressworkSheets.length }}</strong> Monitoring Sheets
+                    
+                    <div v-else class="academic-years-container">
+                        <div v-for="yearGroup in academicYears" :key="yearGroup.academic_year" class="academic-year-folder">
+                            <div class="folder-header" @click="toggleYear(yearGroup.academic_year)">
+                                <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                <span class="folder-title">{{ yearGroup.academic_year }}</span>
+                                <span class="folder-count">{{ yearGroup.monitoring_sheets.length }} Monitoring Sheet{{ yearGroup.monitoring_sheets.length !== 1 ? 's' : '' }}</span>
+                                <button class="delete-year-btn" type="button" @click.stop="openDeleteYearModal(yearGroup.academic_year)" title="Delete Academic Year">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                </button>
+                                <svg class="chevron-icon" :style="{ transform: expandedYears[yearGroup.academic_year] ? 'rotate(180deg)' : 'rotate(0deg)' }" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                            </div>
+                            
+                            <div v-show="expandedYears[yearGroup.academic_year]" class="folder-content">
+                                <div class="monitoring-sheets-list">
+                                    <div v-for="sheet in yearGroup.monitoring_sheets" :key="sheet.id" class="monitoring-sheet-item" @click="openMonitoringSheet(sheet)">
+                                        <span class="pub-badge" :class="pressworkBadgeClass(sheet.publication_type)">{{ sheet.publication_type }}</span>
+                                        <span class="sheet-title">{{ sheet.title }}</span>
+                                        <span class="sheet-date">{{ formatDate(sheet.created_at) }}</span>
+                                        <button class="action-menu-btn" type="button" @click.stop="openMonitoringSheet(sheet)" aria-label="Open monitoring sheet">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1313,15 +1313,25 @@
     </div>
     <div v-if="isPressworkModalOpen" class="new-user-modal-overlay" @click.self="closePressworkModal">
         <form class="new-user-modal" role="dialog" aria-modal="true" @submit.prevent="createPresswork">
-            <div class="new-user-modal-header"><h2>Add Presswork</h2><button class="new-user-close" type="button" aria-label="Close" @click="closePressworkModal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+            <div class="new-user-modal-header"><h2>Add Academic Year</h2><button class="new-user-close" type="button" aria-label="Close" @click="closePressworkModal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
             <div class="new-user-step">
-                <p class="presswork-modal-note">This creates one monitoring sheet for Newsletter, Tabloid, Magazine, and Litfolio.</p>
-                <div class="form-group"><label class="form-label" for="presswork-title">Presswork Name</label><input id="presswork-title" v-model="pressworkForm.title" class="form-control" placeholder="Issue 1" required></div>
+                <p class="presswork-modal-note">This will create a new academic year folder with Newsletter, Tabloid, Magazine, and Litfolio monitoring sheets.</p>
                 <div class="form-group"><label class="form-label" for="presswork-year">Academic Year</label><input id="presswork-year" v-model="pressworkForm.academic_year" class="form-control" placeholder="2025-2026" required></div>
+                <p v-if="yearAlreadyExists" class="new-user-error" style="color: #dc2626;">⚠️ This academic year already exists!</p>
                 <p v-if="pressworkError" class="new-user-error">{{ pressworkError }}</p>
-                <div class="modal-footer"><button class="btn-back" type="button" @click="closePressworkModal">Cancel</button><button class="btn-next" type="submit" :disabled="pressworkSaving">{{ pressworkSaving ? 'Creating...' : 'Create Presswork' }}</button></div>
+                <div class="modal-footer"><button class="btn-back" type="button" @click="closePressworkModal">Cancel</button><button class="btn-next" type="submit" :disabled="pressworkSaving || yearAlreadyExists">{{ pressworkSaving ? 'Creating...' : 'Create Academic Year' }}</button></div>
             </div>
         </form>
+    </div>
+
+    <!-- Delete Academic Year Confirmation Modal -->
+    <div v-if="isDeleteYearModalOpen" class="new-user-modal-overlay" @click.self="closeDeleteYearModal">
+        <div class="new-user-modal new-user-confirm-modal" role="dialog" aria-modal="true">
+            <div class="new-user-modal-header"><h2>Delete Academic Year?</h2><button class="new-user-close" type="button" aria-label="Close" @click="closeDeleteYearModal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+            <p>Delete <strong>{{ yearToDelete }}</strong>? This will permanently delete all monitoring sheets and their entries for this academic year. This action cannot be undone.</p>
+            <p v-if="deleteYearError" class="new-user-error">{{ deleteYearError }}</p>
+            <div class="modal-footer"><button class="btn-back" type="button" @click="closeDeleteYearModal">Cancel</button><button class="btn-next btn-danger" type="button" :disabled="deleteYearSaving" @click="deleteYear">{{ deleteYearSaving ? 'Deleting...' : 'Delete Academic Year' }}</button></div>
+        </div>
     </div>
     <!-- Assigned Task Quick Modal -->
     <AssignedTaskModal 
@@ -1359,11 +1369,16 @@ const overview = ref({
 });
 const users = ref([]);
 const articles = ref([]);
-const pressWorks = ref([]);
+const academicYears = ref([]);
+const expandedYears = ref({});
 const isPressworkModalOpen = ref(false);
+const isDeleteYearModalOpen = ref(false);
+const yearToDelete = ref('');
+const deleteYearError = ref('');
+const deleteYearSaving = ref(false);
 const pressworkSaving = ref(false);
 const pressworkError = ref('');
-const pressworkForm = ref({ title: '', academic_year: '2025-2026' });
+const pressworkForm = ref({ academic_year: '2025-2026' });
 const articlePage = ref(1);
 const articlePageSize = 8;
 const managementPage = ref(1);
@@ -1393,7 +1408,27 @@ const paginatedArticles = computed(() => {
     return articles.value.slice(start, start + articlePageSize);
 });
 
-const pressworkSheets = computed(() => pressWorks.value.flatMap(work => work.monitoring_sheets.map(sheet => ({ ...sheet, press_work: work }))));
+const pressworkSheets = computed(() => {
+    const allSheets = [];
+    academicYears.value.forEach(yearGroup => {
+        yearGroup.monitoring_sheets.forEach(sheet => {
+            allSheets.push({
+                ...sheet,
+                academic_year: yearGroup.academic_year
+            });
+        });
+    });
+    return allSheets;
+});
+
+const yearAlreadyExists = computed(() => {
+    return academicYears.value.some(year => year.academic_year === pressworkForm.value.academic_year);
+});
+
+// Clear error when academic year changes
+watch(() => pressworkForm.value.academic_year, () => {
+    pressworkError.value = '';
+});
 
 watch([managementPageCount, activeTab], ([pageCount]) => {
     if (managementPage.value > pageCount) managementPage.value = pageCount;
@@ -1477,10 +1512,28 @@ const loadArticles = async () => {
 
 const loadPressWorks = async () => {
     try {
-        const response = await fetch('/api/press-works', { headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' } });
-        if (response.ok) pressWorks.value = await response.json();
-    } catch {
-        pressWorks.value = [];
+        const token = localStorage.getItem('sparky_token');
+        console.log('Loading press works, token exists:', !!token);
+        
+        const response = await fetch('/api/press-works', { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
+        
+        console.log('Press works response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            academicYears.value = data.academic_years || [];
+            console.log('Loaded academic years:', academicYears.value);
+            // Auto-expand the first year if available and none are currently expanded
+            if (academicYears.value.length > 0 && Object.keys(expandedYears.value).length === 0) {
+                expandedYears.value[academicYears.value[0].academic_year] = true;
+            }
+        } else {
+            console.error('Failed to load press works:', response.status, response.statusText);
+            academicYears.value = [];
+        }
+    } catch (error) {
+        console.error('Error loading press works:', error);
+        academicYears.value = [];
     }
 };
 
@@ -1734,7 +1787,7 @@ const pressworkBadgeClass = (type) => ({
 }[type] || 'pub-newsletter');
 
 const openPressworkModal = () => {
-    pressworkForm.value = { title: '', academic_year: '2025-2026' };
+    pressworkForm.value = { academic_year: '2025-2026' };
     pressworkError.value = '';
     isPressworkModalOpen.value = true;
 };
@@ -1742,6 +1795,12 @@ const openPressworkModal = () => {
 const closePressworkModal = () => { isPressworkModalOpen.value = false; };
 
 const createPresswork = async () => {
+    // Check for duplicate before making API call
+    if (yearAlreadyExists.value) {
+        pressworkError.value = 'An academic year with this name already exists.';
+        return;
+    }
+
     pressworkSaving.value = true;
     pressworkError.value = '';
     try {
@@ -1751,8 +1810,19 @@ const createPresswork = async () => {
             body: JSON.stringify(pressworkForm.value),
         });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.message || Object.values(data.errors || {})[0]?.[0] || 'Could not create presswork.');
-        pressWorks.value.unshift(data);
+        if (!response.ok) {
+            if (response.status === 409) {
+                throw new Error('An academic year with this name already exists.');
+            }
+            throw new Error(data.message || Object.values(data.errors || {})[0]?.[0] || 'Could not create academic year.');
+        }
+        
+        // Reload the press works to get the updated structure
+        await loadPressWorks();
+        
+        // Expand the newly created year
+        expandedYears.value[pressworkForm.value.academic_year] = true;
+        
         closePressworkModal();
     } catch (error) {
         pressworkError.value = error.message;
@@ -1764,4 +1834,176 @@ const createPresswork = async () => {
 const openMonitoringSheet = (sheet) => {
     window.open(`/monitoring-sheet/${sheet.id}`, '_blank');
 };
+
+const toggleYear = (year) => {
+    expandedYears.value[year] = !expandedYears.value[year];
+};
+
+const openDeleteYearModal = (year) => {
+    yearToDelete.value = year;
+    deleteYearError.value = '';
+    isDeleteYearModalOpen.value = true;
+};
+
+const closeDeleteYearModal = () => {
+    isDeleteYearModalOpen.value = false;
+    yearToDelete.value = '';
+    deleteYearError.value = '';
+};
+
+const deleteYear = async () => {
+    deleteYearSaving.value = true;
+    deleteYearError.value = '';
+    try {
+        const response = await fetch(`/api/press-works/${yearToDelete.value}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(data.message || 'Could not delete academic year.');
+        }
+        
+        // Reload the press works to get the updated structure
+        await loadPressWorks();
+        
+        closeDeleteYearModal();
+    } catch (error) {
+        deleteYearError.value = error.message;
+    } finally {
+        deleteYearSaving.value = false;
+    }
+};
 </script>
+
+<style scoped>
+.academic-years-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.academic-year-folder {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.folder-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.folder-header:hover {
+    background: #f1f5f9;
+}
+
+.folder-icon {
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.folder-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #0f172a;
+    flex: 1;
+}
+
+.folder-count {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.chevron-icon {
+    color: #64748b;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.folder-content {
+    padding: 0;
+}
+
+.monitoring-sheets-list {
+    padding: 16px 20px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.monitoring-sheet-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.monitoring-sheet-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.sheet-title {
+    font-size: 14px;
+    color: #475569;
+    flex: 1;
+    font-weight: 600;
+}
+
+.sheet-date {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.action-menu-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-menu-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.delete-year-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+}
+
+.delete-year-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+</style>

@@ -25,15 +25,36 @@
                         <label class="field-label">Section</label>
                         <div class="select-wrapper">
                             <select class="pill-select" v-model="form.section">
-                                <option value="News">News (Default)</option>
+                                <option value="News">News</option>
+                                <option value="Opinion/Editorial">Opinion/Editorial</option>
                                 <option value="Feature">Feature</option>
-                                <option value="Editorial">Editorial</option>
                                 <option value="Sports">Sports</option>
                                 <option value="Literary">Literary</option>
                                 <option value="DevComm">DevComm</option>
                             </select>
                             <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Medium</label>
+                        <div class="select-wrapper">
+                            <select class="pill-select" v-model="form.medium">
+                                <option value="English">English</option>
+                                <option value="Filipino">Filipino</option>
+                            </select>
+                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Type of Article</label>
+                    <div class="select-wrapper">
+                        <select class="pill-select" v-model="form.article_type">
+                            <option value="">Select Type</option>
+                            <option v-for="type in articleTypeOptions" :key="type" :value="type">{{ type }}</option>
+                        </select>
+                        <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
                 </div>
 
@@ -91,29 +112,21 @@
                     </div>
                 </div>
 
-                <div class="field-row">
-                    <div class="field-group">
-                        <label class="field-label">Thumbnail Assignee</label>
-                        <div class="select-wrapper">
-                            <select class="pill-select" v-model="form.thumbnailArtist">
-                                <option value="">Select Artists</option>
-                                <option value="Dustin Jake Nas">Dustin Jake Nas</option>
-                                <option value="Emher Valenzuela">Emher Valenzuela</option>
-                            </select>
-                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </div>
+                <div class="field-group">
+                    <label class="field-label">PJ/Artist Assignee</label>
+                    <label class="no-graphics-toggle">
+                        <input type="checkbox" v-model="form.noGraphics" />
+                        <span>No Graphics Needed</span>
+                    </label>
+                    <div v-if="!form.noGraphics" class="select-wrapper">
+                        <select class="pill-select" v-model="form.mediaArtist">
+                            <option value="">Select Artists</option>
+                            <option value="Dustin Jake Nas">Dustin Jake Nas</option>
+                            <option value="Emher Valenzuela">Emher Valenzuela</option>
+                        </select>
+                        <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
-                    <div class="field-group">
-                        <label class="field-label">Media Assignee</label>
-                        <div class="select-wrapper">
-                            <select class="pill-select" v-model="form.mediaArtist">
-                                <option value="">Select Artists</option>
-                                <option value="Fernan Enimedez">Fernan Enimedez</option>
-                                <option value="Dustin Jake Nas">Dustin Jake Nas</option>
-                            </select>
-                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </div>
-                    </div>
+                    <div v-else class="no-graphics-pill">No Graphics Needed</div>
                 </div>
 
                 <div class="field-group">
@@ -129,7 +142,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                         Back
                     </button>
-                    <button class="btn-blue-pill" @click="currentStep = 3">
+                    <button class="btn-blue-pill" @click="submitTask">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         Done
                     </button>
@@ -161,7 +174,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
     isOpen: {
@@ -171,24 +184,46 @@ const props = defineProps({
     defaultSection: {
         type: String,
         default: 'News'
+    },
+    monitoringSheetId: {
+        type: Number,
+        required: true
     }
 });
 
-const emit = defineEmits(['close', 'view-assignments']);
+const emit = defineEmits(['close', 'view-assignments', 'task-added']);
 
 const currentStep = ref(1);
+
+const articleTypeMap = {
+    'News': ['Special Report', 'Full News', 'News Bit', 'News Features', 'In-Depth News'],
+    'Opinion/Editorial': ['Opinion', 'Spark Agent', 'Letter to the Editor', 'Editorial'],
+    'Feature': ['Sci-Tech', 'General Feature'],
+    'DevComm': ['Feature-Style'],
+    'Sports': ['News', 'News Feature', 'Opinion'],
+    'Literary': ['Poem/Tula', 'Short Story/Maikling Kwento', 'Flash Fiction/Dagli', 'Screenplay'],
+};
 
 const form = ref({
     title: '',
     coverage: '',
     section: props.defaultSection || 'News',
+    article_type: '',
+    medium: 'English',
+    noGraphics: false,
     priority: '',
     dueDate: '',
     dueTime: '',
     writer: '',
-    thumbnailArtist: '',
     mediaArtist: '',
     description: ''
+});
+
+const articleTypeOptions = computed(() => articleTypeMap[form.value.section] || []);
+
+// Reset article_type whenever section changes
+watch(() => form.value.section, () => {
+    form.value.article_type = '';
 });
 
 watch(() => props.isOpen, (newVal) => {
@@ -207,6 +242,45 @@ const closeModal = () => {
 const onViewAssignments = () => {
     emit('view-assignments');
     closeModal();
+};
+
+const submitTask = async () => {
+    try {
+        const response = await fetch(`/api/monitoring-sheets/${props.monitoringSheetId}/entries`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                topic: form.value.title,
+                section: form.value.section,
+                article_type: form.value.article_type,
+                medium: form.value.medium,
+                writer_assigned: form.value.writer,
+                artist_assigned: form.value.noGraphics ? 'No Graphics' : (form.value.mediaArtist || null),
+                media_type: form.value.mediaArtist ? 'Graphic/s' : 'Photo/s',
+                has_files: false,
+                description: form.value.description,
+                priority: form.value.priority,
+                deadline: form.value.dueDate,
+                deadline_time: form.value.dueTime,
+                current_status: 'Pending'
+            })
+        });
+
+        if (response.ok) {
+            emit('task-added');
+            currentStep.value = 3;
+        } else {
+            console.error('Failed to add task');
+            alert('Failed to add task. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error adding task:', error);
+        alert('An error occurred. Please try again.');
+    }
 };
 </script>
 
@@ -546,5 +620,40 @@ const onViewAssignments = () => {
 .btn-grey-pill:hover {
     background-color: #e2e8f0;
     color: #0f172a;
+}
+
+.no-graphics-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    font-family: 'Manrope', sans-serif;
+    user-select: none;
+}
+
+.no-graphics-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #ef4444;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.no-graphics-pill {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    background: #fef2f2;
+    border: 1.5px dashed #fca5a5;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ef4444;
+    font-family: 'Manrope', sans-serif;
+    letter-spacing: 0.2px;
 }
 </style>

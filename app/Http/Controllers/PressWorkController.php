@@ -13,22 +13,59 @@ class PressWorkController extends Controller
 
     public function index()
     {
-        return response()->json(PressWork::with('monitoringSheets')->latest()->get());
+        $pressWorks = PressWork::with('monitoringSheets')->latest()->get();
+        
+        // Group by academic year and flatten monitoring sheets
+        $grouped = $pressWorks->groupBy('academic_year')->map(function ($works, $year) {
+            $monitoringSheets = $works->flatMap(function ($work) {
+                return $work->monitoringSheets->map(function ($sheet) use ($work) {
+                    return [
+                        'id' => $sheet->id,
+                        'publication_type' => $sheet->publication_type,
+                        'title' => $sheet->title,
+                        'status' => $sheet->status,
+                        'created_at' => $sheet->created_at,
+                        'press_work' => [
+                            'id' => $work->id,
+                            'title' => $work->title,
+                            'academic_year' => $work->academic_year,
+                        ]
+                    ];
+                });
+            });
+
+            return [
+                'academic_year' => $year,
+                'monitoring_sheets' => $monitoringSheets
+            ];
+        })->values();
+
+        return response()->json(['academic_years' => $grouped]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
             'academic_year' => 'required|string|max:20',
         ]);
 
+        // Check if academic year already exists
+        $existingPressWork = PressWork::where('academic_year', $validated['academic_year'])->first();
+        if ($existingPressWork) {
+            return response()->json([
+                'message' => 'An academic year with this name already exists.'
+            ], 409);
+        }
+
         $pressWork = DB::transaction(function () use ($request, $validated) {
+            // Create a default press work for the academic year
             $pressWork = PressWork::create([
-                ...$validated,
+                'title' => 'Default Press Work',
+                'academic_year' => $validated['academic_year'],
                 'created_by' => $request->user()->id,
             ]);
 
+            // Create the 4 monitoring sheets
             foreach (self::TYPES as $type) {
                 $pressWork->monitoringSheets()->create([
                     'publication_type' => $type,
@@ -36,10 +73,29 @@ class PressWorkController extends Controller
                 ]);
             }
 
-            Activity::record($request->user(), 'Created a press work', $pressWork);
+            Activity::record($request->user(), 'Created a new academic year', $pressWork);
             return $pressWork;
         });
 
-        return response()->json($pressWork->load('monitoringSheets'), 201);
+        return response()->json([
+            'press_work' => $pressWork->load('monitoringSheets'),
+            'academic_year' => $pressWork->academic_year
+        ], 201);
+    }
+
+    public function destroyByYear(Request $request, $year)
+    {
+        $pressWork = PressWork::where('academic_year', $year)->first();
+        
+        if (!$pressWork) {
+            return response()->json(['message' => 'Academic year not found'], 404);
+        }
+
+        DB::transaction(function () use ($pressWork, $request) {
+            Activity::record($request->user(), 'Deleted academic year', $pressWork);
+            $pressWork->delete();
+        });
+
+        return response()->json(['message' => 'Academic year deleted successfully']);
     }
 }

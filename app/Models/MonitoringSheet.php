@@ -15,4 +15,9 @@ class MonitoringSheet extends Model
     {
         return $this->belongsTo(PressWork::class);
     }
+
+    public function entries()
+    {
+        return $this->hasMany(MonitoringSheetEntry::class);
+    }
 }

@@ -34,7 +34,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/overview', [AdminController::class, 'overview']);
     Route::get('/press-works', [PressWorkController::class, 'index']);
     Route::post('/press-works', [PressWorkController::class, 'store']);
+    Route::delete('/press-works/{year}', [PressWorkController::class, 'destroyByYear']);
     Route::get('/monitoring-sheets/{monitoringSheet}', [MonitoringSheetController::class, 'show']);
+    Route::post('/monitoring-sheets/{monitoringSheet}/entries', [MonitoringSheetController::class, 'storeEntry']);
+    Route::put('/monitoring-sheets/{monitoringSheet}/entries/{entry}', [MonitoringSheetController::class, 'updateEntry']);
+    Route::delete('/monitoring-sheets/{monitoringSheet}/entries/{entry}', [MonitoringSheetController::class, 'deleteEntry']);
+    Route::post('/monitoring-sheets/{monitoringSheet}/entries/{entry}/article', [MonitoringSheetController::class, 'uploadArticle']);
 
     // Self-service profile
     Route::post('/profile',         [UserController::class, 'updateProfile']);   // multipart/form-data
