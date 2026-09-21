@@ -141,67 +141,75 @@
 .activities-card,
 .articles-card {
     background-color: #ffffff;
-    border-radius: 24px;
-    padding: 24px;
+    border-radius: 20px;
+    padding: 16px 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    overflow-x: auto;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .activities-title {
     font-size: 16px;
     font-weight: 800;
     color: #0f172a;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
 }
 
 .activities-table,
 .articles-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 10px;
-    font-size: 14px;
+    border-spacing: 0 6px;
+    font-size: 13.5px;
+    table-layout: fixed;
 }
 
 .activities-table th,
 .articles-table th {
     background-color: #f1f5f9;
-    padding: 14px 20px;
+    padding: 10px 14px;
     text-align: left;
     font-weight: 700;
     color: #475569;
-    font-size: 13px;
+    font-size: 12.5px;
+    white-space: nowrap;
 }
 
 .activities-table th:first-child,
 .articles-table th:first-child {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
 .activities-table th:last-child,
 .articles-table th:last-child {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 .activities-table td,
 .articles-table td {
     background-color: #f8fafc;
-    padding: 16px 20px;
+    padding: 10px 14px;
     color: #1e293b;
     vertical-align: middle;
     border-bottom: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .activities-table td:first-child,
 .articles-table td:first-child {
-    border-top-left-radius: 14px;
-    border-bottom-left-radius: 14px;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
 }
 
 .activities-table td:last-child,
 .articles-table td:last-child {
-    border-top-right-radius: 14px;
-    border-bottom-right-radius: 14px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
 /* Filter Dropdown Pills */
@@ -252,6 +260,25 @@
 .eic-custom-filter:focus-within {
     border-color: #94a3b8;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 2px 5px rgba(15, 23, 42, 0.08);
+}
+
+.eic-custom-filter.disabled {
+    opacity: 0.55;
+    background: #f8fafc;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+    box-shadow: none;
+}
+
+.eic-custom-filter.disabled .eic-filter-trigger {
+    cursor: not-allowed;
+    color: #94a3b8;
+}
+
+.eic-custom-filter.disabled:hover,
+.eic-custom-filter.disabled:focus-within {
+    border-color: #e2e8f0;
+    box-shadow: none;
 }
 
 .eic-filter-trigger {
@@ -310,10 +337,6 @@
 .eic-filter-menu button.selected {
     background: #eff6ff;
     color: #1d4ed8;
-}
-
-.eic-published-articles-table td:nth-child(3) {
-    display: none;
 }
 
 /* Section Badges */
@@ -414,64 +437,7 @@
     color: #065f46;
 }
 
-/* Archive Folder Grid & Cards (matching admin_archive) */
-.archive-card-container {
-    background-color: #ffffff;
-    border-radius: 24px;
-    padding: 28px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-}
-
-.archive-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 20px;
-    width: 100%;
-}
-
-.archive-card {
-    position: relative;
-    border-radius: 20px;
-    height: 200px;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    overflow: hidden;
-}
-
-.archive-card:hover {
-    transform: translateY(-4px);
-}
-
-.folder-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-}
-
-.archive-card-content {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 24px;
-    z-index: 2;
-}
-
-.archive-card-content h4 {
-    font-size: 15px;
-    font-weight: 800;
-    color: #111;
-    margin-bottom: 6px;
-}
-
-.archive-card-content p {
-    font-size: 11px;
-    color: #333;
-    font-weight: 500;
-}
+/* Archive Explorer and Cards styling inherit from admin.css */
 
 /* Role Badges */
 .role-pill {
@@ -713,7 +679,8 @@
 .pagination-container {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 14px;
+    margin-bottom: 8px;
 }
 
 .pagination-pill {
@@ -988,5 +955,55 @@
     .metrics-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Action Buttons & Icons for EIC Contributors Table */
+.action-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 6px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: #f1f5f9;
+}
+
+.action-btn.edit:hover {
+    color: #1a73e8;
+    background: #eff6ff;
+}
+
+.action-btn.delete:hover {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+.section-badge {
+    background-color: #dbeafe;
+    color: #1e40af;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.status-pill.status-available {
+    background-color: #f1f5f9;
+    color: #64748b;
 }
 

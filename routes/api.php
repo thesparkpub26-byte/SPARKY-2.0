@@ -70,7 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Notifications
     Route::get('/notifications',                                [NotificationController::class, 'index']);
-    Route::post('/notifications/{notification}/read',           [NotificationController::class, 'markRead']);
+    Route::match(['post', 'patch'], '/notifications/{notification}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all',                      [NotificationController::class, 'markAllRead']);
+    Route::delete('/notifications',                             [NotificationController::class, 'clearAll']);
     Route::delete('/notifications/{notification}',              [NotificationController::class, 'destroy']);
 });

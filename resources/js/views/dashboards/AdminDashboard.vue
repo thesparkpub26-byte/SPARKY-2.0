@@ -255,7 +255,17 @@
                 <div class="page-header" style="align-items: center;">
                 <h1 class="page-title">{{ activeTab === 'staff-writers' ? 'Staff Writers' : activeTab === 'readers' ? 'Readers' : activeTab === 'editorial-board' ? 'Editorial Board' : 'User Management' }}</h1>
                 <div class="filters admin-user-filters">
-                    <div class="custom-filter-dropdown admin-user-filter role-filter" @click.stop>
+                    <div v-if="activeTab !== 'readers'" class="custom-filter-dropdown admin-user-filter section-filter" @click.stop>
+                        <button type="button" class="custom-filter-trigger" @click="toggleManagementDropdown('section')">
+                            <span>{{ managementSection === 'all' ? 'All Sections' : managementSection }}</span>
+                            <svg :class="{ rotated: activeManagementDropdown === 'section' }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        </button>
+                        <div v-if="activeManagementDropdown === 'section'" class="custom-filter-menu">
+                            <button type="button" :class="{ selected: managementSection === 'all' }" @click="selectManagementFilter('section', 'all')">All Sections</button>
+                            <button v-for="sec in managementSectionOptions" :key="sec" type="button" :class="{ selected: managementSection === sec }" @click="selectManagementFilter('section', sec)">{{ sec }}</button>
+                        </div>
+                    </div>
+                    <div v-if="activeTab === 'user-management' || activeTab === 'staff-writers'" class="custom-filter-dropdown admin-user-filter role-filter" @click.stop>
                         <button type="button" class="custom-filter-trigger" @click="toggleManagementDropdown('role')">
                             <span>{{ managementRole === 'all' ? 'All Roles' : formatRole(managementRole) }}</span>
                             <svg :class="{ rotated: activeManagementDropdown === 'role' }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
@@ -286,6 +296,7 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
+                                <th v-if="activeTab !== 'readers'">Section</th>
                                 <th v-if="activeTab !== 'readers'">Program</th>
                                 <th v-if="activeTab !== 'readers'">Year/Section</th>
                                 <th>Date Added</th>
@@ -298,6 +309,10 @@
                                 <td>{{ member.name }}</td>
                                 <td>{{ member.email }}</td>
                                 <td><span class="role-pill">{{ formatRole(member.role) }}</span></td>
+                                <td v-if="activeTab !== 'readers'">
+                                    <span v-if="member.secondary_role" class="section-badge" style="background-color: #dbeafe; color: #1e40af; font-weight: 600; padding: 4px 10px; border-radius: 999px; font-size: 12px; display: inline-block;">{{ member.secondary_role }}</span>
+                                    <span v-else style="color: #94a3b8;">—</span>
+                                </td>
                                 <td v-if="activeTab !== 'readers'">{{ member.program || '—' }}</td>
                                 <td v-if="activeTab !== 'readers'">{{ member.year_section || '—' }}</td>
                                 <td>{{ formatDate(member.created_at) }}</td>
@@ -314,7 +329,7 @@
                             </tr>
                             </template>
                             <tr v-if="['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab) && !filteredManagementUsers.length">
-                                <td :colspan="activeTab === 'readers' ? 5 : 7" class="empty-activity">No matching users found.</td>
+                                <td :colspan="activeTab === 'readers' ? 5 : 8" class="empty-activity">No matching users found.</td>
                             </tr>
                             <tr v-show="false">
                                 <td>Fernan Matthew A. Enimedez</td>
@@ -1209,13 +1224,21 @@
                     <div class="form-row">
                         <div class="form-group">
                             <div class="input-icon-wrap custom-select-wrap">
-                                <select v-model="newUserForm.role" class="form-control select-control"><option value="" disabled>Role</option><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="reader">Reader</option></select>
+                                <select v-model="newUserForm.role" class="form-control select-control" @change="newUserForm.secondary_role = ''"><option value="" disabled>Role</option><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="staff_broadcaster">Staff Broadcaster</option><option value="reader">Reader</option></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="input-icon-wrap custom-select-wrap">
                                 <select v-model="newUserForm.status" class="form-control select-control"><option value="" disabled>Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
                             </div>
+                        </div>
+                    </div>
+                    <div v-if="SECONDARY_ROLES[newUserForm.role]" class="form-group" style="margin-top: 12px;">
+                        <div class="input-icon-wrap custom-select-wrap">
+                            <select v-model="newUserForm.secondary_role" class="form-control select-control">
+                                <option value="">Section / Secondary Role (Optional)</option>
+                                <option v-for="secRole in SECONDARY_ROLES[newUserForm.role]" :key="secRole" :value="secRole">{{ secRole }}</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -1264,10 +1287,17 @@
                 <div class="form-group"><label class="form-label">Username</label><input v-model="editUserForm.name" class="form-control" required></div>
                 <div class="form-group"><label class="form-label">Email</label><input v-model="editUserForm.email" type="email" class="form-control" required></div>
                 <div class="form-row">
-                    <div class="form-group"><label class="form-label">Role</label><select v-model="editUserForm.role" class="form-control select-control" required><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="reader">Reader</option></select></div>
+                    <div class="form-group"><label class="form-label">Role</label><select v-model="editUserForm.role" class="form-control select-control" required @change="editUserForm.secondary_role = ''"><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="staff_broadcaster">Staff Broadcaster</option><option value="reader">Reader</option></select></div>
                     <div class="form-group"><label class="form-label">Status</label><select v-model="editUserForm.is_active" class="form-control select-control"><option :value="true">Active</option><option :value="false">Inactive</option></select></div>
                 </div>
-                <div v-if="['eic', 'section_editor', 'staff_writer', 'staff_artist'].includes(editUserForm.role)" class="form-row edit-user-academic-group">
+                <div v-if="SECONDARY_ROLES[editUserForm.role]" class="form-group" style="margin-top: 8px;">
+                    <label class="form-label">Section / Secondary Role</label>
+                    <select v-model="editUserForm.secondary_role" class="form-control select-control">
+                        <option value="">None / Default</option>
+                        <option v-for="secRole in SECONDARY_ROLES[editUserForm.role]" :key="secRole" :value="secRole">{{ secRole }}</option>
+                    </select>
+                </div>
+                <div v-if="['eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'].includes(editUserForm.role)" class="form-row edit-user-academic-group">
                     <div class="form-group"><label class="form-label">Program</label><input v-model="editUserForm.program" class="form-control" placeholder="Program"></div>
                     <div class="form-group"><label class="form-label">Year/Section</label><input v-model="editUserForm.year_section" class="form-control" placeholder="Year/Section"></div>
                 </div>
@@ -1378,6 +1408,7 @@ const articlePageSize = 8;
 const managementPage = ref(1);
 const managementPageSize = 8;
 const managementRole = ref('all');
+const managementSection = ref('all');
 const managementSort = ref('newest');
 const activeManagementDropdown = ref(null);
 const activeArticleDropdown = ref(null);
@@ -1388,6 +1419,8 @@ const managementSortLabels = {
     oldest: 'Oldest',
     name_asc: 'Name A-Z',
     name_desc: 'Name Z-A',
+    section_asc: 'Section A-Z',
+    section_desc: 'Section Z-A',
 };
 
 const toggleManagementDropdown = (dropdown) => {
@@ -1396,6 +1429,7 @@ const toggleManagementDropdown = (dropdown) => {
 
 const selectManagementFilter = (filter, value) => {
     if (filter === 'role') managementRole.value = value;
+    if (filter === 'section') managementSection.value = value;
     if (filter === 'sort') managementSort.value = value;
     activeManagementDropdown.value = null;
 };
@@ -1425,7 +1459,7 @@ const selectAnalyticsPeriod = (period) => {
     loadAnalytics();
 };
 const archivePage = ref(1);
-const archivePageSize = 10;
+const archivePageSize = 14;
 const archiveYearPage = ref(1);
 const archiveYearPageSize = 8;
 const selectedArchiveFolder = ref(null);
@@ -1482,7 +1516,7 @@ const archiveFolders = computed(() => {
     const currentFolder = getAcademicYearMeta();
     folders.set(currentFolder.key, { key: currentFolder.key, label: currentFolder.label, articles: [] });
 
-    [2022, 2023, 2024, 2025].forEach((startYear) => {
+    [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025].forEach((startYear) => {
         const yearMeta = getAcademicYearMeta(new Date(startYear, 6, 1));
         folders.set(yearMeta.key, { key: yearMeta.key, label: yearMeta.label, articles: [] });
     });
@@ -1524,25 +1558,100 @@ const archivePageNumbers = computed(() => {
     if (archivePage.value > 3) pages[0] = archivePage.value - 2;
     if (archivePage.value > 2) pages[1] = archivePage.value - 1;
     if (archivePage.value > 1) pages[2] = archivePage.value;
-    if (archivePage.value < totalPages) pages[3] = archivePage.value + 1;
     if (archivePage.value < totalPages - 1) pages[4] = archivePage.value + 2;
 
     return [...new Set(pages.filter(page => page >= 1 && page <= totalPages))].slice(0, 5);
 });
 
+const SECONDARY_ROLES = {
+    section_editor: [
+        'Associate Editor for Internal',
+        'Associate Editor for External',
+        'Managing Editor',
+        'Assistant Managing Editor',
+        'Copy Editor',
+        'Circulation Manager',
+        'Art Editor',
+        'Layout Editor',
+        'Publication Adviser',
+        'Opinion Editor',
+        'Editorial Editor',
+        'Literary Editor',
+        'Sports Editor',
+        'Head Broadcaster',
+        'Assistant Head Broadcaster',
+    ],
+    staff_writer: [
+        'News Writer',
+        'Editorial Writer',
+        'Opinion Writer',
+        'Sports Writer',
+        'Sci&Tech Writer',
+        'Feature Writer',
+        'Literary Writer',
+        'DevCom Writer',
+        'Copyreader',
+        'Editorial Assistant',
+    ],
+    staff_broadcaster: [
+        'News Presenter',
+        'Video Editor',
+        'Technical Director',
+        'Videographer',
+    ],
+    staff_artist: [
+        'Layout Artist',
+        'Graphic Artist',
+        'Photojournalist',
+        'Cartoonist',
+        'Illustrator',
+    ],
+};
+
+const managementSectionOptions = computed(() => {
+    const tabRoleMap = {
+        'editorial-board': ['eic', 'section_editor'],
+        'staff-writers': ['staff_writer', 'staff_artist', 'staff_broadcaster'],
+        'user-management': ['section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'],
+    };
+
+    const targetRoles = tabRoleMap[activeTab.value] || [];
+    const secRolesSet = new Set();
+
+    if (managementRole.value !== 'all') {
+        (SECONDARY_ROLES[managementRole.value] || []).forEach(secRole => secRolesSet.add(secRole));
+    } else {
+        targetRoles.forEach(r => {
+            (SECONDARY_ROLES[r] || []).forEach(secRole => secRolesSet.add(secRole));
+        });
+    }
+
+    users.value.forEach(u => {
+        if (u.secondary_role && (targetRoles.length === 0 || targetRoles.includes(u.role))) {
+            if (managementRole.value === 'all' || u.role === managementRole.value) {
+                secRolesSet.add(u.secondary_role);
+            }
+        }
+    });
+
+    return Array.from(secRolesSet).sort();
+});
+
 const filteredManagementUsers = computed(() => {
     const rolesByTab = {
-        'user-management': ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'reader'],
+        'user-management': ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster', 'reader'],
         'editorial-board': ['eic', 'section_editor'],
-        'staff-writers': ['staff_writer', 'staff_artist'],
+        'staff-writers': ['staff_writer', 'staff_artist', 'staff_broadcaster'],
         readers: ['reader'],
     };
     const filtered = users.value
         .filter(user => rolesByTab[activeTab.value]?.includes(user.role))
         .filter(user => managementRole.value === 'all' || user.role === managementRole.value)
+        .filter(user => managementSection.value === 'all' || user.secondary_role === managementSection.value)
         .filter(user => matchesSearch(
             user.name,
             user.email,
+            user.secondary_role,
             user.program,
             user.year_section,
             formatRole(user.role),
@@ -1553,6 +1662,8 @@ const filteredManagementUsers = computed(() => {
     return filtered.sort((first, second) => {
         if (managementSort.value === 'name_asc') return first.name.localeCompare(second.name);
         if (managementSort.value === 'name_desc') return second.name.localeCompare(first.name);
+        if (managementSort.value === 'section_asc') return (first.secondary_role || '').localeCompare(second.secondary_role || '');
+        if (managementSort.value === 'section_desc') return (second.secondary_role || '').localeCompare(first.secondary_role || '');
 
         const firstDate = new Date(first.created_at || 0).getTime();
         const secondDate = new Date(second.created_at || 0).getTime();
@@ -1560,13 +1671,37 @@ const filteredManagementUsers = computed(() => {
     });
 });
 
-const managementRoles = computed(() => [...new Set(users.value.map(user => user.role).filter(Boolean))].sort());
+watch(activeTab, () => {
+    managementRole.value = 'all';
+    managementSection.value = 'all';
+    managementPage.value = 1;
+    activeManagementDropdown.value = null;
+});
+
+const managementRoles = computed(() => {
+    const rolesByTab = {
+        'user-management': ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster', 'reader'],
+        'editorial-board': ['eic', 'section_editor'],
+        'staff-writers': ['staff_writer', 'staff_artist', 'staff_broadcaster'],
+        readers: ['reader'],
+    };
+    const tabAllowedRoles = rolesByTab[activeTab.value] || ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster', 'reader'];
+    const rolesSet = new Set(tabAllowedRoles);
+    users.value.forEach(user => {
+        if (rolesByTab[activeTab.value]?.includes(user.role)) {
+            rolesSet.add(user.role);
+        }
+    });
+    return Array.from(rolesSet);
+});
 
 const managementPageCount = computed(() => Math.max(1, Math.ceil(filteredManagementUsers.value.length / managementPageSize)));
 const paginatedManagementUsers = computed(() => {
     const start = (managementPage.value - 1) * managementPageSize;
     return filteredManagementUsers.value.slice(start, start + managementPageSize);
 });
+
+const adminSections = ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Videos'];
 
 const articleFilterDefinitions = computed(() => [
     {
@@ -1580,7 +1715,7 @@ const articleFilterDefinitions = computed(() => [
         key: 'section',
         options: [
             { value: 'all', label: 'Section' },
-            ...[...new Set(articles.value.map(article => article.section?.name).filter(Boolean))].sort().map(section => ({ value: section, label: section })),
+            ...adminSections.map(section => ({ value: section, label: section })),
         ],
     },
     {
@@ -1718,6 +1853,7 @@ const formatCount = (value) => Number(value || 0).toLocaleString();
 const formatRole = (role) => {
     if (role === 'system') return 'System';
     if (role === 'eic') return 'Editor in Chief';
+    if (role === 'staff_broadcaster') return 'Staff Broadcaster';
     return (role || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
@@ -1854,7 +1990,7 @@ const editUserSaving = ref(false);
 const deleteUserSaving = ref(false);
 const editUserError = ref('');
 const deleteUserError = ref('');
-const editUserForm = ref({ name: '', email: '', role: '', is_active: true, program: '', year_section: '', password: '' });
+const editUserForm = ref({ name: '', email: '', role: '', secondary_role: '', is_active: true, program: '', year_section: '', password: '' });
 const isEditArticleModalOpen = ref(false);
 const isDeleteArticleModalOpen = ref(false);
 const selectedArticle = ref(null);
@@ -1867,6 +2003,7 @@ const newUserForm = ref({
     name: '',
     email: '',
     role: '',
+    secondary_role: '',
     status: '',
     password: '',
     passwordConfirmation: '',
@@ -1884,7 +2021,7 @@ const openNewUserModal = () => {
 const closeNewUserModal = () => {
     isNewUserModalOpen.value = false;
     newUserImagePreview.value = '';
-    newUserForm.value = { name: '', email: '', role: '', status: '', password: '', passwordConfirmation: '', program: '', year_section: '', image: null };
+    newUserForm.value = { name: '', email: '', role: '', secondary_role: '', status: '', password: '', passwordConfirmation: '', program: '', year_section: '', image: null };
 };
 
 const handleNewUserImage = (event) => {
@@ -1899,6 +2036,7 @@ const openEditUser = (member) => {
         name: member.name,
         email: member.email,
         role: member.role,
+        secondary_role: member.secondary_role || '',
         is_active: member.is_active !== false,
         program: member.program || '',
         year_section: member.year_section || '',
@@ -1916,6 +2054,7 @@ const saveEditedUser = async () => {
     editUserError.value = '';
     const payload = { ...editUserForm.value };
     if (!payload.password) delete payload.password;
+    if (!payload.secondary_role) payload.secondary_role = null;
     try {
         const response = await fetch(`/api/users/${selectedUser.value.id}`, {
             method: 'PUT',
@@ -1947,13 +2086,15 @@ const deleteSelectedUser = async () => {
     deleteUserSaving.value = true;
     deleteUserError.value = '';
     try {
-        const response = await fetch(`/api/users/${selectedUser.value.id}`, {
+        const userIdToDelete = selectedUser.value.id;
+        const response = await fetch(`/api/users/${userIdToDelete}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.message || 'Could not delete user.');
-        users.value = users.value.filter(user => user.id !== selectedUser.value.id);
+        users.value = users.value.filter(user => user.id !== userIdToDelete);
+        articles.value = articles.value.filter(a => a.author_id !== userIdToDelete && a.author?.id !== userIdToDelete);
         closeDeleteUser();
     } catch (error) {
         deleteUserError.value = error.message;
@@ -2037,6 +2178,9 @@ const saveNewUser = async () => {
     payload.append('name', newUserForm.value.name);
     payload.append('email', newUserForm.value.email);
     payload.append('role', newUserForm.value.role);
+    if (newUserForm.value.secondary_role) {
+        payload.append('secondary_role', newUserForm.value.secondary_role);
+    }
     if (newUserForm.value.role !== 'reader') {
         payload.append('program', newUserForm.value.program || '');
         payload.append('year_section', newUserForm.value.year_section || '');

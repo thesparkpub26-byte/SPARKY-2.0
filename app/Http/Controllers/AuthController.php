@@ -29,7 +29,7 @@ class AuthController extends Controller
         }
 
         if (!$user->is_active) {
-            return response()->json(['message' => 'Your account has been deactivated.'], 403);
+            return response()->json(['message' => 'You are no longer a part of the publication, but you can still use your email to create a reader account with the sign up option.'], 403);
         }
 
         $token = $user->createToken('sparky-token')->plainTextToken;

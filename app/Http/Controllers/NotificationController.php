@@ -17,7 +17,12 @@ class NotificationController extends Controller
             $query->whereNull('read_at');
         }
 
-        $notifications = $query->paginate(20);
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $perPage = $request->input('per_page', 50);
+        $notifications = $query->paginate($perPage);
 
         return response()->json([
             'data'        => $notifications->items(),
@@ -58,5 +63,12 @@ class NotificationController extends Controller
 
         $notification->delete();
         return response()->json(['message' => 'Notification deleted.']);
+    }
+
+    /** Delete all notifications for the user */
+    public function clearAll(Request $request)
+    {
+        Notification::where('user_id', $request->user()->id)->delete();
+        return response()->json(['message' => 'All notifications deleted.']);
     }
 }

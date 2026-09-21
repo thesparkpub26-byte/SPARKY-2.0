@@ -14,7 +14,8 @@ class UserController extends Controller
     /** List all users, optionally filter by role */
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = User::withCount('assignedTasks')
+            ->with(['assignedTasks.section', 'articles.section']);
 
         if ($request->has('role')) {
             $query->where('role', $request->role);
@@ -39,7 +40,8 @@ class UserController extends Controller
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
             'password'   => 'required|string|min:8',
-            'role'       => 'required|in:admin,eic,section_editor,staff_writer,staff_artist,reader',
+            'role'       => 'required|in:admin,eic,section_editor,staff_writer,staff_artist,staff_broadcaster,reader',
+            'secondary_role' => 'nullable|string|max:255',
             'program'    => 'nullable|string|max:255',
             'year_section' => 'nullable|string|max:255',
             'bio'        => 'nullable|string',
@@ -64,7 +66,8 @@ class UserController extends Controller
             'name'       => 'sometimes|string|max:255',
             'email'      => 'sometimes|email|unique:users,email,' . $user->id,
             'password'   => 'sometimes|string|min:8',
-            'role'       => 'sometimes|in:admin,eic,section_editor,staff_writer,staff_artist,reader',
+            'role'       => 'sometimes|in:admin,eic,section_editor,staff_writer,staff_artist,staff_broadcaster,reader',
+            'secondary_role' => 'nullable|string|max:255',
             'program'    => 'nullable|string|max:255',
             'year_section' => 'nullable|string|max:255',
             'bio'        => 'nullable|string',

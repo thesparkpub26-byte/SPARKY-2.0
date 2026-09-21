@@ -32,7 +32,7 @@ class AnalyticsController extends Controller
 
     public function adminReport(Request $request)
     {
-        abort_unless($request->user()->isAdmin(), 403);
+        abort_unless($request->user()->isAdmin() || $request->user()->isEIC(), 403);
 
         $period = $request->integer('period', 30);
         $days = in_array($period, [7, 30, 90], true) ? $period : 30;

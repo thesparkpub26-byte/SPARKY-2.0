@@ -245,11 +245,14 @@
                                 <span class="task-detail-label">Section</span>
                                 <select class="task-detail-select" v-model="taskEditForm.section">
                                     <option value="News">News</option>
-                                    <option value="Opinion/Editorial">Opinion/Editorial</option>
+                                    <option value="Opinion">Opinion</option>
+                                    <option value="Editorial">Editorial</option>
                                     <option value="Feature">Feature</option>
+                                    <option value="Sci-Tech">Sci-Tech</option>
+                                    <option value="DevCom">DevCom</option>
                                     <option value="Sports">Sports</option>
                                     <option value="Literary">Literary</option>
-                                    <option value="DevComm">DevComm</option>
+                                    <option value="Radio Broadcasting">Radio Broadcasting</option>
                                 </select>
                             </div>
                             <div class="task-detail-compact-field">
@@ -488,11 +491,14 @@ const articleForm = ref({
 
 const articleTypeMap = {
     'News': ['Special Report', 'Full News', 'News Bit', 'News Features', 'In-Depth News'],
-    'Opinion/Editorial': ['Opinion', 'Spark Agent', 'Letter to the Editor', 'Editorial'],
-    'Feature': ['Sci-Tech', 'General Feature'],
-    'DevComm': ['Feature-Style'],
-    'Sports': ['News', 'News Feature', 'Opinion'],
-    'Literary': ['Poem/Tula', 'Short Story/Maikling Kwento', 'Flash Fiction/Dagli', 'Screenplay'],
+    'Opinion': ['Column', 'Spark Agent', 'Letter to the Editor'],
+    'Editorial': ['Editorial', 'Editorial Board Stance'],
+    'Feature': ['General Feature', 'Human Interest', 'Profile', 'Lifestyle'],
+    'Sci-Tech': ['Science Feature', 'Tech Innovation', 'Health & Environment', 'Research Spotlight'],
+    'DevCom': ['Community Development', 'Advocacy Piece', 'Campus Development', 'Feature-Style'],
+    'Sports': ['News', 'News Feature', 'Sports Column', 'Game Coverage', 'Athlete Profile'],
+    'Literary': ['Poem/Tula', 'Short Story/Maikling Kwento', 'Flash Fiction/Dagli', 'Screenplay', 'Essay/Sanaysay'],
+    'Radio Broadcasting': ['Newscast', 'Radio Drama', 'Infomercial', 'Documentary', 'Field Report', 'Talk Show']
 };
 
 const articleTypeOptions = computed(() => {
@@ -547,12 +553,15 @@ const loadEntries = async () => {
 const selectedCategory = ref('');
 
 const articleTypesMap = {
-    'News': ['Full News', 'Special Report', 'News Bit', 'News Feature', 'In-Depth News'],
-    'Op-Ed': ['Opinion', 'Spark Agent', 'Letter to the Editor', 'Editorial'],
-    'Feature': ['SciTech', 'General Feature'],
-    'DevCom': ['Feature-Style'],
-    'Sports': ['News', 'News Feature', 'Opinion'],
-    'Literary': ['Poem/Tula', 'Flash Fiction/Dagli', 'Short Story/Maikling Kwento', 'Screenplay']
+    'News': ['Full News', 'Special Report', 'News Bit', 'News Features', 'In-Depth News'],
+    'Opinion': ['Column', 'Spark Agent', 'Letter to the Editor'],
+    'Editorial': ['Editorial', 'Editorial Board Stance'],
+    'Feature': ['General Feature', 'Human Interest', 'Profile', 'Lifestyle'],
+    'Sci-Tech': ['Science Feature', 'Tech Innovation', 'Health & Environment', 'Research Spotlight'],
+    'DevCom': ['Community Development', 'Advocacy Piece', 'Campus Development', 'Feature-Style'],
+    'Sports': ['News', 'News Feature', 'Sports Column', 'Game Coverage', 'Athlete Profile'],
+    'Literary': ['Poem/Tula', 'Flash Fiction/Dagli', 'Short Story/Maikling Kwento', 'Screenplay', 'Essay/Sanaysay'],
+    'Radio Broadcasting': ['Newscast', 'Radio Drama', 'Infomercial', 'Documentary', 'Field Report', 'Talk Show']
 };
 
 const availableArticleTypes = computed(() => {
@@ -572,7 +581,7 @@ const groupedEntries = computed(() => {
     return groups;
 });
 
-const allSections = ['News', 'Feature', 'Editorial', 'Sports', 'Literary', 'DevComm'];
+const allSections = ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Radio Broadcasting'];
 
 const getArticleTypeStyle = (type) => {
     const styles = {

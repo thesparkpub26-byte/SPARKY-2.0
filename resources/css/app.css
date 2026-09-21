@@ -13,9 +13,8 @@ html, body {
     font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: #f8fafc;
     color: #0f172a;
-    min-height: 100vh;
-    overflow-y: auto !important;
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
 }
 
 /* Center pagination bars globally across all dashboards */

@@ -147,15 +147,16 @@ const userInitials = computed(() => {
   return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2) || '?';
 });
 
-const STAFF_ROLES = ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist'];
+const STAFF_ROLES = ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'];
 const isStaff     = computed(() => STAFF_ROLES.includes(currentUser.value?.role));
 
 const dashMap = {
-  admin:          '/admin',
-  eic:            '/eic',
-  section_editor: '/editor',
-  staff_writer:   '/writer',
-  staff_artist:   '/artist',
+  admin:             '/admin',
+  eic:               '/eic',
+  section_editor:    '/editor',
+  staff_writer:      '/writer',
+  staff_artist:      '/artist',
+  staff_broadcaster: '/writer',
 };
 const staffDashboardPath = computed(() => dashMap[currentUser.value?.role] || '/');
 

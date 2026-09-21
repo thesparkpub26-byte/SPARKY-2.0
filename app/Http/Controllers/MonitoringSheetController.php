@@ -38,6 +38,22 @@ class MonitoringSheetController extends Controller
 
         $entry = $monitoringSheet->entries()->create($validated);
         
+        // Notify EICs about new monitoring sheet task
+        try {
+            $eics = \App\Models\User::where('role', 'eic')->get();
+            $taskTitle = $entry->topic ?: 'New Task';
+            $writerText = $entry->writer_assigned ? " assigned to {$entry->writer_assigned}" : '';
+            foreach ($eics as $eic) {
+                \App\Models\Notification::create([
+                    'user_id' => $eic->id,
+                    'title'   => 'Press Work Task Added',
+                    'message' => "Task '{$taskTitle}'{$writerText} in {$entry->section} ({$monitoringSheet->title}).",
+                    'type'    => 'press_work_update',
+                    'data'    => ['sheet_id' => $monitoringSheet->id, 'entry_id' => $entry->id],
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
         return response()->json($entry, 201);
     }
 
@@ -68,7 +84,25 @@ class MonitoringSheetController extends Controller
             'article_content' => 'nullable|string',
         ]);
 
+        $oldStatus = $entry->current_status;
         $entry->update($validated);
+        
+        // Notify EICs on status update
+        if (!empty($validated['current_status']) && $validated['current_status'] !== $oldStatus) {
+            try {
+                $eics = \App\Models\User::where('role', 'eic')->get();
+                $taskTitle = $entry->topic ?: 'Task';
+                foreach ($eics as $eic) {
+                    \App\Models\Notification::create([
+                        'user_id' => $eic->id,
+                        'title'   => 'Press Work Status Updated',
+                        'message' => "Task '{$taskTitle}' updated to '{$validated['current_status']}' in {$monitoringSheet->title}.",
+                        'type'    => 'press_work_update',
+                        'data'    => ['sheet_id' => $monitoringSheet->id, 'entry_id' => $entry->id],
+                    ]);
+                }
+            } catch (\Throwable $e) {}
+        }
         
         return response()->json($entry);
     }
@@ -102,6 +136,19 @@ class MonitoringSheetController extends Controller
             'article_content' => $validated['content'],
         ]);
         
+        try {
+            $eics = \App\Models\User::where('role', 'eic')->get();
+            foreach ($eics as $eic) {
+                \App\Models\Notification::create([
+                    'user_id' => $eic->id,
+                    'title'   => 'Article Draft Uploaded',
+                    'message' => "Draft '{$validated['headline']}' uploaded by {$validated['author']} for '{$entry->topic}'.",
+                    'type'    => 'press_work_update',
+                    'data'    => ['sheet_id' => $monitoringSheet->id, 'entry_id' => $entry->id],
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
         return response()->json(['message' => 'Article uploaded successfully', 'entry' => $entry]);
     }
 }

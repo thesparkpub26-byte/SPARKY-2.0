@@ -84,12 +84,13 @@ onMounted(() => {
 
 // Role → destination mapping (same as login)
 const roleDashboard = {
-  admin:          '/admin',
-  eic:            '/eic',
-  section_editor: '/editor',
-  staff_writer:   '/writer',
-  staff_artist:   '/artist',
-  reader:         '/',   // Readers land on the public portal
+  admin:             '/admin',
+  eic:               '/eic',
+  section_editor:    '/editor',
+  staff_writer:      '/writer',
+  staff_artist:      '/artist',
+  staff_broadcaster: '/writer',
+  reader:            '/',   // Readers land on the public portal
 };
 
 const onInput = (index, event) => {

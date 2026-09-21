@@ -16,8 +16,8 @@
             <!-- STEP 1: Article Info, Section, Priority, Deadline -->
             <div class="modal-body-step" v-if="currentStep === 1">
                 <div class="field-group">
-                    <label class="field-label">Article Title</label>
-                    <input type="text" class="pill-input" v-model="form.title" placeholder="Write Title Here..." />
+                    <label class="field-label">Article About</label>
+                    <input type="text" class="pill-input" v-model="form.title" placeholder="Write what the article is about..." />
                 </div>
 
                 <div class="field-row">
@@ -26,39 +26,18 @@
                         <div class="select-wrapper">
                             <select class="pill-select" v-model="form.section">
                                 <option value="News">News</option>
-                                <option value="Opinion/Editorial">Opinion/Editorial</option>
+                                <option value="Opinion">Opinion</option>
+                                <option value="Editorial">Editorial</option>
                                 <option value="Feature">Feature</option>
+                                <option value="Sci-Tech">Sci-Tech</option>
+                                <option value="DevCom">DevCom</option>
                                 <option value="Sports">Sports</option>
                                 <option value="Literary">Literary</option>
-                                <option value="DevComm">DevComm</option>
+                                <option value="Radio Broadcasting">Radio Broadcasting</option>
                             </select>
                             <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
                     </div>
-                    <div class="field-group">
-                        <label class="field-label">Medium</label>
-                        <div class="select-wrapper">
-                            <select class="pill-select" v-model="form.medium">
-                                <option value="English">English</option>
-                                <option value="Filipino">Filipino</option>
-                            </select>
-                            <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="field-group">
-                    <label class="field-label">Type of Article</label>
-                    <div class="select-wrapper">
-                        <select class="pill-select" v-model="form.article_type">
-                            <option value="">Select Type</option>
-                            <option v-for="type in articleTypeOptions" :key="type" :value="type">{{ type }}</option>
-                        </select>
-                        <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-                </div>
-
-                <div class="field-row">
                     <div class="field-group">
                         <label class="field-label">Priority</label>
                         <div class="select-wrapper">
@@ -66,23 +45,23 @@
                                 <option value="">Choose Level</option>
                                 <option value="Low">Low</option>
                                 <option value="Moderate">Moderate</option>
-                                <option value="High">High</option>
                                 <option value="Urgent">Urgent</option>
                             </select>
                             <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
                     </div>
-                    <div class="field-group">
-                        <label class="field-label">Deadline</label>
-                        <div class="deadline-inputs-row">
-                            <div class="input-with-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                <input type="date" class="pill-input-inner" v-model="form.dueDate" />
-                            </div>
-                            <div class="input-with-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                <input type="time" class="pill-input-inner" v-model="form.dueTime" />
-                            </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Deadline</label>
+                    <div class="deadline-inputs-row">
+                        <div class="input-with-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <input type="date" class="pill-input-inner" v-model="form.dueDate" />
+                        </div>
+                        <div class="input-with-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            <input type="time" class="pill-input-inner" v-model="form.dueTime" />
                         </div>
                     </div>
                 </div>
@@ -102,31 +81,42 @@
                     <label class="field-label">Writer Assignee</label>
                     <div class="select-wrapper">
                         <select class="pill-select" v-model="form.writer">
-                            <option value="">Select People</option>
-                            <option value="Johan Abinal">Johan Abinal (News Writer)</option>
-                            <option value="Gabrielle Loquias">Gabrielle Loquias (Feature Writer)</option>
-                            <option value="Alaissa Tapar">Alaissa Tapar (Sports Writer)</option>
-                            <option value="Samantha Belle">Samantha Belle (Literary Writer)</option>
+                            <option value="">Select Writer</option>
+                            <option :value="currentUser.name || 'Yourself'">
+                                Yourself ({{ currentUser.name || 'Current User' }})
+                            </option>
+                            <option v-for="user in filteredWriters" :key="user.id || user.name" :value="user.name">
+                                {{ user.name }} ({{ user.secondary_role || formatRole(user.role) }})
+                            </option>
                         </select>
                         <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
                 </div>
 
                 <div class="field-group">
-                    <label class="field-label">PJ/Artist Assignee</label>
-                    <label class="no-graphics-toggle">
-                        <input type="checkbox" v-model="form.noGraphics" />
-                        <span>No Graphics Needed</span>
-                    </label>
+                    <div class="media-label-row">
+                        <label class="field-label">
+                            {{ isRadioBroadcasting ? 'Videographer' : 'PJ/Artist Assignee' }}
+                        </label>
+                        <label class="no-graphics-toggle">
+                            <input type="checkbox" v-model="form.noGraphics" />
+                            <span>{{ isRadioBroadcasting ? 'No Video Needed' : 'No Graphics Needed' }}</span>
+                        </label>
+                    </div>
                     <div v-if="!form.noGraphics" class="select-wrapper">
                         <select class="pill-select" v-model="form.mediaArtist">
-                            <option value="">Select Artists</option>
-                            <option value="Dustin Jake Nas">Dustin Jake Nas</option>
-                            <option value="Emher Valenzuela">Emher Valenzuela</option>
+                            <option value="">
+                                {{ isRadioBroadcasting ? 'Select Videographer / Media' : 'Select Artist / PJ' }}
+                            </option>
+                            <option v-for="user in filteredMediaAssignees" :key="user.id || user.name" :value="user.name">
+                                {{ user.name }} ({{ user.secondary_role || (isRadioBroadcasting ? 'Videographer' : 'Staff Artist') }})
+                            </option>
                         </select>
                         <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
-                    <div v-else class="no-graphics-pill">No Graphics Needed</div>
+                    <div v-else class="no-graphics-pill">
+                        {{ isRadioBroadcasting ? 'No Video Needed' : 'No Graphics Needed' }}
+                    </div>
                 </div>
 
                 <div class="field-group">
@@ -150,7 +140,7 @@
                 <p v-if="errorMessage" class="assign-task-error">{{ errorMessage }}</p>
             </div>
 
-            <!-- STEP 3: SE_AssignmentDone Confirmation -->
+            <!-- STEP 3: Confirmation -->
             <div class="modal-body-step confirmation-step" v-if="currentStep === 3">
                 <div class="success-icon-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -175,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 
 const props = defineProps({
     isOpen: {
@@ -188,7 +178,8 @@ const props = defineProps({
     },
     monitoringSheetId: {
         type: Number,
-        required: true
+        required: false,
+        default: null
     }
 });
 
@@ -197,22 +188,21 @@ const emit = defineEmits(['close', 'view-assignments', 'task-added']);
 const currentStep = ref(1);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
+const allUsers = ref([]);
 
-const articleTypeMap = {
-    'News': ['Special Report', 'Full News', 'News Bit', 'News Features', 'In-Depth News'],
-    'Opinion/Editorial': ['Opinion', 'Spark Agent', 'Letter to the Editor', 'Editorial'],
-    'Feature': ['Sci-Tech', 'General Feature'],
-    'DevComm': ['Feature-Style'],
-    'Sports': ['News', 'News Feature', 'Opinion'],
-    'Literary': ['Poem/Tula', 'Short Story/Maikling Kwento', 'Flash Fiction/Dagli', 'Screenplay'],
+const currentUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
+
+const formatRole = (role) => {
+    if (role === 'eic') return 'Editor in Chief';
+    if (role === 'system') return 'System';
+    if (role === 'staff_broadcaster') return 'Staff Broadcaster';
+    return (role || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
 const form = ref({
     title: '',
     coverage: '',
     section: props.defaultSection || 'News',
-    article_type: '',
-    medium: 'English',
     noGraphics: false,
     priority: '',
     dueDate: '',
@@ -222,17 +212,126 @@ const form = ref({
     description: ''
 });
 
-const articleTypeOptions = computed(() => articleTypeMap[form.value.section] || []);
+const isRadioBroadcasting = computed(() => form.value.section === 'Radio Broadcasting');
 
-// Reset article_type whenever section changes
+// Fetch users from API
+const fetchUsers = async () => {
+    try {
+        const response = await fetch('/api/users', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            allUsers.value = Array.isArray(data) ? data : (data.users || []);
+        }
+    } catch (e) {
+        console.warn('Could not fetch users list, using fallback defaults', e);
+    }
+};
+
+onMounted(() => {
+    fetchUsers();
+});
+
+// Filter writers matching the selected section from registered users in database
+const filteredWriters = computed(() => {
+    const section = form.value.section;
+    const currentName = currentUser.value?.name || '';
+    
+    return allUsers.value
+        .filter(u => u.is_active !== false)
+        .filter(u => {
+            // Exclude logged in user from regular list since they are present as "Yourself"
+            if (currentName && u.name === currentName) return false;
+
+            const secRole = (u.secondary_role || '').toLowerCase();
+            const role = (u.role || '').toLowerCase();
+
+            // Video roles (videographers, video editors, technical directors) are NEVER writers
+            const isVideoRole = ['videographer', 'video editor', 'technical director'].some(vr => secRole.includes(vr));
+            if (isVideoRole) {
+                return false;
+            }
+
+            // Artists are never writers
+            if (role === 'staff_artist' || secRole.includes('artist') || secRole.includes('photojournalist') || secRole.includes('cartoonist') || secRole.includes('illustrator')) {
+                return false;
+            }
+
+            const isPresenterRole = secRole.includes('presenter') || secRole.includes('head broadcaster');
+
+            // Radio Broadcasting: ONLY news presenters
+            if (section === 'Radio Broadcasting') {
+                return isPresenterRole;
+            }
+
+            // Presenters can only be assigned under Radio Broadcasting
+            if (isPresenterRole || role === 'staff_broadcaster') {
+                return false;
+            }
+
+            // Standard print/text sections:
+            if (section === 'News') {
+                return secRole.includes('news') && !secRole.includes('presenter');
+            } else if (section === 'Opinion') {
+                return secRole.includes('opinion');
+            } else if (section === 'Editorial') {
+                return secRole.includes('editorial') || secRole.includes('copyreader');
+            } else if (section === 'Feature') {
+                return secRole.includes('feature');
+            } else if (section === 'Sci-Tech') {
+                return secRole.includes('sci') || secRole.includes('tech');
+            } else if (section === 'DevCom') {
+                return secRole.includes('devcom') || secRole.includes('devcomm');
+            } else if (section === 'Sports') {
+                return secRole.includes('sport');
+            } else if (section === 'Literary') {
+                return secRole.includes('literary');
+            }
+            return false;
+        });
+});
+
+// Filter media assignees: staff_artist for regular sections, Videographer/Video Editor/Technical Director for Radio Broadcasting
+const filteredMediaAssignees = computed(() => {
+    if (isRadioBroadcasting.value) {
+        // Only Videographer, Video Editor, Technical Director (EXCLUDE News Presenter and other non-video roles)
+        const videoKeywords = ['videographer', 'video editor', 'technical director'];
+        return allUsers.value
+            .filter(u => u.is_active !== false)
+            .filter(u => {
+                const secRole = (u.secondary_role || '').toLowerCase();
+                return videoKeywords.some(keyword => secRole.includes(keyword)) && !secRole.includes('presenter');
+            });
+    } else {
+        // Regular sections: staff_artist only (Photojournalist, Layout Artist, Graphic Artist, Cartoonist, Illustrator)
+        return allUsers.value
+            .filter(u => u.is_active !== false)
+            .filter(u => {
+                const secRole = (u.secondary_role || '').toLowerCase();
+                const role = (u.role || '').toLowerCase();
+                return role === 'staff_artist' || secRole.includes('artist') || secRole.includes('photojournalist') || secRole.includes('cartoonist') || secRole.includes('illustrator');
+            });
+    }
+});
+
+// Reset writer and mediaArtist whenever section changes
 watch(() => form.value.section, () => {
-    form.value.article_type = '';
+    form.value.writer = '';
+    form.value.mediaArtist = '';
 });
 
 watch(() => props.isOpen, (newVal) => {
     if (newVal) {
         currentStep.value = 1;
         errorMessage.value = '';
+        currentUser.value = JSON.parse(localStorage.getItem('sparky_user') || '{}');
+        if (allUsers.value.length === 0) {
+            fetchUsers();
+        }
     }
 });
 
@@ -248,15 +347,37 @@ const onViewAssignments = () => {
     closeModal();
 };
 
+const getTargetMonitoringSheetId = async () => {
+    if (props.monitoringSheetId) return props.monitoringSheetId;
+    try {
+        const response = await fetch('/api/press-works', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (response.ok) {
+            const pressWorks = await response.json();
+            for (const work of pressWorks) {
+                if (work.monitoring_sheets && work.monitoring_sheets.length > 0) {
+                    return work.monitoring_sheets[0].id;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Could not retrieve active monitoring sheet', e);
+    }
+    return 1;
+};
+
 const submitTask = async () => {
     errorMessage.value = '';
     isSubmitting.value = true;
 
     // Validation: Check required fields
     const requiredFields = [
-        { field: form.value.title, name: 'Article Title' },
+        { field: form.value.title, name: 'Article About' },
         { field: form.value.section, name: 'Section' },
-        { field: form.value.article_type, name: 'Type of Article' },
         { field: form.value.priority, name: 'Priority' },
         { field: form.value.dueDate, name: 'Deadline Date' },
         { field: form.value.writer, name: 'Writer Assignee' }
@@ -271,15 +392,18 @@ const submitTask = async () => {
         return;
     }
 
-    // Validate artist assignment if graphics are needed
+    // Validate media assignment if graphics/video are needed
     if (!form.value.noGraphics && !form.value.mediaArtist) {
-        errorMessage.value = 'Please select a PJ/Artist Assignee or check "No Graphics Needed"';
+        const mediaField = isRadioBroadcasting.value ? 'Videographer' : 'PJ/Artist Assignee';
+        const toggleOption = isRadioBroadcasting.value ? 'No Video Needed' : 'No Graphics Needed';
+        errorMessage.value = `Please select a ${mediaField} or check "${toggleOption}"`;
         isSubmitting.value = false;
         return;
     }
 
     try {
-        const response = await fetch(`/api/monitoring-sheets/${props.monitoringSheetId}/entries`, {
+        const targetSheetId = await getTargetMonitoringSheetId();
+        const response = await fetch(`/api/monitoring-sheets/${targetSheetId}/entries`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
@@ -289,16 +413,16 @@ const submitTask = async () => {
             body: JSON.stringify({
                 topic: form.value.title,
                 section: form.value.section,
-                article_type: form.value.article_type,
-                medium: form.value.medium,
+                article_type: null,
+                medium: 'English',
                 writer_assigned: form.value.writer,
                 artist_assigned: form.value.noGraphics ? 'No Graphics' : (form.value.mediaArtist || null),
-                media_type: form.value.mediaArtist ? 'Graphic/s' : 'Photo/s',
+                media_type: isRadioBroadcasting.value ? 'Video' : (form.value.mediaArtist ? 'Graphic/s' : 'Photo/s'),
                 has_files: false,
                 description: form.value.description,
                 priority: form.value.priority,
                 deadline: form.value.dueDate,
-                deadline_time: form.value.dueTime,
+                deadline_time: form.value.dueTime || null,
                 current_status: 'Pending'
             })
         });
@@ -307,8 +431,8 @@ const submitTask = async () => {
             emit('task-added');
             currentStep.value = 3;
         } else {
-            console.error('Failed to add task');
-            errorMessage.value = 'Failed to add task. Please try again.';
+            const data = await response.json().catch(() => ({}));
+            errorMessage.value = data.message || 'Failed to add task. Please try again.';
         }
     } catch (error) {
         console.error('Error adding task:', error);
@@ -671,6 +795,13 @@ const submitTask = async () => {
 .btn-grey-pill:hover {
     background-color: #e2e8f0;
     color: #0f172a;
+}
+
+.media-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .no-graphics-toggle {

@@ -16,7 +16,7 @@
 
             <!-- Section Badge -->
             <div class="badge-container">
-                <span class="section-pill-badge">{{ task.section || 'News' }}</span>
+                <span class="section-pill-badge">{{ typeof task.section === 'object' ? (task.section.name || 'News') : (task.section || 'News') }}</span>
             </div>
 
             <!-- Article Title -->

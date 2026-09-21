@@ -74,6 +74,20 @@ class PressWorkController extends Controller
             }
 
             Activity::record($request->user(), 'Created a new academic year', $pressWork);
+
+            try {
+                $eics = \App\Models\User::where('role', 'eic')->get();
+                foreach ($eics as $eic) {
+                    \App\Models\Notification::create([
+                        'user_id' => $eic->id,
+                        'title'   => 'Academic Year Created',
+                        'message' => "Academic year {$pressWork->academic_year} was set up with monitoring sheets.",
+                        'type'    => 'press_work_update',
+                        'data'    => ['press_work_id' => $pressWork->id],
+                    ]);
+                }
+            } catch (\Throwable $e) {}
+
             return $pressWork;
         });
 

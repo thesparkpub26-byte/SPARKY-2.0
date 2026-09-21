@@ -7,7 +7,7 @@
                 <!-- Header -->
                 <div class="modal-hdr">
                     <h2 class="modal-blue-title">Article Details</h2>
-                    <button class="modal-x-btn" @click="closeModal" title="Close">
+                    <button class="modal-x-btn" @click="closeModal" title="Close" aria-label="Close">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -17,8 +17,8 @@
 
                 <!-- Section Badge & Article Title -->
                 <div class="article-title-block">
-                    <span class="section-pill-badge">{{ article.section || 'News' }}</span>
-                    <h1 class="article-main-heading">{{ article.title || 'Campus Wi-Fi Expansion Project' }}</h1>
+                    <span class="section-pill-badge">{{ displaySection }}</span>
+                    <h1 class="article-main-heading">{{ displayTitle }}</h1>
                 </div>
 
                 <!-- Top Row: Grid Details & Section Editor Remarks -->
@@ -27,27 +27,27 @@
                     <div class="meta-details-grid">
                         <div class="meta-item">
                             <span class="meta-label">Coverage</span>
-                            <span class="meta-value">{{ article.coverage || 'Tech & Innovation Series' }}</span>
+                            <span class="meta-value">{{ displayCoverage }}</span>
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">Writer</span>
-                            <span class="meta-value">{{ article.writer || 'Gabrielle M. Loquias' }}</span>
+                            <span class="meta-value">{{ displayWriter }}</span>
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">Date Endorsed</span>
-                            <span class="meta-value">{{ article.dateEndorsed || 'Apr 14 • 10:31 AM' }}</span>
+                            <span class="meta-value">{{ displayDateEndorsed }}</span>
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">Deadline</span>
-                            <span class="meta-value">{{ article.deadline || 'Apr 16 • 5:00 PM' }}</span>
+                            <span class="meta-value">{{ displayDeadline }}</span>
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">Status</span>
-                            <span class="status-badge-yellow">{{ article.status || 'For Approval' }}</span>
+                            <span class="status-badge" :class="statusBadgeClass">{{ displayStatus }}</span>
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">Word Count</span>
-                            <span class="word-count-chip">{{ article.wordCount || '95' }}</span>
+                            <span class="word-count-chip">{{ displayWordCount }}</span>
                         </div>
                     </div>
 
@@ -56,14 +56,14 @@
                         <h4 class="remarks-title">Section Editor Remarks</h4>
                         <div class="quote-icon">“</div>
                         <p class="remarks-text">
-                            {{ article.remarks || 'This article has been reviewed and revised on the initial feedback. It is now endorsed for your final review and approval.' }}
+                            {{ displayRemarks }}
                         </p>
                         <div class="editor-profile-bar">
-                            <img src="https://picsum.photos/100?random=88" alt="Editor" class="editor-avatar" />
+                            <img :src="editorAvatarUrl" :alt="displayEditorName" class="editor-avatar" />
                             <div class="editor-info">
-                                <div class="role-pill-badge">News Editor</div>
-                                <div class="editor-name">Johan Abinal</div>
-                                <div class="editor-email">sec.editor@thesparkpub.com</div>
+                                <div class="role-pill-badge">{{ displayEditorRole }}</div>
+                                <div class="editor-name">{{ displayEditorName }}</div>
+                                <div class="editor-email">{{ displayEditorEmail }}</div>
                             </div>
                         </div>
                     </div>
@@ -74,12 +74,14 @@
                     <!-- Left: Article Preview Card -->
                     <div class="preview-box-card">
                         <h4 class="card-box-title">Article Preview</h4>
-                        <p class="preview-text">
-                            Campus creatives continue to shape a more expressive student community as more students explore their talents beyond academics. From writing, graphic design, photography, and video editing, students find new ways to share ideas and support campus organizations. Student publications and multimedia groups help young creatives showcase their skills and contribute meaningful work to the institution.
-                        </p>
-                        <p class="preview-text" style="margin-top: 10px;">
-                            Their work also strengthens school identity and student engagement through events, awareness...
-                        </p>
+                        <div class="preview-text-wrapper">
+                            <p class="preview-text" v-if="displayPreviewParagraphs.length > 0" v-for="(para, idx) in displayPreviewParagraphs" :key="idx" :style="idx > 0 ? 'margin-top: 10px;' : ''">
+                                {{ para }}
+                            </p>
+                            <p class="preview-text" v-else>
+                                {{ defaultPreviewText }}
+                            </p>
+                        </div>
                         <button class="view-full-article-link" @click="handleViewFullArticle">
                             View Full Article 
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -94,37 +96,33 @@
                     <div class="attached-files-card">
                         <h4 class="card-box-title">Attached Files</h4>
                         <div class="files-list">
-                            <div class="file-item">
-                                <img src="https://picsum.photos/100?random=51" alt="Thumbnail" class="file-thumb" />
-                                <div class="file-info">
-                                    <span class="file-name">imageThumbnail.png</span>
-                                    <span class="file-size">2.3 MB</span>
+                            <div class="file-item" v-for="(file, fIdx) in displayAttachedFiles" :key="fIdx">
+                                <div class="file-thumb-icon">
+                                    <svg v-if="file.type === 'image'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
                                 </div>
-                            </div>
-                            <div class="file-item">
-                                <img src="https://picsum.photos/100?random=52" alt="Image 1" class="file-thumb" />
                                 <div class="file-info">
-                                    <span class="file-name">imageOne.jpeg</span>
-                                    <span class="file-size">2.9 MB</span>
-                                </div>
-                            </div>
-                            <div class="file-item">
-                                <img src="https://picsum.photos/100?random=53" alt="Image 2" class="file-thumb" />
-                                <div class="file-info">
-                                    <span class="file-name">imageTwo.jpeg</span>
-                                    <span class="file-size">2.3 MB</span>
+                                    <span class="file-name">{{ file.name }}</span>
+                                    <span class="file-size">{{ file.size }}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="attachments-count-footer">
-                            <span class="attachments-pill">+ 3 attachments</span>
+                        <div class="attachments-count-footer" v-if="displayAttachedFiles.length > 0">
+                            <span class="attachments-pill">+ {{ displayAttachedFiles.length }} attachments</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer Action Bar -->
                 <div class="modal-footer-actions">
-                    <button class="btn-grey-pill" @click="isReturnModalOpen = true">
+                    <button class="btn-grey-pill" @click="isReturnModalOpen = true" :disabled="isSubmitting">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 14 4 9 9 4"></polyline>
                             <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
@@ -132,19 +130,19 @@
                         Return to Editor
                     </button>
                     
-                    <button class="btn-green-light-pill" @click="handleApprove">
+                    <button class="btn-green-light-pill" @click="handleApprove" :disabled="isSubmitting">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
-                        Approve
+                        {{ isSubmitting ? 'Approving...' : 'Approve' }}
                     </button>
 
-                    <button class="btn-blue-primary-pill" @click="handlePublish">
+                    <button class="btn-blue-primary-pill" @click="handlePublish" :disabled="isSubmitting">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m3 11 18-5v12L3 14v-3z"></path>
                             <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
                         </svg>
-                        Publish Article
+                        {{ isSubmitting ? 'Publishing...' : 'Publish Article' }}
                     </button>
                 </div>
 
@@ -156,7 +154,7 @@
             <div class="dialog-card-medium">
                 <div class="modal-hdr">
                     <h2 class="modal-blue-title">Return to Section Editor</h2>
-                    <button class="modal-x-btn" @click="isReturnModalOpen = false">
+                    <button class="modal-x-btn" @click="isReturnModalOpen = false" aria-label="Close">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -165,26 +163,26 @@
                 </div>
 
                 <div class="notes-form-group">
-                    <label class="notes-label">Notes</label>
+                    <label class="notes-label">Notes / Revision Instructions</label>
                     <div class="textarea-relative-wrapper">
                         <textarea 
                             v-model="returnNotes" 
                             maxlength="500" 
-                            placeholder="Write your thoughts here..." 
+                            placeholder="Specify requested revisions and editorial guidance..." 
                             class="notes-textarea"
                         ></textarea>
                         <span class="char-count-badge">{{ returnNotes.length }}/500</span>
                     </div>
-                    <p class="notes-subtext">This note will be visible to both assignee and editor.</p>
+                    <p class="notes-subtext">This note will be visible to both the writer and section editor.</p>
                 </div>
 
                 <div class="dialog-actions-row">
-                    <button class="btn-grey-pill" @click="isReturnModalOpen = false">Cancel</button>
-                    <button class="btn-blue-pill" @click="submitReturnToEditor">
+                    <button class="btn-grey-pill" @click="isReturnModalOpen = false" :disabled="isSubmitting">Cancel</button>
+                    <button class="btn-blue-pill" @click="submitReturnToEditor" :disabled="isSubmitting">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 9L9 20L4 15"></path>
                         </svg>
-                        Return to Editor
+                        {{ isSubmitting ? 'Returning...' : 'Return to Editor' }}
                     </button>
                 </div>
             </div>
@@ -198,8 +196,8 @@
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
-                <h3 class="dialog-success-title">This article was successfully returned to section editor</h3>
-                <p class="dialog-success-subtext">The Section Editor has been notified and can now review your notes and manage the next revision.</p>
+                <h3 class="dialog-success-title">Article Returned to Section Editor</h3>
+                <p class="dialog-success-subtext">The Section Editor has been notified and can now review your notes and coordinate necessary revisions.</p>
                 <button class="btn-blue-full" @click="finishAll">Done</button>
             </div>
         </div>
@@ -212,8 +210,8 @@
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
-                <h3 class="dialog-success-title">This article has been approved</h3>
-                <p class="dialog-success-subtext">The article is now ready for publishing and can proceed to the final release stage.</p>
+                <h3 class="dialog-success-title">Article Approved</h3>
+                <p class="dialog-success-subtext">The article has been marked as approved and is ready for the publication queue.</p>
                 <button class="btn-blue-full" @click="finishAll">Done</button>
             </div>
         </div>
@@ -267,6 +265,132 @@ const returnNotes = ref('');
 const isReturnSuccessOpen = ref(false);
 const isApprovedSuccessOpen = ref(false);
 const isPublishedSuccessOpen = ref(false);
+const isSubmitting = ref(false);
+
+// Extract clean section name
+const displaySection = computed(() => {
+    const sec = article.value.section;
+    if (!sec) return 'News';
+    if (typeof sec === 'string') return sec;
+    if (typeof sec === 'object' && sec.name) return sec.name;
+    return 'News';
+});
+
+const displayTitle = computed(() => {
+    return article.value.title || 'Untitled Article';
+});
+
+const displayCoverage = computed(() => {
+    if (article.value.coverage && typeof article.value.coverage === 'string') {
+        return article.value.coverage;
+    }
+    return `${displaySection.value} Coverage`;
+});
+
+const displayWriter = computed(() => {
+    if (article.value.author && typeof article.value.author === 'object' && article.value.author.name) {
+        return article.value.author.name;
+    }
+    if (article.value.writer && typeof article.value.writer === 'string') {
+        return article.value.writer;
+    }
+    return 'Samantha Ciscon';
+});
+
+const formatDateTime = (dateVal) => {
+    if (!dateVal) return 'Sep 15, 2026, 2:12 AM';
+    try {
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return String(dateVal);
+        return d.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    } catch {
+        return String(dateVal);
+    }
+};
+
+const displayDateEndorsed = computed(() => {
+    return formatDateTime(article.value.endorsed_at || article.value.submitted_at || article.value.created_at || article.value.dateEndorsed);
+});
+
+const displayDeadline = computed(() => {
+    return formatDateTime(article.value.deadline || article.value.endorsed_at || article.value.created_at);
+});
+
+const rawStatus = computed(() => {
+    const s = article.value.raw_status || article.value.status || 'submitted';
+    return String(s).toLowerCase();
+});
+
+const displayStatus = computed(() => {
+    const s = rawStatus.value;
+    if (s === 'submitted') return 'submitted';
+    if (s === 'endorsed') return 'endorsed';
+    if (s === 'approved') return 'approved';
+    if (s === 'published') return 'published';
+    if (s === 'rejected' || s === 'returned') return 'returned';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+});
+
+const statusBadgeClass = computed(() => {
+    const s = rawStatus.value;
+    if (s === 'approved' || s === 'published') return 'status-green';
+    if (s === 'rejected' || s === 'returned') return 'status-red';
+    return 'status-yellow';
+});
+
+const displayWordCount = computed(() => {
+    if (article.value.word_count) return article.value.word_count;
+    if (article.value.wordCount) return article.value.wordCount;
+    if (article.value.content && typeof article.value.content === 'string') {
+        return article.value.content.trim().split(/\s+/).filter(Boolean).length;
+    }
+    return 850;
+});
+
+const displayRemarks = computed(() => {
+    return article.value.editor_notes || article.value.remarks || 'This article has been reviewed and revised on the initial feedback.';
+});
+
+const displayEditorRole = computed(() => {
+    return `${displaySection.value} Editor`;
+});
+
+const displayEditorName = computed(() => {
+    return article.value.editor_name || 'Johan Abinal';
+});
+
+const displayEditorEmail = computed(() => {
+    return article.value.editor_email || 'sec.editor@thesparkpub.com';
+});
+
+const editorAvatarUrl = computed(() => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayEditorName.value)}&background=ffd5dc&color=9f1239&size=100`;
+});
+
+const defaultPreviewText = 'Campus creatives continue to shape a more expressive student community as more students explore their talents beyond academics. From writing, graphic design, photography, and video editing, students find new ways to share ideas and support campus organizations. Student publications and multimedia groups help young creatives showcase their skills and contribute meaningful work to the institution.\n\nTheir work also strengthens school identity and student engagement through events, awareness...';
+
+const displayPreviewParagraphs = computed(() => {
+    const text = article.value.excerpt || article.value.content || defaultPreviewText;
+    return text.split('\n\n').filter(Boolean);
+});
+
+const displayAttachedFiles = computed(() => {
+    if (Array.isArray(article.value.attached_files) && article.value.attached_files.length > 0) {
+        return article.value.attached_files;
+    }
+    return [
+        { name: 'imageThumbnail.png', size: '2.3 MB', type: 'image' },
+        { name: 'imageOne.jpeg', size: '2.9 MB', type: 'image' },
+        { name: 'imageTwo.jpeg', size: '2.3 MB', type: 'image' }
+    ];
+});
 
 const closeModal = () => {
     isReturnModalOpen.value = false;
@@ -280,15 +404,75 @@ const handleViewFullArticle = () => {
     emit('view-full-article', article.value);
 };
 
-const handleApprove = () => {
+const handleApprove = async () => {
+    const token = localStorage.getItem('sparky_token');
+    const articleId = article.value.id;
+    if (token && articleId) {
+        try {
+            isSubmitting.value = true;
+            await fetch(`/api/articles/${articleId}/approve`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ eic_notes: 'Approved by EIC' })
+            });
+        } catch (e) {
+            console.error(e);
+        } finally {
+            isSubmitting.value = false;
+        }
+    }
     isApprovedSuccessOpen.value = true;
 };
 
-const handlePublish = () => {
+const handlePublish = async () => {
+    const token = localStorage.getItem('sparky_token');
+    const articleId = article.value.id;
+    if (token && articleId) {
+        try {
+            isSubmitting.value = true;
+            await fetch(`/api/articles/${articleId}`, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: 'published' })
+            });
+        } catch (e) {
+            console.error(e);
+        } finally {
+            isSubmitting.value = false;
+        }
+    }
     isPublishedSuccessOpen.value = true;
 };
 
-const submitReturnToEditor = () => {
+const submitReturnToEditor = async () => {
+    const token = localStorage.getItem('sparky_token');
+    const articleId = article.value.id;
+    if (token && articleId) {
+        try {
+            isSubmitting.value = true;
+            await fetch(`/api/articles/${articleId}/reject`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rejection_reason: returnNotes.value || 'Please revise based on EIC feedback.' })
+            });
+        } catch (e) {
+            console.error(e);
+        } finally {
+            isSubmitting.value = false;
+        }
+    }
     isReturnModalOpen.value = false;
     isReturnSuccessOpen.value = true;
 };
@@ -303,7 +487,11 @@ const finishAll = () => {
 };
 
 const visitArticle = () => {
-    window.open('/article-details', '_blank');
+    if (article.value.id) {
+        window.open(`/article/${article.value.id}`, '_blank');
+    } else {
+        window.open('/article-details', '_blank');
+    }
     finishAll();
 };
 </script>
@@ -320,6 +508,7 @@ const visitArticle = () => {
     justify-content: center;
     padding: 20px;
     box-sizing: border-box;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .article-details-card {
@@ -349,11 +538,10 @@ const visitArticle = () => {
 
 .modal-blue-title {
     color: #1d6bf3;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 800;
     margin: 0;
     letter-spacing: -0.5px;
-    font-family: 'Manrope', -apple-system, sans-serif;
 }
 
 .modal-x-btn {
@@ -383,7 +571,7 @@ const visitArticle = () => {
     border-radius: 12px;
     font-size: 12px;
     font-weight: 700;
-    font-family: 'Manrope', sans-serif;
+    display: inline-block;
 }
 
 .article-main-heading {
@@ -392,7 +580,6 @@ const visitArticle = () => {
     color: #0f172a;
     margin: 8px 0 0 0;
     line-height: 1.3;
-    font-family: 'Manrope', sans-serif;
 }
 
 /* TOP INFO ROW */
@@ -420,25 +607,35 @@ const visitArticle = () => {
     font-size: 12px;
     color: #94a3b8;
     font-weight: 600;
-    font-family: 'Manrope', sans-serif;
 }
 
 .meta-value {
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 800;
     color: #0f172a;
-    font-family: 'Manrope', sans-serif;
 }
 
-.status-badge-yellow {
-    background-color: #fef3c7;
-    color: #92400e;
+.status-badge {
     padding: 3px 10px;
     border-radius: 12px;
     font-size: 12px;
     font-weight: 700;
     width: fit-content;
-    font-family: 'Manrope', sans-serif;
+}
+
+.status-badge.status-yellow {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.status-green {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.status-red {
+    background-color: #fee2e2;
+    color: #991b1b;
 }
 
 .word-count-chip {
@@ -449,7 +646,6 @@ const visitArticle = () => {
     font-size: 12px;
     font-weight: 800;
     width: fit-content;
-    font-family: 'Manrope', sans-serif;
 }
 
 /* EDITOR REMARKS CARD */
@@ -468,7 +664,6 @@ const visitArticle = () => {
     font-weight: 800;
     color: #0f172a;
     margin: 0 0 4px 0;
-    font-family: 'Manrope', sans-serif;
 }
 
 .quote-icon {
@@ -483,7 +678,6 @@ const visitArticle = () => {
     color: #475569;
     margin: 4px 0 14px 0;
     line-height: 1.45;
-    font-family: 'Manrope', sans-serif;
     font-style: italic;
 }
 
@@ -495,10 +689,11 @@ const visitArticle = () => {
 }
 
 .editor-avatar {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     object-fit: cover;
+    border: 1px solid #e2e8f0;
 }
 
 .editor-info {
@@ -515,20 +710,17 @@ const visitArticle = () => {
     font-size: 10px;
     font-weight: 700;
     width: fit-content;
-    font-family: 'Manrope', sans-serif;
 }
 
 .editor-name {
     font-size: 13px;
     font-weight: 800;
     color: #0f172a;
-    font-family: 'Manrope', sans-serif;
 }
 
 .editor-email {
     font-size: 11px;
     color: #64748b;
-    font-family: 'Manrope', sans-serif;
 }
 
 /* MIDDLE CONTENT ROW */
@@ -541,6 +733,7 @@ const visitArticle = () => {
 
 .preview-box-card, .attached-files-card {
     background: #f8fafc;
+    border: 1px solid #f1f5f9;
     border-radius: 20px;
     padding: 20px;
     display: flex;
@@ -552,7 +745,6 @@ const visitArticle = () => {
     font-weight: 800;
     color: #0f172a;
     margin: 0 0 12px 0;
-    font-family: 'Manrope', sans-serif;
 }
 
 .preview-text {
@@ -560,7 +752,6 @@ const visitArticle = () => {
     color: #475569;
     margin: 0;
     line-height: 1.5;
-    font-family: 'Manrope', sans-serif;
 }
 
 .view-full-article-link {
@@ -575,7 +766,7 @@ const visitArticle = () => {
     gap: 6px;
     margin-top: 14px;
     padding: 0;
-    font-family: 'Manrope', sans-serif;
+    transition: color 0.2s;
 }
 
 .view-full-article-link:hover {
@@ -590,7 +781,7 @@ const visitArticle = () => {
 
 .file-item {
     background: #ffffff;
-    border: 1px solid #f1f5f9;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 8px 12px;
     display: flex;
@@ -598,11 +789,16 @@ const visitArticle = () => {
     gap: 12px;
 }
 
-.file-thumb {
+.file-thumb-icon {
     width: 38px;
     height: 38px;
     border-radius: 8px;
-    object-fit: cover;
+    background: #eff6ff;
+    color: #1d6bf3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .file-info {
@@ -615,13 +811,11 @@ const visitArticle = () => {
     font-size: 12.5px;
     font-weight: 700;
     color: #0f172a;
-    font-family: 'Manrope', sans-serif;
 }
 
 .file-size {
     font-size: 11px;
     color: #94a3b8;
-    font-family: 'Manrope', sans-serif;
 }
 
 .attachments-count-footer {
@@ -637,7 +831,6 @@ const visitArticle = () => {
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 12px;
-    font-family: 'Manrope', sans-serif;
 }
 
 /* FOOTER ACTIONS */
@@ -661,10 +854,9 @@ const visitArticle = () => {
     justify-content: center;
     gap: 6px;
     transition: all 0.2s;
-    font-family: 'Manrope', sans-serif;
 }
 
-.btn-grey-pill:hover {
+.btn-grey-pill:hover:not(:disabled) {
     background-color: #e2e8f0;
     color: #0f172a;
 }
@@ -683,10 +875,9 @@ const visitArticle = () => {
     justify-content: center;
     gap: 6px;
     transition: all 0.2s;
-    font-family: 'Manrope', sans-serif;
 }
 
-.btn-green-light-pill:hover {
+.btn-green-light-pill:hover:not(:disabled) {
     background-color: #bbf7d0;
 }
 
@@ -705,12 +896,19 @@ const visitArticle = () => {
     gap: 8px;
     box-shadow: 0 4px 14px rgba(29, 107, 243, 0.3);
     transition: all 0.2s;
-    font-family: 'Manrope', sans-serif;
 }
 
-.btn-blue-primary-pill:hover, .btn-blue-pill:hover {
+.btn-blue-primary-pill:hover:not(:disabled), .btn-blue-pill:hover:not(:disabled) {
     background-color: #1557b0;
     box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
+}
+
+.btn-grey-pill:disabled,
+.btn-green-light-pill:disabled,
+.btn-blue-primary-pill:disabled,
+.btn-blue-pill:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .btn-blue-full {
@@ -725,7 +923,6 @@ const visitArticle = () => {
     width: 100%;
     margin-top: 20px;
     box-shadow: 0 4px 14px rgba(29, 107, 243, 0.3);
-    font-family: 'Manrope', sans-serif;
 }
 
 .btn-blue-full:hover {
@@ -767,7 +964,6 @@ const visitArticle = () => {
     color: #0f172a;
     display: block;
     margin-bottom: 8px;
-    font-family: 'Manrope', sans-serif;
 }
 
 .textarea-relative-wrapper {
@@ -782,7 +978,7 @@ const visitArticle = () => {
     padding: 14px;
     box-sizing: border-box;
     font-size: 13px;
-    font-family: 'Manrope', sans-serif;
+    font-family: inherit;
     color: #0f172a;
     outline: none;
     resize: vertical;
@@ -799,14 +995,12 @@ const visitArticle = () => {
     font-size: 11px;
     color: #94a3b8;
     font-weight: 600;
-    font-family: 'Manrope', sans-serif;
 }
 
 .notes-subtext {
     font-size: 12px;
     color: #64748b;
     margin: 8px 0 0 0;
-    font-family: 'Manrope', sans-serif;
 }
 
 .dialog-actions-row {
@@ -836,7 +1030,6 @@ const visitArticle = () => {
     margin: 0 0 8px 0;
     line-height: 1.35;
     letter-spacing: -0.3px;
-    font-family: 'Manrope', sans-serif;
 }
 
 .dialog-success-subtext {
@@ -844,6 +1037,13 @@ const visitArticle = () => {
     color: #64748b;
     margin: 0;
     line-height: 1.45;
-    font-family: 'Manrope', sans-serif;
+}
+
+@media (max-width: 640px) {
+    .top-info-row,
+    .middle-content-row,
+    .modal-footer-actions {
+        grid-template-columns: 1fr;
+    }
 }
 </style>

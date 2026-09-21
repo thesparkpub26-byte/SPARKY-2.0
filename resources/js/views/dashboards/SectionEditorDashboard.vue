@@ -71,11 +71,11 @@
             </nav>
 
             <div class="user-profile">
-                <img src="https://picsum.photos/200?random=15" alt="Profile">
+                <img :src="seUser.profile_picture ? ('/storage/' + seUser.profile_picture) : (seUser.profile_picture_url || 'https://picsum.photos/200?random=15')" alt="Profile">
                 <div class="user-info">
-                    <span class="role-badge" style="background-color: #1a73e8; color: white;">Section Editor</span>
-                    <h4>Section Editor's Name</h4>
-                    <p>sec.editor@thesparkpub.com</p>
+                    <span class="role-badge" style="background-color: #1a73e8; color: white;">{{ seUser.secondary_role || 'Section Editor' }}</span>
+                    <h4>{{ seUser.name || 'Section Editor' }}</h4>
+                    <p>{{ seUser.email || 'sec.editor@thesparkpub.com' }}</p>
                 </div>
                 <button class="settings-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path><path d="M12 2v2"></path><path d="M12 22v-2"></path><path d="m17 4-1.5 1.5"></path><path d="M22 12h-2"></path><path d="m17 20-1.5-1.5"></path><path d="M2 12h2"></path><path d="m7 4 1.5 1.5"></path><path d="m7 20 1.5-1.5"></path></svg>
@@ -768,6 +768,7 @@
     <!-- Assign Task Modal -->
     <AssignTaskModal 
         :is-open="isAssignTaskModalOpen" 
+        :default-section="defaultSection"
         @close="isAssignTaskModalOpen = false" 
         @view-assignments="activeTab = 'assignments'; openDropdown = 'workflow'" 
     />
@@ -789,7 +790,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import AssignTaskModal from '../../components/AssignTaskModal.vue';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
@@ -804,6 +805,21 @@ const isAssignTaskModalOpen = ref(false);
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
 const selectedTask = ref({});
+const seUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
+
+const defaultSection = computed(() => {
+    const secRole = seUser.value?.secondary_role || '';
+    if (secRole.includes('News')) return 'News';
+    if (secRole.includes('Opinion')) return 'Opinion';
+    if (secRole.includes('Editorial')) return 'Editorial';
+    if (secRole.includes('Feature')) return 'Feature';
+    if (secRole.includes('Sci') || secRole.includes('Tech')) return 'Sci-Tech';
+    if (secRole.includes('DevCom')) return 'DevCom';
+    if (secRole.includes('Sports')) return 'Sports';
+    if (secRole.includes('Literary')) return 'Literary';
+    if (secRole.includes('Broadcaster') || secRole.includes('Radio')) return 'Radio Broadcasting';
+    return 'News';
+});
 
 const openTaskModal = (task = {}) => {
     selectedTask.value = {

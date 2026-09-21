@@ -217,6 +217,7 @@ const returnToDashboard = () => {
     section_editor: '/editor',
     staff_writer: '/writer',
     staff_artist: '/artist',
+    staff_broadcaster: '/writer',
   };
   router.push(dashboardByRole[user.value.role] || '/');
 };

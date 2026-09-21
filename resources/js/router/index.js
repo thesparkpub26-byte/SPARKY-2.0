@@ -25,7 +25,7 @@ import FileStorageView from '../views/dashboards/FileStorageView.vue';
 import ProfileView from '../views/ProfileView.vue';
 
 // Staff roles that can access dashboards
-const STAFF_ROLES = ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist'];
+const STAFF_ROLES = ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'];
 
 const routes = [
   // Reader Portal (accessible to everyone)
@@ -88,6 +88,7 @@ router.beforeEach((to) => {
       admin: 'AdminDashboard', eic: 'EditorInChiefDashboard',
       section_editor: 'SectionEditorDashboard',
       staff_writer: 'StaffWriterDashboard', staff_artist: 'StaffArtistDashboard',
+      staff_broadcaster: 'StaffWriterDashboard',
     };
     return { name: dashMap[role] };
   }

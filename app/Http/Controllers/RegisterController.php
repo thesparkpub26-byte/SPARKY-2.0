@@ -17,9 +17,18 @@ class RegisterController extends Controller
      */
     public function sendOtp(Request $request)
     {
+        // Check if an ACTIVE user already has this email
+        $activeUser = User::where('email', $request->email)->where('is_active', true)->first();
+        if ($activeUser) {
+            return response()->json([
+                'message' => 'The email has already been taken.',
+                'errors'  => ['email' => ['The email has already been taken.']],
+            ], 422);
+        }
+
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
+            'email'    => 'required|email',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
@@ -71,13 +80,26 @@ class RegisterController extends Controller
             return response()->json(['message' => 'Incorrect verification code. Please try again.'], 422);
         }
 
-        // OTP is valid — create the real user account
-        $user = User::create([
-            'name'     => $record->name,
-            'email'    => $record->email,
-            'password' => $record->password,
-            'role'     => 'reader', // Public signups are readers; Admin assigns staff roles
-        ]);
+        // OTP is valid — create or reactivate user as a reader
+        $existingUser = User::where('email', $record->email)->first();
+        if ($existingUser) {
+            $existingUser->update([
+                'name'           => $record->name,
+                'password'       => $record->password,
+                'role'           => 'reader',
+                'secondary_role' => null,
+                'is_active'      => true,
+            ]);
+            $user = $existingUser;
+        } else {
+            $user = User::create([
+                'name'     => $record->name,
+                'email'    => $record->email,
+                'password' => $record->password,
+                'role'     => 'reader',
+                'is_active' => true,
+            ]);
+        }
 
         // Clean up
         $record->delete();

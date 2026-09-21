@@ -17,6 +17,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'secondary_role',
         'program',
         'year_section',
         'avatar',
@@ -37,13 +38,29 @@ class User extends Authenticatable
         ];
     }
 
+    protected static function booted()
+    {
+        static::deleting(function (User $user) {
+            foreach ($user->articles as $article) {
+                if ($article->cover_image) {
+                    Storage::disk('public')->delete($article->cover_image);
+                }
+                $article->delete();
+            }
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+        });
+    }
+
     // Role constants
-    const ROLE_ADMIN          = 'admin';
-    const ROLE_EIC            = 'eic';
-    const ROLE_SECTION_EDITOR = 'section_editor';
-    const ROLE_STAFF_WRITER   = 'staff_writer';
-    const ROLE_STAFF_ARTIST   = 'staff_artist';
-    const ROLE_READER         = 'reader';
+    const ROLE_ADMIN             = 'admin';
+    const ROLE_EIC               = 'eic';
+    const ROLE_SECTION_EDITOR    = 'section_editor';
+    const ROLE_STAFF_WRITER      = 'staff_writer';
+    const ROLE_STAFF_ARTIST      = 'staff_artist';
+    const ROLE_STAFF_BROADCASTER = 'staff_broadcaster';
+    const ROLE_READER            = 'reader';
 
     // Relationships
     public function articles()
@@ -67,18 +84,20 @@ class User extends Authenticatable
     }
 
     // Role helpers
-    public function isAdmin(): bool         { return $this->role === self::ROLE_ADMIN; }
-    public function isEIC(): bool           { return $this->role === self::ROLE_EIC; }
-    public function isSectionEditor(): bool { return $this->role === self::ROLE_SECTION_EDITOR; }
-    public function isStaffWriter(): bool   { return $this->role === self::ROLE_STAFF_WRITER; }
-    public function isStaffArtist(): bool   { return $this->role === self::ROLE_STAFF_ARTIST; }
-    public function isReader(): bool        { return $this->role === self::ROLE_READER; }
+    public function isAdmin(): bool            { return $this->role === self::ROLE_ADMIN; }
+    public function isEIC(): bool              { return $this->role === self::ROLE_EIC; }
+    public function isSectionEditor(): bool    { return $this->role === self::ROLE_SECTION_EDITOR; }
+    public function isStaffWriter(): bool      { return $this->role === self::ROLE_STAFF_WRITER; }
+    public function isStaffArtist(): bool      { return $this->role === self::ROLE_STAFF_ARTIST; }
+    public function isStaffBroadcaster(): bool { return $this->role === self::ROLE_STAFF_BROADCASTER; }
+    public function isReader(): bool           { return $this->role === self::ROLE_READER; }
 
     public function isStaff(): bool
     {
         return in_array($this->role, [
             self::ROLE_ADMIN, self::ROLE_EIC,
             self::ROLE_SECTION_EDITOR, self::ROLE_STAFF_WRITER, self::ROLE_STAFF_ARTIST,
+            self::ROLE_STAFF_BROADCASTER,
         ]);
     }
 
