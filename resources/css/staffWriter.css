@@ -172,6 +172,41 @@
     color: #881337;
 }
 
+/* Urgent Theme */
+.card-urgent {
+    background-color: #fef2f2;
+}
+
+.card-urgent .priority-badge {
+    background-color: #fecaca;
+    color: #991b1b;
+}
+
+.card-urgent .card-title {
+    color: #7f1d1d;
+}
+
+.card-urgent .card-subtitle {
+    color: #b91c1c;
+}
+
+.card-urgent .date-pill {
+    background-color: #ffffff;
+    border: 1px solid #f87171;
+    color: #991b1b;
+}
+
+.empty-column-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 500;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px dashed #cbd5e1;
+}
+
 /* Card Content Details */
 .card-title {
     font-size: 14px;

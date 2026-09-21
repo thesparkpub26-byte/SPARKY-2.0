@@ -124,12 +124,13 @@
         </table>
     </div>
 
-    <!-- Add Task Modal -->
-    <AssignTaskModal
+    <!-- Add Task Modal for Monitoring Sheet -->
+    <MonitoringSheetAddTaskModal
         :is-open="isAddTaskModalOpen"
-        :monitoring-sheet-id="sheet?.id"
+        :sheet-id="route.params.monitoringSheet"
+        :sheet-title="sheet?.title || ''"
         @close="isAddTaskModalOpen = false"
-        @task-added="loadEntries"
+        @entry-added="loadEntries"
     />
 
     <!-- Task Detail Modal -->
@@ -449,7 +450,7 @@
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import AssignTaskModal from '../../components/AssignTaskModal.vue';
+import MonitoringSheetAddTaskModal from '../../components/MonitoringSheetAddTaskModal.vue';
 
 const router = useRouter();
 const route = useRoute();

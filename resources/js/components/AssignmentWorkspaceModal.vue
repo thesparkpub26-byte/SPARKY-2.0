@@ -4,7 +4,10 @@
             
             <!-- Modal Header -->
             <div class="modal-hdr">
-                <h2 class="modal-blue-title">Assignment Workspace</h2>
+                <div class="modal-hdr-left">
+                    <h2 class="modal-blue-title">Assignment Workspace</h2>
+                    <span v-if="saveFeedback" class="save-feedback-badge">{{ saveFeedback }}</span>
+                </div>
                 <button class="modal-x-btn" @click="closeModal" title="Close">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -16,7 +19,7 @@
             <!-- Article Information -->
             <div class="article-meta-hdr">
                 <span class="section-pill-badge">{{ typeof task.section === 'object' ? (task.section.name || 'News') : (task.section || 'News') }}</span>
-                <h1 class="article-main-title">{{ task.title || 'Enrollment Update for Second Semester' }}</h1>
+                <h1 class="article-main-title">{{ task.title || 'Untitled Assignment' }}</h1>
             </div>
 
             <!-- Navigation Tabs Header -->
@@ -26,6 +29,9 @@
                 </button>
                 <button class="tab-nav-btn" :class="{ active: currentTab === 'visuals' }" @click="currentTab = 'visuals'">
                     Visual Assets
+                    <span class="tab-asset-count" v-if="mediaPreviews.length || thumbnailPreview">
+                        {{ (thumbnailPreview ? 1 : 0) + mediaPreviews.length }}
+                    </span>
                 </button>
                 <button class="tab-nav-btn" :class="{ active: currentTab === 'details' }" @click="currentTab = 'details'">
                     Details
@@ -34,68 +40,86 @@
 
             <!-- TAB 1: ARTICLE CONTENT -->
             <div class="tab-content-body" v-if="currentTab === 'content'">
+                <!-- Headline Input Bar -->
+                <div class="headline-bar-card">
+                    <label class="headline-label">Article Headline</label>
+                    <input 
+                        type="text" 
+                        v-model="articleHeadline" 
+                        class="headline-input" 
+                        placeholder="Enter a captivating headline for your article..."
+                    />
+                </div>
+
                 <div class="editor-container-card">
                     <!-- Rich Text Toolbar -->
                     <div class="rich-toolbar">
-                        <select class="toolbar-select">
-                            <option>Paragraph</option>
-                            <option>Heading 1</option>
-                            <option>Heading 2</option>
+                        <select class="toolbar-select" @change="applyFormatBlock($event.target.value)">
+                            <option value="p">Paragraph</option>
+                            <option value="h1">Heading 1</option>
+                            <option value="h2">Heading 2</option>
+                            <option value="h3">Heading 3</option>
                         </select>
                         <div class="toolbar-divider"></div>
-                        <button class="tool-btn" title="Bold"><b>B</b></button>
-                        <button class="tool-btn" title="Italic"><i>I</i></button>
-                        <button class="tool-btn" title="Underline"><u>U</u></button>
+                        <button class="tool-btn" type="button" title="Bold" @click="formatDoc('bold')"><b>B</b></button>
+                        <button class="tool-btn" type="button" title="Italic" @click="formatDoc('italic')"><i>I</i></button>
+                        <button class="tool-btn" type="button" title="Underline" @click="formatDoc('underline')"><u>U</u></button>
                         <div class="toolbar-divider"></div>
-                        <button class="tool-btn" title="Align Left">
+                        <button class="tool-btn" type="button" title="Align Left" @click="formatDoc('justifyLeft')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
                         </button>
-                        <button class="tool-btn" title="Align Center">
+                        <button class="tool-btn" type="button" title="Align Center" @click="formatDoc('justifyCenter')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
                         </button>
-                        <button class="tool-btn" title="Align Right">
+                        <button class="tool-btn" type="button" title="Align Right" @click="formatDoc('justifyRight')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
                         </button>
                         <div class="toolbar-divider"></div>
-                        <button class="tool-btn" title="Link">
+                        <button class="tool-btn" type="button" title="Insert Link" @click="promptLink">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                         </button>
                         <div class="toolbar-divider"></div>
-                        <button class="tool-btn" title="Undo">↶</button>
-                        <button class="tool-btn" title="Redo">↷</button>
+                        <button class="tool-btn" type="button" title="Undo" @click="formatDoc('undo')">↶</button>
+                        <button class="tool-btn" type="button" title="Redo" @click="formatDoc('redo')">↷</button>
                     </div>
 
                     <!-- Article Text Editor Area -->
-                    <div class="article-text-body" contenteditable="true">
-                        <p>Camarines Sur Polytechnic Colleges (CSPC) has announced the start of second semester enrollment for Academic Year 2025-2026 on April 18. The process will be conducted both online and on-site to accommodate students.</p>
-                        <p>The Office of the Registrar encourages early registration to avoid delays, especially during peak hours. Minor system improvements were also introduced to ensure a smoother enrollment experience.</p>
-                        <p>Students are advised to stay updated through official announcements and coordinate with their departments for further assistance.</p>
-                    </div>
+                    <div 
+                        ref="editorRef"
+                        class="article-text-body" 
+                        contenteditable="true"
+                        @input="handleEditorInput"
+                        placeholder="Write your article draft here..."
+                    ></div>
 
-                    <!-- Author Footer Bar -->
+                    <!-- Author & Live Word Count Bar -->
                     <div class="editor-footer-bar">
                         <div class="author-pill">
-                            <img src="https://picsum.photos/100?random=201" class="author-avatar" alt="Author" />
-                            <span>Gabrielle M. Loquias</span>
+                            <img :src="authorAvatar" class="author-avatar" :alt="authorName" />
+                            <span>{{ authorName }}</span>
                         </div>
-                        <span class="word-count-text">76 words</span>
+                        <span class="word-count-text">{{ wordCount }} {{ wordCount === 1 ? 'word' : 'words' }}</span>
                     </div>
                 </div>
 
-                <!-- Tags Section -->
-                <div class="tags-section">
-                    <h4 class="tags-hdr">Tags</h4>
-                    <div class="tags-card-box">
-                        <span class="tag-chip"># News</span>
-                        <span class="tag-chip"># TheSPARK</span>
-                        <span class="tag-chip"># Enrollment2026</span>
+                <!-- Action Footer Buttons for Article Content -->
+                <div class="content-actions-footer">
+                    <div class="actions-left">
+                        <span class="status-hint-text" v-if="task.status">Status: <strong>{{ task.status }}</strong></span>
                     </div>
-                </div>
-
-                <!-- Notice Banner -->
-                <div class="notice-banner-warning">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    <span>You cannot make changes to this section.</span>
+                    <div class="actions-right">
+                        <button type="button" class="btn-secondary-pill" @click="saveProgress">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            Save
+                        </button>
+                        <button type="button" class="btn-outline-pill" @click="saveAsDraft">
+                            Save as Draft
+                        </button>
+                        <button type="button" class="btn-blue-pill" @click="currentTab = 'visuals'">
+                            Next
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -109,54 +133,126 @@
                                 <h4 class="asset-title">Thumbnail</h4>
                                 <p class="asset-subtitle">This image will represent your article in the publication.</p>
                             </div>
-                            <div class="assignee-pill">
-                                <img src="https://picsum.photos/100?random=202" class="assignee-avatar" alt="Nicole" />
-                                <span>Nicole Orcine</span>
+                            <div class="assignee-pill" v-if="collaboratorArtist">
+                                <img v-if="collaboratorArtistUser" :src="collaboratorArtistAvatar" class="artist-avatar" :alt="collaboratorArtist" />
+                                <span v-else class="artist-icon">🎨</span>
+                                <span>{{ collaboratorArtist }}</span>
+                            </div>
+                            <div class="assignee-pill" v-else>
+                                <span class="artist-icon">🎨</span>
+                                <span>Photojournalist / Artist</span>
                             </div>
                         </div>
 
-                        <div class="dashed-dropzone">
-                            <button class="btn-blue-pill-small" @click="triggerFileInput">
+                        <!-- Thumbnail Upload Area / Preview -->
+                        <div v-if="thumbnailPreview" class="preview-card-container">
+                            <div class="thumbnail-preview-box">
+                                <img :src="thumbnailPreview" alt="Thumbnail Preview" class="thumbnail-img" />
+                                <div class="preview-actions-overlay">
+                                    <button type="button" class="preview-action-btn" @click="triggerThumbnailInput" title="Replace">Replace</button>
+                                    <button type="button" class="preview-action-btn danger" @click="removeThumbnail" title="Remove">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div 
+                            v-else 
+                            class="dashed-dropzone" 
+                            @dragover.prevent 
+                            @drop.prevent="handleThumbnailDrop"
+                            @click="triggerThumbnailInput"
+                        >
+                            <input 
+                                type="file" 
+                                ref="thumbnailInputRef" 
+                                accept="image/*" 
+                                class="hidden-file-input" 
+                                @change="onThumbnailSelected"
+                            />
+                            <button type="button" class="btn-blue-pill-small" @click.stop="triggerThumbnailInput">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>
                                 Browse File
                             </button>
-                            <p class="dropzone-text"><strong>Drag your file here or browse</strong><br><span class="sub">Max file size up to 10 MB</span></p>
+                            <p class="dropzone-text"><strong>Drag your file here or browse</strong><br><span class="sub">Max file size up to 10 MB (JPEG, PNG, WEBP)</span></p>
                         </div>
                     </div>
 
                     <div class="divider-line"></div>
 
-                    <!-- Media Uploads Box -->
+                    <!-- Media Uploads Box (Up to 3 Photos) -->
                     <div class="asset-group">
                         <div class="asset-hdr">
                             <div>
-                                <h4 class="asset-title">Media Uploads</h4>
+                                <h4 class="asset-title">Media Uploads ({{ mediaPreviews.length }}/3)</h4>
                                 <p class="asset-subtitle">Upload photos, graphics, and other media files related to this article.</p>
                             </div>
-                            <div class="assignee-pill">
-                                <img src="https://picsum.photos/100?random=203" class="assignee-avatar" alt="Johnrey" />
-                                <span>Johnrey Frongoso</span>
+                            <div class="assignee-pill" v-if="collaboratorArtist">
+                                <img v-if="collaboratorArtistUser" :src="collaboratorArtistAvatar" class="artist-avatar" :alt="collaboratorArtist" />
+                                <span v-else class="artist-icon">📷</span>
+                                <span>{{ collaboratorArtist }}</span>
+                            </div>
+                            <div class="assignee-pill" v-else>
+                                <span class="artist-icon">📷</span>
+                                <span>Photojournalist / Artist</span>
                             </div>
                         </div>
 
-                        <div class="dashed-dropzone">
-                            <button class="btn-grey-pill-small" @click="triggerFileInput">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>
-                                Browse File
-                            </button>
-                            <p class="dropzone-text"><strong>Drag your file here or browse</strong><br><span class="sub">Max file size up to 10 MB</span></p>
+                        <!-- Media Preview Grid -->
+                        <div v-if="mediaPreviews.length > 0" class="media-grid-container">
+                            <div 
+                                v-for="(media, idx) in mediaPreviews" 
+                                :key="idx" 
+                                class="media-preview-card"
+                            >
+                                <img :src="media.url" :alt="media.name || 'Media Upload'" class="media-preview-img" />
+                                <button type="button" class="remove-media-circle" @click="removeMedia(idx)" title="Remove Photo">
+                                    &times;
+                                </button>
+                                <span class="media-name-tag">{{ media.name || `Photo ${idx + 1}` }}</span>
+                            </div>
                         </div>
 
-                        <div class="notice-banner-warning" style="margin-top: 12px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            <span>You cannot make changes to this section.</span>
+                        <!-- Media Dropzone (if < 3) -->
+                        <div 
+                            v-if="mediaPreviews.length < 3"
+                            class="dashed-dropzone" 
+                            :class="{ 'compact-dropzone': mediaPreviews.length > 0 }"
+                            @dragover.prevent 
+                            @drop.prevent="handleMediaDrop"
+                            @click="triggerMediaInput"
+                        >
+                            <input 
+                                type="file" 
+                                ref="mediaInputRef" 
+                                accept="image/*" 
+                                multiple
+                                class="hidden-file-input" 
+                                @change="onMediaSelected"
+                            />
+                            <button type="button" class="btn-grey-pill-small" @click.stop="triggerMediaInput">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>
+                                {{ mediaPreviews.length > 0 ? 'Add More Media' : 'Browse File' }}
+                            </button>
+                            <p class="dropzone-text">
+                                <strong>Drag your photos here or browse</strong><br>
+                                <span class="sub">Upload up to 3 photos (Max 10 MB each)</span>
+                            </p>
                         </div>
                     </div>
 
-                    <!-- Footer Action Bar -->
+                    <!-- Footer Action Bar for Visual Assets -->
                     <div class="visuals-actions-footer">
-                        <button class="btn-grey-pill-action">Save as Draft</button>
-                        <button class="btn-blue-pill-action" @click="isSubmitModalOpen = true">Submit for Review</button>
+                        <button type="button" class="btn-secondary-pill" @click="currentTab = 'content'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            Back
+                        </button>
+                        <div class="actions-right">
+                            <button type="button" class="btn-outline-pill" @click="saveAsDraft">
+                                Save as Draft
+                            </button>
+                            <button type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true">
+                                Submit for Review
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -164,71 +260,91 @@
             <!-- TAB 3: DETAILS -->
             <div class="tab-content-body" v-if="currentTab === 'details'">
                 <div class="details-container-card">
-                    <!-- Section Editor Notes -->
+                    
+                    <div class="workflow-badge-row">
+                        <span class="workflow-step-pill">1. Writer Draft</span>
+                        <span class="workflow-arrow">&rarr;</span>
+                        <span class="workflow-step-pill active">2. Section Editor</span>
+                        <span class="workflow-arrow">&rarr;</span>
+                        <span class="workflow-step-pill">3. Copyreader</span>
+                        <span class="workflow-arrow">&rarr;</span>
+                        <span class="workflow-step-pill">4. EIC Approval</span>
+                    </div>
+
+                    <!-- 1. Section Editor Notes -->
                     <div class="notes-card-box">
-                        <h4 class="notes-hdr">
-                            <span class="role-icon-circle">Ⓐ</span>
-                            Section Editor Notes
-                        </h4>
-                        <div class="notes-content-empty">
-                            Notes from the Section Editor will appear here once submitted for review.
+                        <div class="notes-hdr-row">
+                            <h4 class="notes-hdr">
+                                <span class="role-icon-circle blue">SE</span>
+                                Section Editor Notes
+                            </h4>
+                            <span class="review-step-label">Initial Review</span>
+                        </div>
+                        <div class="notes-body-text" v-if="sectionEditorNotes">
+                            {{ sectionEditorNotes }}
+                        </div>
+                        <div class="notes-content-empty" v-else>
+                            Notes and revisions from the Section Editor will appear here once submitted for review.
                         </div>
                     </div>
 
-                    <!-- EIC Notes -->
-                    <div class="notes-card-box" style="margin-top: 16px;">
-                        <h4 class="notes-hdr">
-                            <span class="role-icon-circle">ⓖ</span>
-                            EIC Notes
-                        </h4>
-                        <div class="notes-content-empty">
-                            Notes from the Editor-in-Chief will appear here once endorsed.
+                    <!-- 2. Copyreader Notes -->
+                    <div class="notes-card-box">
+                        <div class="notes-hdr-row">
+                            <h4 class="notes-hdr">
+                                <span class="role-icon-circle purple">CR</span>
+                                Copyreader Notes
+                            </h4>
+                            <span class="review-step-label">Copyreading & Style</span>
+                        </div>
+                        <div class="notes-body-text" v-if="copyreaderNotes">
+                            {{ copyreaderNotes }}
+                        </div>
+                        <div class="notes-content-empty" v-else>
+                            Notes and suggestions from the Copyreader will appear here during editorial review.
                         </div>
                     </div>
 
-                    <!-- Metadata Grid Summary Card -->
-                    <div class="metadata-summary-card">
-                        <div class="meta-row-grid">
-                            <div class="meta-col">
-                                <span class="meta-lbl">Coverage</span>
-                                <span class="meta-val-bold">{{ task.coverage || 'AY 2025 - 2026 Issue 1' }}</span>
-                            </div>
-                            <div class="meta-col">
-                                <span class="meta-lbl">Deadline</span>
-                                <span class="meta-val-bold">{{ task.deadline || 'Apr 16 • 5:00 PM' }}</span>
-                            </div>
-                            <div class="meta-col">
-                                <span class="meta-lbl">Last updated</span>
-                                <span class="meta-val-bold">Apr 14 • 2:21 PM</span>
-                            </div>
+                    <!-- 3. EIC Notes -->
+                    <div class="notes-card-box">
+                        <div class="notes-hdr-row">
+                            <h4 class="notes-hdr">
+                                <span class="role-icon-circle amber">EIC</span>
+                                Editor-in-Chief Notes
+                            </h4>
+                            <span class="review-step-label">Final Approval</span>
                         </div>
-
-                        <div class="meta-row-grid" style="margin-top: 16px;">
-                            <div class="meta-col">
-                                <span class="meta-lbl">Assigned To</span>
-                                <div class="collab-stack-row">
-                                    <img src="https://picsum.photos/100?random=301" class="collab-avatar" />
-                                    <img src="https://picsum.photos/100?random=302" class="collab-avatar" />
-                                    <img src="https://picsum.photos/100?random=303" class="collab-avatar" />
-                                </div>
-                            </div>
-                            <div class="meta-col">
-                                <span class="meta-lbl">Status</span>
-                                <span class="status-pill-draft">Draft</span>
-                            </div>
-                            <div class="meta-col">
-                                <span class="meta-lbl">Priority</span>
-                                <span class="priority-pill-badge moderate">⚡ Moderate</span>
-                            </div>
+                        <div class="notes-body-text" v-if="eicNotes">
+                            {{ eicNotes }}
+                        </div>
+                        <div class="notes-content-empty" v-else>
+                            Notes from the Editor-in-Chief will appear here once endorsed by the editorial desk.
                         </div>
                     </div>
+
+                    <!-- Footer Action Bar for Details -->
+                    <div class="visuals-actions-footer">
+                        <button type="button" class="btn-secondary-pill" @click="currentTab = 'visuals'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            Back to Assets
+                        </button>
+                        <div class="actions-right">
+                            <button type="button" class="btn-outline-pill" @click="saveAsDraft">
+                                Save as Draft
+                            </button>
+                            <button type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true">
+                                Submit for Review
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
         </div>
 
         <!-- SUBMIT FOR REVIEW CONFIRMATION MODAL -->
-        <div class="submodal-overlay" v-if="isSubmitModalOpen">
+        <div class="submodal-overlay" v-if="isSubmitModalOpen" @click.self="isSubmitModalOpen = false">
             <div class="submodal-card">
                 <div class="submit-icon-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -237,12 +353,16 @@
                     </svg>
                 </div>
 
-                <h3 class="submodal-title">Are you sure you want to submit this for review?</h3>
-                <p class="submodal-desc">You will no longer be able to edit your submission until it is returned</p>
+                <h3 class="submodal-title">Submit this article for Section Editor review?</h3>
+                <p class="submodal-desc">
+                    Your article <strong>"{{ articleHeadline || task.title }}"</strong> along with thumbnail and media assets will be sent to the <strong>{{ sectionEditorTitle }}</strong> for review.
+                </p>
 
                 <div class="submodal-actions">
-                    <button class="btn-grey-pill" @click="isSubmitModalOpen = false">Cancel</button>
-                    <button class="btn-blue-pill btn-full-width" @click="confirmSubmit">Yes, Submit</button>
+                    <button type="button" class="btn-grey-pill" @click="isSubmitModalOpen = false" :disabled="isSubmitting">Cancel</button>
+                    <button type="button" class="btn-blue-pill btn-full-width" @click="confirmSubmit" :disabled="isSubmitting">
+                        {{ isSubmitting ? 'Submitting...' : 'Yes, Submit for Review' }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -257,11 +377,11 @@
                 </div>
 
                 <h3 class="submodal-title">Your submission is successful!</h3>
-                <p class="submodal-desc">The section editor will review your submission and will notify you once there are updates</p>
+                <p class="submodal-desc">The {{ sectionEditorTitle }} will review your draft and notify you if any revisions are needed before passing it to the Copyreader.</p>
 
                 <div class="submodal-actions">
-                    <button class="btn-grey-pill" @click="closeAllModals">Done</button>
-                    <button class="btn-blue-pill btn-full-width" @click="closeAllModals">View Submissions</button>
+                    <button type="button" class="btn-grey-pill" @click="closeAllModals('done')">Done</button>
+                    <button type="button" class="btn-blue-pill btn-full-width" @click="closeAllModals('submissions')">View Submissions</button>
                 </div>
             </div>
         </div>
@@ -270,7 +390,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 
 const props = defineProps({
     isOpen: {
@@ -283,30 +403,341 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'task-submitted', 'task-saved-as-draft', 'view-submissions']);
 
 const currentTab = ref('content');
 const isSubmitModalOpen = ref(false);
 const isSuccessModalOpen = ref(false);
+const isSubmitting = ref(false);
+const saveFeedback = ref('');
+
+// Editor & Headline State
+const editorRef = ref(null);
+const articleHeadline = ref('');
+const articleContent = ref('');
+
+// Visual Assets State
+const thumbnailInputRef = ref(null);
+const mediaInputRef = ref(null);
+const thumbnailPreview = ref('');
+const mediaPreviews = ref([]);
 
 const task = computed(() => props.taskData || {});
+
+// User info from local storage
+const currentUser = computed(() => {
+    try {
+        return JSON.parse(localStorage.getItem('sparky_user') || '{}');
+    } catch {
+        return {};
+    }
+});
+
+const authorName = computed(() => {
+    return currentUser.value?.name || task.value?.assignee?.name || 'Staff Writer';
+});
+
+const authorAvatar = computed(() => {
+    if (currentUser.value?.profile_picture) {
+        return '/storage/' + currentUser.value.profile_picture;
+    }
+    if (currentUser.value?.profile_picture_url) {
+        return currentUser.value.profile_picture_url;
+    }
+    return `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(authorName.value)}&backgroundColor=dbeafe`;
+});
+
+const collaboratorArtist = computed(() => {
+    // Try multiple possible data sources for the artist name
+    if (task.value?.mediaArtist) return task.value.mediaArtist;
+    if (task.value?.artist_assigned) return task.value.artist_assigned;
+    if (task.value?.raw?.artist_assigned) return task.value.raw.artist_assigned;
+    if (task.value?.notes && task.value.notes.includes('Media Artist:')) {
+        const match = task.value.notes.match(/Media Artist:\s*([^|]+)/i);
+        if (match && match[1]?.trim()) return match[1].trim();
+    }
+    if (task.value?.raw?.notes && task.value.raw.notes.includes('Media Artist:')) {
+        const match = task.value.raw.notes.match(/Media Artist:\s*([^|]+)/i);
+        if (match && match[1]?.trim()) return match[1].trim();
+    }
+    return null;
+});
+
+// Users list for finding artist profile picture
+const allUsers = ref([]);
+
+const collaboratorArtistUser = computed(() => {
+    if (!collaboratorArtist.value) return null;
+    return allUsers.value.find(u => u.name === collaboratorArtist.value);
+});
+
+const collaboratorArtistAvatar = computed(() => {
+    if (collaboratorArtistUser.value?.profile_picture) {
+        return '/storage/' + collaboratorArtistUser.value.profile_picture;
+    }
+    if (collaboratorArtistUser.value?.profile_picture_url) {
+        return collaboratorArtistUser.value.profile_picture_url;
+    }
+    return `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(collaboratorArtist.value || 'artist')}&backgroundColor=dbeafe`;
+});
+
+const sectionName = computed(() => {
+    const s = task.value?.section;
+    if (typeof s === 'object' && s !== null) return s.name || 'News';
+    return s || 'News';
+});
+
+const sectionEditorTitle = computed(() => {
+    const sec = sectionName.value.toLowerCase();
+    if (sec.includes('news')) return 'News Section Editor';
+    if (sec.includes('feature')) return 'Feature Section Editor';
+    if (sec.includes('opinion') || sec.includes('devcomm')) return 'Section Editor';
+    if (sec.includes('sports')) return 'Sports Section Editor';
+    return `${sectionName.value} Section Editor`;
+});
+
+// Editorial Notes
+const sectionEditorNotes = computed(() => {
+    return task.value?.sectionEditorNotes || task.value?.editorNotes || (task.value?.status === 'returned' ? task.value?.notes : null);
+});
+
+const copyreaderNotes = computed(() => {
+    return task.value?.copyreaderNotes || task.value?.copyNotes || null;
+});
+
+const eicNotes = computed(() => {
+    return task.value?.eicNotes || task.value?.eic_notes || null;
+});
+
+// Live Word Count calculation
+const wordCount = computed(() => {
+    const rawHeadline = (articleHeadline.value || '').trim();
+    const cleanBody = (articleContent.value || '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    
+    const combined = (rawHeadline + ' ' + cleanBody).trim();
+    if (!combined) return 0;
+    return combined.split(/\s+/).filter(Boolean).length;
+});
+
+// Fetch users from API
+const fetchUsers = async () => {
+    try {
+        const response = await fetch('/api/users', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            allUsers.value = Array.isArray(data) ? data : (data.users || []);
+        }
+    } catch (e) {
+        console.warn('Could not fetch users list', e);
+    }
+};
+
+// Watch task data to initialize workspace
+watch(() => props.isOpen, (newVal) => {
+    if (newVal) {
+        currentTab.value = 'content';
+        saveFeedback.value = '';
+        articleHeadline.value = task.value?.title || '';
+        
+        // Load initial content from task or article
+        const initialBody = task.value?.content || task.value?.article?.content || task.value?.articleDesc || task.value?.description || '';
+        articleContent.value = initialBody;
+
+        nextTick(() => {
+            if (editorRef.value) {
+                editorRef.value.innerHTML = articleContent.value || '<p>Start typing your article content here...</p>';
+            }
+        });
+
+        // Initialize assets if available
+        thumbnailPreview.value = task.value?.cover_image || task.value?.thumbnail || '';
+        mediaPreviews.value = Array.isArray(task.value?.media) ? [...task.value.media] : [];
+
+        // Debug: log task data to see what we're working with
+        console.log('Task data in AssignmentWorkspaceModal:', task.value);
+        console.log('Collaborator artist extracted:', collaboratorArtist.value);
+
+        // Fetch users for artist profile picture
+        fetchUsers();
+    }
+}, { immediate: true });
+
+const handleEditorInput = () => {
+    if (editorRef.value) {
+        articleContent.value = editorRef.value.innerHTML;
+    }
+};
+
+const formatDoc = (cmd, val = null) => {
+    document.execCommand(cmd, false, val);
+    handleEditorInput();
+};
+
+const applyFormatBlock = (tag) => {
+    if (tag) {
+        document.execCommand('formatBlock', false, `<${tag}>`);
+        handleEditorInput();
+    }
+};
+
+const promptLink = () => {
+    const url = prompt('Enter the link URL (e.g. https://...):', 'https://');
+    if (url) {
+        formatDoc('createLink', url);
+    }
+};
+
+// Thumbnail handlers
+const triggerThumbnailInput = () => {
+    if (thumbnailInputRef.value) thumbnailInputRef.value.click();
+};
+
+const onThumbnailSelected = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (re) => {
+            thumbnailPreview.value = re.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const handleThumbnailDrop = (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (re) => {
+            thumbnailPreview.value = re.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const removeThumbnail = () => {
+    thumbnailPreview.value = '';
+    if (thumbnailInputRef.value) thumbnailInputRef.value.value = '';
+};
+
+// Media handlers (up to 3 photos)
+const triggerMediaInput = () => {
+    if (mediaInputRef.value) mediaInputRef.value.click();
+};
+
+const onMediaSelected = (e) => {
+    const files = Array.from(e.target.files);
+    addMediaFiles(files);
+};
+
+const handleMediaDrop = (e) => {
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    addMediaFiles(files);
+};
+
+const addMediaFiles = (files) => {
+    const remainingSlots = 3 - mediaPreviews.value.length;
+    if (remainingSlots <= 0) return;
+
+    files.slice(0, remainingSlots).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (re) => {
+            if (mediaPreviews.value.length < 3) {
+                mediaPreviews.value.push({
+                    name: file.name,
+                    size: file.size,
+                    url: re.target.result
+                });
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+
+    if (mediaInputRef.value) mediaInputRef.value.value = '';
+};
+
+const removeMedia = (index) => {
+    mediaPreviews.value.splice(index, 1);
+};
+
+// Save handlers
+const saveProgress = () => {
+    saveFeedback.value = '✓ Progress saved';
+    setTimeout(() => {
+        saveFeedback.value = '';
+    }, 3000);
+};
+
+const saveAsDraft = () => {
+    const payload = {
+        ...task.value,
+        title: articleHeadline.value || task.value.title,
+        content: articleContent.value,
+        word_count: wordCount.value,
+        thumbnail: thumbnailPreview.value,
+        media: mediaPreviews.value,
+        status: 'ongoing'
+    };
+
+    emit('task-saved-as-draft', payload);
+    closeModal();
+};
 
 const closeModal = () => {
     emit('close');
 };
 
-const confirmSubmit = () => {
-    isSubmitModalOpen.value = false;
-    isSuccessModalOpen.value = true;
+const confirmSubmit = async () => {
+    isSubmitting.value = true;
+    try {
+        const token = localStorage.getItem('sparky_token');
+        if (token && task.value && task.value.id) {
+            await fetch(`/api/tasks/${task.value.id}/submit`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    notes: `Submitted by ${authorName.value}. Headline: ${articleHeadline.value || task.value.title}`,
+                    word_count: wordCount.value
+                })
+            }).catch(e => console.error(e));
+        }
+    } catch (err) {
+        console.error('Error submitting task:', err);
+    } finally {
+        isSubmitting.value = false;
+        isSubmitModalOpen.value = false;
+        isSuccessModalOpen.value = true;
+        
+        emit('task-submitted', {
+            ...task.value,
+            title: articleHeadline.value || task.value.title,
+            content: articleContent.value,
+            word_count: wordCount.value,
+            thumbnail: thumbnailPreview.value,
+            media: mediaPreviews.value,
+            status: 'submitted'
+        });
+    }
 };
 
-const closeAllModals = () => {
+const closeAllModals = (action) => {
     isSuccessModalOpen.value = false;
     closeModal();
-};
-
-const triggerFileInput = () => {
-    alert('File upload browser opened.');
+    if (action === 'submissions') {
+        emit('view-submissions');
+    }
 };
 </script>
 
@@ -315,13 +746,13 @@ const triggerFileInput = () => {
 .submodal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.55);
-    backdrop-filter: blur(5px);
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(6px);
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 24px;
     box-sizing: border-box;
 }
 
@@ -329,9 +760,9 @@ const triggerFileInput = () => {
     background: #ffffff;
     border-radius: 28px;
     width: 100%;
-    max-width: 680px;
+    max-width: 1040px;
     max-height: 90vh;
-    padding: 32px;
+    padding: 36px 40px;
     box-sizing: border-box;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     display: flex;
@@ -339,10 +770,11 @@ const triggerFileInput = () => {
     overflow-y: auto;
     animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     text-align: left;
+    font-family: 'Manrope', sans-serif;
 }
 
 @keyframes popIn {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    from { opacity: 0; transform: scale(0.97) translateY(10px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -350,7 +782,13 @@ const triggerFileInput = () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+}
+
+.modal-hdr-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
 .modal-blue-title {
@@ -359,7 +797,21 @@ const triggerFileInput = () => {
     font-weight: 800;
     margin: 0;
     letter-spacing: -0.5px;
-    font-family: 'Manrope', sans-serif;
+}
+
+.save-feedback-badge {
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .modal-x-btn {
@@ -367,7 +819,7 @@ const triggerFileInput = () => {
     border: none;
     cursor: pointer;
     padding: 6px;
-    border-radius: 8px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -379,7 +831,7 @@ const triggerFileInput = () => {
 }
 
 .article-meta-hdr {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 .section-pill-badge {
@@ -391,37 +843,38 @@ const triggerFileInput = () => {
     font-weight: 700;
     display: inline-block;
     margin-bottom: 8px;
-    font-family: 'Manrope', sans-serif;
 }
 
 .article-main-title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 800;
     color: #0f172a;
     margin: 0;
     line-height: 1.3;
     letter-spacing: -0.4px;
-    font-family: 'Manrope', sans-serif;
 }
 
 .workspace-tabs-nav {
     display: flex;
-    gap: 24px;
-    border-bottom: 1px solid #e2e8f0;
-    margin-bottom: 20px;
+    gap: 32px;
+    border-bottom: 1.5px solid #e2e8f0;
+    margin-bottom: 24px;
 }
 
 .tab-nav-btn {
     background: none;
     border: none;
-    padding: 10px 0;
-    font-size: 14px;
+    padding: 12px 0;
+    font-size: 15px;
     font-weight: 700;
     color: #64748b;
     cursor: pointer;
     position: relative;
-    font-family: 'Manrope', sans-serif;
+    font-family: inherit;
     transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .tab-nav-btn.active {
@@ -431,86 +884,139 @@ const triggerFileInput = () => {
 .tab-nav-btn.active::after {
     content: '';
     position: absolute;
-    bottom: -1px;
+    bottom: -2px;
     left: 0;
     right: 0;
-    height: 2.5px;
+    height: 3px;
     background-color: #1d6bf3;
-    border-radius: 2px;
+    border-radius: 3px;
+}
+
+.tab-asset-count {
+    background: #1d6bf3;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 10px;
 }
 
 .tab-content-body {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
+}
+
+/* Headline Input */
+.headline-bar-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.headline-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+}
+
+.headline-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    box-sizing: border-box;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.headline-input:focus {
+    border-color: #1d6bf3;
+    box-shadow: 0 0 0 3px rgba(29, 107, 243, 0.15);
 }
 
 /* Editor Container */
 .editor-container-card {
-    background: #f8fafc;
+    background: #ffffff;
     border-radius: 20px;
-    border: 1px solid #e2e8f0;
+    border: 1.5px solid #e2e8f0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .rich-toolbar {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 16px;
-    background: #ffffff;
+    padding: 10px 18px;
+    background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
 }
 
 .toolbar-select {
     border: 1px solid #cbd5e1;
     border-radius: 8px;
-    padding: 4px 8px;
+    padding: 5px 10px;
     font-size: 13px;
-    font-family: 'Manrope', sans-serif;
+    font-family: inherit;
     color: #0f172a;
+    background: #ffffff;
 }
 
 .toolbar-divider {
     width: 1px;
-    height: 18px;
+    height: 20px;
     background: #cbd5e1;
+    margin: 0 4px;
 }
 
 .tool-btn {
     background: none;
     border: none;
-    padding: 4px 8px;
+    padding: 6px 9px;
     font-size: 14px;
     color: #475569;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.15s;
 }
 
 .tool-btn:hover {
-    background: #f1f5f9;
+    background: #e2e8f0;
     color: #0f172a;
 }
 
 .article-text-body {
-    padding: 20px;
-    min-height: 160px;
-    font-size: 14px;
-    color: #334155;
-    line-height: 1.6;
+    padding: 24px;
+    min-height: 260px;
+    max-height: 480px;
+    overflow-y: auto;
+    font-size: 15px;
+    color: #1e293b;
+    line-height: 1.7;
     outline: none;
     background: #ffffff;
-    font-family: 'Manrope', sans-serif;
+    font-family: inherit;
+}
+
+.article-text-body:empty:before {
+    content: attr(placeholder);
+    color: #94a3b8;
 }
 
 .editor-footer-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 20px;
+    padding: 12px 24px;
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
 }
@@ -520,67 +1026,130 @@ const triggerFileInput = () => {
     align-items: center;
     gap: 8px;
     background: #ffffff;
-    padding: 4px 12px 4px 4px;
-    border-radius: 20px;
+    padding: 4px 14px 4px 6px;
+    border-radius: 24px;
     border: 1px solid #e2e8f0;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: #0f172a;
 }
 
-.author-avatar,
-.assignee-avatar {
-    width: 24px;
-    height: 24px;
+.author-avatar {
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     object-fit: cover;
 }
 
 .word-count-text {
-    font-size: 12px;
-    color: #94a3b8;
-    font-weight: 600;
-}
-
-.tags-section {
-    margin-top: 4px;
-}
-
-.tags-hdr {
-    font-size: 14px;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0 0 8px 0;
-    font-family: 'Manrope', sans-serif;
-}
-
-.tags-card-box {
-    background: #f8fafc;
-    border-radius: 16px;
-    padding: 12px 16px;
-    display: flex;
-    gap: 8px;
-    border: 1px solid #f1f5f9;
-}
-
-.tag-chip {
-    background: #dbeafe;
-    color: #1e40af;
-    padding: 4px 12px;
-    border-radius: 14px;
-    font-size: 12px;
+    font-size: 13px;
+    color: #64748b;
     font-weight: 700;
-    font-family: 'Manrope', sans-serif;
 }
 
-.notice-banner-warning {
+/* Action Footers */
+.content-actions-footer,
+.visuals-actions-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.actions-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+}
+
+.status-hint-text {
     font-size: 13px;
+    color: #64748b;
+    text-transform: capitalize;
+}
+
+.actions-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-secondary-pill {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-size: 14px;
     font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.btn-secondary-pill:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
+
+.btn-outline-pill {
+    background-color: transparent;
     color: #1d6bf3;
-    padding: 10px 0;
+    border: 1.5px solid #1d6bf3;
+    padding: 11px 22px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.btn-outline-pill:hover {
+    background-color: #eff6ff;
+}
+
+.btn-blue-pill {
+    background-color: #1d6bf3;
+    color: #ffffff;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    box-shadow: 0 4px 14px rgba(29, 107, 243, 0.3);
+    transition: all 0.2s;
+}
+
+.btn-blue-pill:hover {
+    background-color: #1557b0;
+    box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
+}
+
+.btn-blue-pill-action {
+    background-color: #1d6bf3;
+    color: #ffffff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 14px rgba(29, 107, 243, 0.3);
+    transition: all 0.2s;
+}
+
+.btn-blue-pill-action:hover {
+    background-color: #1557b0;
+    box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
 }
 
 /* Visual Assets Styling */
@@ -594,7 +1163,7 @@ const triggerFileInput = () => {
 .asset-group {
     background: #f8fafc;
     border-radius: 20px;
-    padding: 20px;
+    padding: 24px;
     border: 1px solid #e2e8f0;
 }
 
@@ -602,18 +1171,18 @@ const triggerFileInput = () => {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .asset-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 800;
     color: #0f172a;
     margin: 0 0 4px 0;
 }
 
 .asset-subtitle {
-    font-size: 12px;
+    font-size: 13px;
     color: #64748b;
     margin: 0;
 }
@@ -623,36 +1192,62 @@ const triggerFileInput = () => {
     align-items: center;
     gap: 6px;
     background: #ffffff;
-    padding: 4px 10px 4px 4px;
+    padding: 5px 14px;
     border-radius: 20px;
-    border: 1px solid #e2e8f0;
-    font-size: 12px;
+    border: 1px solid #cbd5e1;
+    font-size: 12.5px;
     font-weight: 700;
     color: #0f172a;
 }
 
+.artist-icon {
+    font-size: 14px;
+}
+
+.artist-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.hidden-file-input {
+    display: none;
+}
+
 .dashed-dropzone {
-    border: 1.5px dashed #cbd5e1;
-    border-radius: 16px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 18px;
     background: #ffffff;
-    padding: 28px;
+    padding: 32px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.dashed-dropzone:hover {
+    border-color: #1d6bf3;
+    background-color: #f8faff;
+}
+
+.dashed-dropzone.compact-dropzone {
+    padding: 20px;
 }
 
 .dropzone-text {
-    font-size: 13px;
+    font-size: 13.5px;
     color: #0f172a;
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.45;
 }
 
 .dropzone-text .sub {
-    font-size: 11px;
+    font-size: 12px;
     color: #94a3b8;
 }
 
@@ -660,7 +1255,7 @@ const triggerFileInput = () => {
     background-color: #1d6bf3;
     color: white;
     border: none;
-    padding: 8px 18px;
+    padding: 9px 20px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 700;
@@ -668,13 +1263,14 @@ const triggerFileInput = () => {
     display: flex;
     align-items: center;
     gap: 6px;
+    font-family: inherit;
 }
 
 .btn-grey-pill-small {
     background-color: #475569;
     color: white;
     border: none;
-    padding: 8px 18px;
+    padding: 9px 20px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 700;
@@ -682,6 +1278,113 @@ const triggerFileInput = () => {
     display: flex;
     align-items: center;
     gap: 6px;
+    font-family: inherit;
+}
+
+.preview-card-container {
+    display: flex;
+    justify-content: center;
+}
+
+.thumbnail-preview-box {
+    position: relative;
+    max-width: 420px;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail-img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    display: block;
+}
+
+.preview-actions-overlay {
+    position: absolute;
+    bottom: 0;
+    inset-inline: 0;
+    background: linear-gradient(transparent, rgba(15, 23, 42, 0.85));
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+}
+
+.preview-action-btn {
+    background: #ffffff;
+    color: #0f172a;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.preview-action-btn.danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Media Grid */
+.media-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.media-preview-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.media-preview-img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+}
+
+.remove-media-circle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(15, 23, 42, 0.7);
+    color: #ffffff;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.remove-media-circle:hover {
+    background: #ef4444;
+}
+
+.media-name-tag {
+    display: block;
+    padding: 8px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .divider-line {
@@ -689,144 +1392,117 @@ const triggerFileInput = () => {
     background: #e2e8f0;
 }
 
-.visuals-actions-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 10px;
-}
-
-.btn-grey-pill-action {
-    background-color: #f1f5f9;
-    color: #475569;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.btn-blue-pill-action {
-    background-color: #1d6bf3;
-    color: #ffffff;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(29, 107, 243, 0.3);
-}
-
 /* Details Tab Styling */
-.notes-card-box {
-    background: #f8fafc;
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid #e2e8f0;
-}
-
-.notes-hdr {
-    font-size: 14px;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0 0 12px 0;
+.workflow-badge-row {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    background: #f8fafc;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.workflow-step-pill {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.workflow-step-pill.active {
+    background: #eff6ff;
+    border-color: #1d6bf3;
+    color: #1d6bf3;
+}
+
+.workflow-arrow {
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.notes-card-box {
+    background: #f8fafc;
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.notes-hdr-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.notes-hdr {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.review-step-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    background: #ffffff;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
 
 .role-icon-circle {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    border: 1.5px solid #0f172a;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 11px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.role-icon-circle.blue {
+    background-color: #1d6bf3;
+}
+
+.role-icon-circle.purple {
+    background-color: #8b5cf6;
+}
+
+.role-icon-circle.amber {
+    background-color: #f59e0b;
+}
+
+.notes-body-text {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.6;
+    border: 1px solid #e2e8f0;
+    white-space: pre-wrap;
 }
 
 .notes-content-empty {
     background: #ffffff;
     border-radius: 14px;
-    padding: 32px 20px;
-    font-size: 13px;
+    padding: 28px 20px;
+    font-size: 13.5px;
     color: #64748b;
     text-align: center;
     border: 1px solid #f1f5f9;
-}
-
-.metadata-summary-card {
-    background: #f8fafc;
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid #e2e8f0;
-}
-
-.meta-row-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-}
-
-.meta-col {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.meta-lbl {
-    font-size: 12px;
-    color: #94a3b8;
-    font-weight: 600;
-}
-
-.meta-val-bold {
-    font-size: 13px;
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.collab-stack-row {
-    display: flex;
-    align-items: center;
-}
-
-.collab-avatar {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    border: 2px solid #ffffff;
-    margin-right: -6px;
-    object-fit: cover;
-}
-
-.status-pill-draft {
-    background: #e2e8f0;
-    color: #475569;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-    width: fit-content;
-}
-
-.priority-pill-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
-    border-radius: 14px;
-    font-size: 12px;
-    font-weight: 700;
-    width: fit-content;
-}
-
-.priority-pill-badge.moderate {
-    background-color: #fef3c7;
-    color: #92400e;
 }
 
 /* Sub-modals */
@@ -834,11 +1510,12 @@ const triggerFileInput = () => {
     background: #ffffff;
     border-radius: 28px;
     width: 100%;
-    max-width: 400px;
-    padding: 32px;
+    max-width: 440px;
+    padding: 36px;
     text-align: center;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: 'Manrope', sans-serif;
 }
 
 .submit-icon-circle {
@@ -864,20 +1541,18 @@ const triggerFileInput = () => {
 }
 
 .submodal-title {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 800;
     color: #0f172a;
-    margin: 0 0 8px 0;
-    font-family: 'Manrope', sans-serif;
+    margin: 0 0 10px 0;
     line-height: 1.35;
 }
 
 .submodal-desc {
-    font-size: 13px;
+    font-size: 14px;
     color: #64748b;
-    line-height: 1.45;
-    margin: 0 0 24px 0;
-    font-family: 'Manrope', sans-serif;
+    line-height: 1.5;
+    margin: 0 0 26px 0;
 }
 
 .submodal-actions {
@@ -890,26 +1565,22 @@ const triggerFileInput = () => {
     background-color: #f1f5f9;
     color: #475569;
     border: none;
-    padding: 12px;
+    padding: 13px;
     width: 100%;
     border-radius: 30px;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    font-family: 'Manrope', sans-serif;
+    font-family: inherit;
 }
 
-.btn-blue-pill {
-    background-color: #1d6bf3;
-    color: #ffffff;
-    border: none;
-    padding: 12px;
+.btn-grey-pill:hover {
+    background-color: #e2e8f0;
+}
+
+.btn-blue-pill.btn-full-width {
     width: 100%;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(29, 107, 243, 0.3);
-    font-family: 'Manrope', sans-serif;
+    justify-content: center;
+    padding: 13px;
 }
 </style>

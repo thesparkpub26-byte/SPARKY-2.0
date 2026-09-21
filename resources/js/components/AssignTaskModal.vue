@@ -347,29 +347,6 @@ const onViewAssignments = () => {
     closeModal();
 };
 
-const getTargetMonitoringSheetId = async () => {
-    if (props.monitoringSheetId) return props.monitoringSheetId;
-    try {
-        const response = await fetch('/api/press-works', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
-                'Accept': 'application/json'
-            }
-        });
-        if (response.ok) {
-            const pressWorks = await response.json();
-            for (const work of pressWorks) {
-                if (work.monitoring_sheets && work.monitoring_sheets.length > 0) {
-                    return work.monitoring_sheets[0].id;
-                }
-            }
-        }
-    } catch (e) {
-        console.warn('Could not retrieve active monitoring sheet', e);
-    }
-    return 1;
-};
-
 const submitTask = async () => {
     errorMessage.value = '';
     isSubmitting.value = true;
@@ -402,40 +379,85 @@ const submitTask = async () => {
     }
 
     try {
-        const targetSheetId = await getTargetMonitoringSheetId();
-        const response = await fetch(`/api/monitoring-sheets/${targetSheetId}/entries`, {
+        const token = localStorage.getItem('sparky_token');
+        const priorityMap = {
+            'Low': 'low',
+            'Moderate': 'medium',
+            'Urgent': 'urgent'
+        };
+        const mappedPriority = priorityMap[form.value.priority] || 'medium';
+
+        // 1. Resolve Writer User
+        let writerUser = null;
+        if (form.value.writer === 'Yourself' || form.value.writer === currentUser.value?.name) {
+            writerUser = currentUser.value;
+        } else {
+            writerUser = allUsers.value.find(u => u.name === form.value.writer);
+        }
+
+        const writerId = writerUser ? writerUser.id : currentUser.value?.id;
+
+        // 2. Submit Writer Task to /api/tasks
+        const notesContent = [
+            form.value.section ? `Section: ${form.value.section}` : '',
+            form.value.coverage ? `Coverage: ${form.value.coverage}` : '',
+            form.value.dueTime ? `Due Time: ${form.value.dueTime}` : '',
+            form.value.mediaArtist ? `Media Artist: ${form.value.mediaArtist}` : ''
+        ].filter(Boolean).join(' | ');
+
+        const responseWriter = await fetch('/api/tasks', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                topic: form.value.title,
-                section: form.value.section,
-                article_type: null,
-                medium: 'English',
-                writer_assigned: form.value.writer,
-                artist_assigned: form.value.noGraphics ? 'No Graphics' : (form.value.mediaArtist || null),
-                media_type: isRadioBroadcasting.value ? 'Video' : (form.value.mediaArtist ? 'Graphic/s' : 'Photo/s'),
-                has_files: false,
-                description: form.value.description,
-                priority: form.value.priority,
-                deadline: form.value.dueDate,
-                deadline_time: form.value.dueTime || null,
-                current_status: 'Pending'
+                title: form.value.title,
+                description: form.value.description || `Article assignment about "${form.value.title}" in ${form.value.section}.`,
+                assignee_id: writerId,
+                type: 'writing',
+                priority: mappedPriority,
+                deadline: form.value.dueDate || null,
+                notes: notesContent || null
             })
         });
 
-        if (response.ok) {
-            emit('task-added');
-            currentStep.value = 3;
-        } else {
-            const data = await response.json().catch(() => ({}));
-            errorMessage.value = data.message || 'Failed to add task. Please try again.';
+        if (!responseWriter.ok) {
+            const data = await responseWriter.json().catch(() => ({}));
+            errorMessage.value = data.message || 'Failed to assign writer task. Please try again.';
+            isSubmitting.value = false;
+            return;
         }
+
+        // 3. If Media Artist / Videographer is selected, create their task on /api/tasks too
+        if (!form.value.noGraphics && form.value.mediaArtist) {
+            const artistUser = allUsers.value.find(u => u.name === form.value.mediaArtist);
+            if (artistUser) {
+                await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: `${form.value.title} (${isRadioBroadcasting.value ? 'Video Production' : 'Visuals / Graphics'})`,
+                        description: form.value.description || `Media assignment for "${form.value.title}" in ${form.value.section}.`,
+                        assignee_id: artistUser.id,
+                        type: isRadioBroadcasting.value ? 'layout' : 'illustration',
+                        priority: mappedPriority,
+                        deadline: form.value.dueDate || null,
+                        notes: notesContent || null
+                    })
+                });
+            }
+        }
+
+        emit('task-added');
+        currentStep.value = 3;
     } catch (error) {
-        console.error('Error adding task:', error);
+        console.error('Error assigning task:', error);
         errorMessage.value = 'An error occurred. Please try again.';
     } finally {
         isSubmitting.value = false;

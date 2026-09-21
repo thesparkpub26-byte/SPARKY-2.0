@@ -71,13 +71,13 @@
             </nav>
 
             <div class="user-profile">
-                <img src="https://picsum.photos/200?random=15" alt="Profile">
+                <img :src="user.profile_picture ? ('/storage/' + user.profile_picture) : (user.profile_picture_url || 'https://picsum.photos/200?random=15')" alt="Profile">
                 <div class="user-info">
-                    <span class="role-badge" style="background-color: #1a73e8; color: white;">News Writer</span>
-                    <h4>News Writer's Name</h4>
-                    <p>newswriter@my.cspc.edu.ph</p>
+                    <span class="role-badge" style="background-color: #1a73e8; color: white;">{{ formatRole(user.role, user.secondary_role) }}</span>
+                    <h4>{{ user.name || 'Staff Writer' }}</h4>
+                    <p>{{ user.email || 'writer@thesparkpub.com' }}</p>
                 </div>
-                <button class="settings-btn">
+                <button class="settings-btn" type="button" aria-label="Open profile" title="View Profile" @click="router.push('/profile')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path>
@@ -116,7 +116,7 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" placeholder="Search">
+                    <input type="search" v-model="searchQuery" placeholder="Search tasks or articles..." aria-label="Search">
                 </div>
                 <div class="top-header-right">
                     <NotificationsPopover />
@@ -132,249 +132,140 @@
                         <h1 class="page-title">My Tasks</h1>
                     </div>
                     <div class="kanban-board">
-                        <!-- Column 1: Pending (3) -->
+                        <!-- Column 1: Pending -->
                         <div class="kanban-column">
-                            <h3 class="column-header">Pending (3)</h3>
+                            <h3 class="column-header">Pending ({{ pendingTasks.length }})</h3>
                             <div class="cards-container">
-                                <div class="task-card card-moderate" @click="openTaskModal({ title: 'Enrollment Update for Second Semester', section: 'News', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 15 • 5:00 PM', priority: 'Moderate' })" style="cursor: pointer;">
+                                <div 
+                                    v-for="task in pendingTasks" 
+                                    :key="task.id || task.title"
+                                    class="task-card" 
+                                    :class="getPriorityClass(task.priority)"
+                                    @click="openTaskModal(task)"
+                                    style="cursor: pointer;"
+                                >
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                         </svg>
-                                        Moderate
+                                        {{ formatPriorityLabel(task.priority) }}
                                     </span>
-                                    <h4 class="card-title">Enrollment Update for Second Semester</h4>
-                                    <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                                    <h4 class="card-title">{{ task.title }}</h4>
                                     <div class="card-footer">
                                         <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                                                 <line x1="16" y1="2" x2="16" y2="6" />
                                                 <line x1="8" y1="2" x2="8" y2="6" />
                                                 <line x1="3" y1="10" x2="21" y2="10" />
                                             </svg>
-                                            Apr 15 &bull; 5:00 PM
+                                            {{ task.deadline }}
                                         </div>
-                                        <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member1&backgroundColor=ffd5dc"
-                                                alt="Assignee" class="assignee-avatar">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
-                                                alt="Assignee" class="assignee-avatar">
+                                        <div class="avatar-group" v-if="task.assignees && task.assignees.length">
+                                            <img 
+                                                v-for="(assignee, idx) in task.assignees" 
+                                                :key="idx" 
+                                                :src="assignee.avatar || assignee.profile_picture_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=writer_${idx}&backgroundColor=ffd5dc`"
+                                                :alt="assignee.name || 'Assignee'" 
+                                                class="assignee-avatar"
+                                            >
                                         </div>
                                     </div>
                                 </div>
-                                <div class="task-card card-low" @click="openTaskModal({ title: 'Student Election Coverage', section: 'News', coverage: 'Enrollment Period 2026', deadline: 'Apr 13 • 4:00 PM', priority: 'Low' })" style="cursor: pointer;">
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        Low
-                                    </span>
-                                    <h4 class="card-title">Student Election Coverage</h4>
-                                    <span class="card-subtitle">Enrollment Period 2026</span>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
-                                            </svg>
-                                            Apr 13 &bull; 4:00 PM
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-card card-low" @click="openTaskModal({ title: 'Campus Clean-Up Drive Coverage', section: 'News', coverage: 'AY 2025 - 2026 Issue 2', deadline: 'Apr 18 • 7:30 PM', priority: 'Low' })" style="cursor: pointer;">
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        Low
-                                    </span>
-                                    <h4 class="card-title">Campus Clean-Up Drive Coverage</h4>
-                                    <span class="card-subtitle">AY 2025 - 2026 Issue 2</span>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
-                                            </svg>
-                                            Apr 18 &bull; 7:30 PM
-                                        </div>
-                                    </div>
+                                <div v-if="pendingTasks.length === 0" class="empty-column-state">
+                                    No pending tasks
                                 </div>
                             </div>
                         </div>
-                        <!-- Column 2: Ongoing (3) -->
+
+                        <!-- Column 2: Ongoing -->
                         <div class="kanban-column">
-                            <h3 class="column-header">Ongoing (3)</h3>
+                            <h3 class="column-header">Ongoing ({{ ongoingTasks.length }})</h3>
                             <div class="cards-container">
-                                <div class="task-card card-moderate" @click="openTaskModal({ title: 'Wellness Campaign Launch', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 16 • 5:00 PM', priority: 'Moderate' })" style="cursor: pointer;">
+                                <div 
+                                    v-for="task in ongoingTasks" 
+                                    :key="task.id || task.title"
+                                    class="task-card" 
+                                    :class="getPriorityClass(task.priority)"
+                                    @click="openTaskModal(task)"
+                                    style="cursor: pointer;"
+                                >
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                         </svg>
-                                        Moderate
+                                        {{ formatPriorityLabel(task.priority) }}
                                     </span>
-                                    <h4 class="card-title">Wellness Campaign Launch</h4>
-                                    <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                                    <h4 class="card-title">{{ task.title }}</h4>
                                     <div class="card-footer">
                                         <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                                                 <line x1="16" y1="2" x2="16" y2="6" />
                                                 <line x1="8" y1="2" x2="8" y2="6" />
                                                 <line x1="3" y1="10" x2="21" y2="10" />
                                             </svg>
-                                            Apr 16 &bull; 5:00 PM
+                                            {{ task.deadline }}
                                         </div>
-                                        <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
-                                                alt="Assignee" class="assignee-avatar">
+                                        <div class="avatar-group" v-if="task.assignees && task.assignees.length">
+                                            <img 
+                                                v-for="(assignee, idx) in task.assignees" 
+                                                :key="idx" 
+                                                :src="assignee.avatar || assignee.profile_picture_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=writer_${idx}&backgroundColor=d1fae5`"
+                                                :alt="assignee.name || 'Assignee'" 
+                                                class="assignee-avatar"
+                                            >
                                         </div>
                                     </div>
                                 </div>
-                                <div class="task-card card-high" @click="openTaskModal({ title: 'Campus Wi-Fi Expansion Project', section: 'News', coverage: 'Tech & Innovation Series', deadline: 'Apr 14 • 5:00 PM', priority: 'High' })" style="cursor: pointer;">
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        High
-                                    </span>
-                                    <h4 class="card-title">Campus Wi-Fi Expansion Project</h4>
-                                    <span class="card-subtitle">Tech &amp; Innovation Series</span>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
-                                            </svg>
-                                            Apr 14 &bull; 5:00 PM
-                                        </div>
-                                        <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa"
-                                                alt="Assignee" class="assignee-avatar">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-card card-high" @click="openTaskModal({ title: 'New Campus Laboratory Building Opens', section: 'News', coverage: 'Foundation Day 2026', deadline: 'Apr 14 • 8:00 PM', priority: 'High' })" style="cursor: pointer;">
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        High
-                                    </span>
-                                    <h4 class="card-title">New Campus Laboratory Building Opens</h4>
-                                    <span class="card-subtitle">Foundation Day 2026</span>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
-                                            </svg>
-                                            Apr 14 &bull; 8:00 PM
-                                        </div>
-                                        <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
-                                                alt="Assignee" class="assignee-avatar">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3"
-                                                alt="Assignee" class="assignee-avatar">
-                                        </div>
-                                    </div>
+                                <div v-if="ongoingTasks.length === 0" class="empty-column-state">
+                                    No ongoing tasks
                                 </div>
                             </div>
                         </div>
-                        <!-- Column 3: Submitted (3) -->
+
+                        <!-- Column 3: Submitted -->
                         <div class="kanban-column">
-                            <h3 class="column-header">Submitted (3)</h3>
+                            <h3 class="column-header">Submitted ({{ submittedTasks.length }})</h3>
                             <div class="cards-container">
-                                <div class="task-card card-high" @click="openTaskModal({ title: 'The Rise of Campus Creatives', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 14 • 10:45 PM', priority: 'High' })" style="cursor: pointer;">
+                                <div 
+                                    v-for="task in submittedTasks" 
+                                    :key="task.id || task.title"
+                                    class="task-card" 
+                                    :class="getPriorityClass(task.priority)"
+                                    @click="openTaskModal(task)"
+                                    style="cursor: pointer;"
+                                >
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                         </svg>
-                                        High
+                                        {{ formatPriorityLabel(task.priority) }}
                                     </span>
-                                    <h4 class="card-title">The Rise of Campus Creatives</h4>
-                                    <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                                    <h4 class="card-title">{{ task.title }}</h4>
                                     <div class="card-footer">
                                         <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                                                 <line x1="16" y1="2" x2="16" y2="6" />
                                                 <line x1="8" y1="2" x2="8" y2="6" />
                                                 <line x1="3" y1="10" x2="21" y2="10" />
                                             </svg>
-                                            Apr 14 &bull; 10:45 PM
+                                            {{ task.deadline }}
                                         </div>
-                                        <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
-                                                alt="Assignee" class="assignee-avatar">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3"
-                                                alt="Assignee" class="assignee-avatar">
+                                        <div class="avatar-group" v-if="task.assignees && task.assignees.length">
+                                            <img 
+                                                v-for="(assignee, idx) in task.assignees" 
+                                                :key="idx" 
+                                                :src="assignee.avatar || assignee.profile_picture_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=writer_${idx}&backgroundColor=fecdd3`"
+                                                :alt="assignee.name || 'Assignee'" 
+                                                class="assignee-avatar"
+                                            >
                                         </div>
                                     </div>
                                 </div>
-                                <div class="task-card card-moderate" @click="openTaskModal({ title: 'College Fair Highlights', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 8 • 6:00 PM', priority: 'Moderate' })" style="cursor: pointer;">
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        Moderate
-                                    </span>
-                                    <h4 class="card-title">College Fair Highlights</h4>
-                                    <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
-                                            </svg>
-                                            Apr 8 &bull; 6:00 PM
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-card card-low" @click="openTaskModal({ title: 'College Fair Attracts Hundreds', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 7 • 6:30 PM', priority: 'Low' })" style="cursor: pointer;">
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        Low
-                                    </span>
-                                    <h4 class="card-title">College Fair Attracts Hundreds</h4>
-                                    <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
-                                            </svg>
-                                            Apr 7 &bull; 6:30 PM
-                                        </div>
-                                        <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5"
-                                                alt="Assignee" class="assignee-avatar">
-                                        </div>
-                                    </div>
+                                <div v-if="submittedTasks.length === 0" class="empty-column-state">
+                                    No submitted tasks
                                 </div>
                             </div>
                         </div>
@@ -691,12 +582,15 @@
     <AssignmentWorkspaceModal 
         :is-open="isWorkspaceModalOpen" 
         :task-data="selectedTask"
-        @close="isWorkspaceModalOpen = false" 
+        @close="isWorkspaceModalOpen = false"
+        @task-submitted="handleTaskSubmitted"
+        @task-saved-as-draft="handleTaskSavedAsDraft"
+        @view-submissions="handleViewSubmissions"
     />
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
@@ -705,19 +599,185 @@ import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
 const activeTab = ref('tasks');
+const searchQuery = ref('');
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
 const selectedTask = ref({});
+const isLoadingTasks = ref(false);
 
+// ── User Management ─────────────────────────────────────────────────────────────
+const user = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
+const token = localStorage.getItem('sparky_token');
+
+const formatRole = (role, secondaryRole) => {
+    if (secondaryRole) return secondaryRole;
+    if (!role) return 'Staff Writer';
+    const map = {
+        admin: 'Administrator',
+        eic: 'Editor-in-Chief',
+        section_editor: 'Section Editor',
+        staff_writer: 'Staff Writer',
+        staff_artist: 'Staff Artist',
+        staff_broadcaster: 'Staff Broadcaster',
+        reader: 'Reader'
+    };
+    return map[role] || role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
+const formatPriorityLabel = (priority) => {
+    const p = (priority || '').toLowerCase();
+    if (p === 'medium') return 'Moderate';
+    if (p === 'urgent') return 'Urgent';
+    if (p === 'high') return 'High';
+    if (p === 'low') return 'Low';
+    return priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Moderate';
+};
+
+const getPriorityClass = (priority) => {
+    const p = (priority || '').toLowerCase();
+    if (p === 'low') return 'card-low';
+    if (p === 'high') return 'card-high';
+    if (p === 'urgent') return 'card-urgent';
+    return 'card-moderate';
+};
+
+const formatDeadline = (dateStr, dueTimeStr) => {
+    if (!dateStr) return 'No deadline';
+    if (typeof dateStr === 'string' && dateStr.includes('•')) return dateStr;
+
+    // Parse the date part cleanly without timezone shifting
+    let datePart = '';
+    const cleanDate = String(dateStr).split('T')[0].split(' ')[0];
+    const parts = cleanDate.split('-');
+    if (parts.length === 3) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const m = months[parseInt(parts[1], 10) - 1] || '';
+        const day = parseInt(parts[2], 10);
+        datePart = `${m} ${day}`;
+    } else {
+        const d = new Date(dateStr);
+        datePart = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : dateStr;
+    }
+
+    // Parse the due time part cleanly
+    let timePart = '';
+    if (dueTimeStr) {
+        if (dueTimeStr.includes('AM') || dueTimeStr.includes('PM')) {
+            timePart = dueTimeStr;
+        } else if (dueTimeStr.includes(':')) {
+            const timeSegments = dueTimeStr.split(':').map(Number);
+            const h = timeSegments[0];
+            const m = timeSegments[1];
+            const period = h >= 12 ? 'PM' : 'AM';
+            const displayH = h % 12 || 12;
+            const displayM = m < 10 ? `0${m}` : m;
+            timePart = `${displayH}:${displayM} ${period}`;
+        }
+    } else if (typeof dateStr === 'string' && dateStr.includes(':') && (dateStr.includes('T') || dateStr.includes(' '))) {
+        const timeObj = new Date(dateStr);
+        if (!isNaN(timeObj.getTime())) {
+            // Only add time if it's not 00:00:00 UTC artifact
+            const h = timeObj.getHours();
+            const m = timeObj.getMinutes();
+            if (h !== 0 || m !== 0) {
+                timePart = timeObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            }
+        }
+    }
+
+    return timePart ? `${datePart} • ${timePart}` : datePart;
+};
+
+const parseNotesField = (notes, key) => {
+    if (!notes || typeof notes !== 'string') return '';
+    const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
+    return match ? match[1].trim() : '';
+};
+
+// ── Tasks State ────────────────────────────────────────────────────────────────
+const tasks = ref([]);
+
+// ── Fetch Tasks from Backend ───────────────────────────────────────────────────
+const fetchTasks = async () => {
+    if (!token) return;
+    isLoadingTasks.value = true;
+    try {
+        const res = await fetch('/api/tasks', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                // Only show tasks assigned specifically to this logged-in writer
+                const userTasks = user.value.id 
+                    ? data.filter(t => t.assignee_id === user.value.id)
+                    : data;
+                
+                tasks.value = userTasks.map(t => {
+                    const dueTime = parseNotesField(t.notes, 'Due Time');
+                    return {
+                        id: t.id,
+                        title: t.title,
+                        section: t.section?.name || parseNotesField(t.notes, 'Section') || 'News',
+                        coverage: parseNotesField(t.notes, 'Coverage') || '',
+                        dueTime: dueTime,
+                        deadline: formatDeadline(t.deadline, dueTime),
+                        priority: t.priority || 'medium',
+                        status: t.status || 'pending',
+                        articleDesc: t.description || 'Write a clear article according to editorial board guidelines.',
+                        thumbnailDesc: parseNotesField(t.notes, 'Thumbnail') || 'Create a clean thumbnail using campus-related visuals with readable title placement...',
+                        mediaArtist: parseNotesField(t.notes, 'Media Artist') || '',
+                        assignees: t.assignee ? [{ name: t.assignee.name, avatar: t.assignee.profile_picture ? `/storage/${t.assignee.profile_picture}` : (t.assignee.profile_picture_url || 'https://picsum.photos/100?random=15') }] : [],
+                        raw: t
+                    };
+                });
+            }
+        }
+    } catch (err) {
+        console.warn('Could not fetch backend tasks:', err);
+    } finally {
+        isLoadingTasks.value = false;
+    }
+};
+
+// ── Computed Filtered Tasks for Kanban ─────────────────────────────────────────
+const filteredTasks = computed(() => {
+    const q = searchQuery.value.trim().toLowerCase();
+    if (!q) return tasks.value;
+    return tasks.value.filter(t => {
+        const title = (t.title || '').toLowerCase();
+        const section = (typeof t.section === 'object' ? t.section?.name : t.section || '').toLowerCase();
+        const priority = (t.priority || '').toLowerCase();
+        return title.includes(q) || section.includes(q) || priority.includes(q);
+    });
+});
+
+const pendingTasks = computed(() => {
+    return filteredTasks.value.filter(t => t.status === 'pending');
+});
+
+const ongoingTasks = computed(() => {
+    return filteredTasks.value.filter(t => t.status === 'in_progress' || t.status === 'ongoing' || t.status === 'returned');
+});
+
+const submittedTasks = computed(() => {
+    return filteredTasks.value.filter(t => t.status === 'submitted' || t.status === 'completed');
+});
+
+// ── Modal & Action Handlers ─────────────────────────────────────────────────────
 const openTaskModal = (task = {}) => {
     selectedTask.value = {
-        title: task.title || 'Enrollment Update for Second Semester',
-        section: task.section || task.category || 'News',
-        coverage: task.coverage || 'AY 2025 - 2026 Issue 1',
-        deadline: task.deadline || 'Apr 16 • 5:00 PM',
+        ...task,
+        title: task.title || 'Untitled Task',
+        section: task.section || 'News',
+        deadline: task.deadline || 'No deadline',
         priority: task.priority || 'Moderate',
-        articleDesc: task.articleDesc || 'Write a clear update about second semester enrollment, including dates, procedures, and registrar announcements.',
-        thumbnailDesc: task.thumbnailDesc || 'Create a clean thumbnail using campus-related visuals with readable title placement...'
+        articleDesc: task.articleDesc || task.description || '',
+        thumbnailDesc: task.thumbnailDesc || '',
+        mediaArtist: task.mediaArtist || ''
     };
     isAssignedTaskModalOpen.value = true;
 };
@@ -728,7 +788,75 @@ const handleOpenWorkspace = (taskData) => {
     isWorkspaceModalOpen.value = true;
 };
 
+const handleTaskSavedAsDraft = (draftTask) => {
+    const targetId = draftTask.id || selectedTask.value.id;
+    const index = tasks.value.findIndex(t => t.id === targetId || t.title === draftTask.title);
+    if (index !== -1) {
+        tasks.value[index] = {
+            ...tasks.value[index],
+            ...draftTask,
+            status: 'in_progress'
+        };
+    } else {
+        tasks.value.unshift({
+            ...draftTask,
+            status: 'in_progress'
+        });
+    }
+};
+
+const handleTaskSubmitted = (submittedTask) => {
+    const targetId = submittedTask.id || selectedTask.value.id;
+    const index = tasks.value.findIndex(t => t.id === targetId || t.title === submittedTask.title);
+    if (index !== -1) {
+        tasks.value[index] = {
+            ...tasks.value[index],
+            ...submittedTask,
+            status: 'submitted'
+        };
+    } else {
+        tasks.value.unshift({
+            ...submittedTask,
+            status: 'submitted'
+        });
+    }
+};
+
+const handleViewSubmissions = () => {
+    activeTab.value = 'tasks';
+};
+
 const openMonitoringSheet = () => {
     window.open('/monitoring-sheet', '_blank');
 };
+
+const onProfileUpdated = (e) => {
+    if (e.detail) {
+        user.value = e.detail;
+    }
+};
+
+// ── Lifecycle ───────────────────────────────────────────────────────────────────
+onMounted(async () => {
+    if (token) {
+        try {
+            const res = await fetch('/api/me', {
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            });
+            if (res.ok) {
+                const fresh = await res.json();
+                user.value = fresh;
+                localStorage.setItem('sparky_user', JSON.stringify(fresh));
+            }
+        } catch (e) {
+            console.warn('Could not refresh profile:', e);
+        }
+    }
+    await fetchTasks();
+    window.addEventListener('sparky:profile-updated', onProfileUpdated);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('sparky:profile-updated', onProfileUpdated);
+});
 </script>

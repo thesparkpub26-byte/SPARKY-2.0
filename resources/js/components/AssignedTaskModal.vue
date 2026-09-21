@@ -28,26 +28,33 @@
             <!-- Metadata Grid -->
             <div class="meta-grid-2x2">
                 <div class="meta-item">
-                    <span class="meta-label">Coverage</span>
-                    <span class="meta-val-bold">{{ task.coverage || 'AY 2025 - 2026 Issue 1' }}</span>
-                </div>
-                <div class="meta-item">
                     <span class="meta-label">Deadline</span>
-                    <span class="meta-val-bold">{{ task.deadline || 'Apr 16 • 5:00 PM' }}</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">Collaborators</span>
-                    <div class="collaborator-avatars-row">
-                        <img src="https://picsum.photos/100?random=101" alt="Collaborator" class="collab-avatar" />
-                        <img src="https://picsum.photos/100?random=102" alt="Collaborator" class="collab-avatar" />
-                    </div>
+                    <span class="meta-val-bold">{{ task.deadline || 'No deadline' }}</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">Priority</span>
-                    <span class="priority-pill-badge moderate">
+                    <span class="priority-pill-badge" :class="getPriorityClass(task.priority)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                        {{ task.priority || 'Moderate' }}
+                        {{ formatPriority(task.priority) }}
                     </span>
+                </div>
+                <div class="meta-item full-width-meta" v-if="task.mediaArtist || (task.assignees && task.assignees.length > 1)">
+                    <span class="meta-label">Collaborators / Assignees</span>
+                    <div class="collaborator-names-row">
+                        <span class="collab-name-tag" v-if="task.mediaArtist">
+                            🎨 {{ task.mediaArtist }} (Media/Artist)
+                        </span>
+                        <div class="collaborator-avatars-row" v-if="task.assignees && task.assignees.length">
+                            <img 
+                                v-for="(assignee, idx) in task.assignees" 
+                                :key="idx" 
+                                :src="assignee.avatar || 'https://picsum.photos/100?random=101'" 
+                                :alt="assignee.name || 'Collaborator'" 
+                                class="collab-avatar" 
+                                :title="assignee.name"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -56,14 +63,14 @@
                 <h4 class="description-hdr">Description</h4>
                 <div class="description-card-box">
                     <p class="description-text">
-                        <strong>Article:</strong> {{ task.articleDesc || 'Write a clear update about second semester enrollment, including dates, procedures, and registrar announcements.' }}
+                        <strong>Article:</strong> {{ task.articleDesc || task.description || 'Write a clear update according to section guidelines.' }}
                     </p>
-                    <p class="description-text" style="margin-top: 8px;">
-                        <strong>Thumbnail:</strong> {{ task.thumbnailDesc || 'Create a clean thumbnail using campus-related visuals with readable title placement...' }}
+                    <p class="description-text" style="margin-top: 8px;" v-if="task.thumbnailDesc">
+                        <strong>Thumbnail:</strong> {{ task.thumbnailDesc }}
                     </p>
                     
                     <div class="read-full-row">
-                        <button class="read-full-link" @click="handleOpenWorkspace">Read full text</button>
+                        <button class="read-full-link" type="button" @click="isFullDescriptionModalOpen = true">Read full text</button>
                     </div>
                 </div>
             </div>
@@ -81,11 +88,40 @@
             </div>
 
         </div>
+
+        <!-- Full Description Sub-Modal -->
+        <div class="full-desc-overlay" v-if="isFullDescriptionModalOpen" @click.self="isFullDescriptionModalOpen = false">
+            <div class="full-desc-card">
+                <div class="full-desc-hdr">
+                    <h3 class="full-desc-title">Description & Guidelines</h3>
+                    <button class="modal-x-btn" type="button" @click="isFullDescriptionModalOpen = false" title="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="full-desc-content">
+                    <div class="desc-block">
+                        <h4 class="desc-block-title">Article Assignment</h4>
+                        <p class="desc-block-text">{{ task.articleDesc || task.description || 'No detailed article description provided.' }}</p>
+                    </div>
+                    <div class="desc-block" v-if="task.thumbnailDesc">
+                        <h4 class="desc-block-title">Thumbnail & Visual Requirements</h4>
+                        <p class="desc-block-text">{{ task.thumbnailDesc }}</p>
+                    </div>
+                    <div class="desc-block" v-if="task.notes">
+                        <h4 class="desc-block-title">Assignment Notes</h4>
+                        <p class="desc-block-text">{{ task.notes }}</p>
+                    </div>
+                </div>
+                <div class="full-desc-footer">
+                    <button class="btn-blue-pill" type="button" @click="isFullDescriptionModalOpen = false" style="width: 100%;">Got it</button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
     isOpen: {
@@ -100,13 +136,33 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'open-workspace']);
 
+const isFullDescriptionModalOpen = ref(false);
 const task = computed(() => props.taskData || {});
 
 const closeModal = () => {
+    isFullDescriptionModalOpen.value = false;
     emit('close');
 };
 
+const getPriorityClass = (priority) => {
+    const p = (priority || '').toLowerCase();
+    if (p === 'low') return 'low';
+    if (p === 'high') return 'high';
+    if (p === 'urgent') return 'urgent';
+    return 'moderate';
+};
+
+const formatPriority = (priority) => {
+    const p = (priority || '').toLowerCase();
+    if (p === 'medium') return 'Moderate';
+    if (p === 'urgent') return 'Urgent';
+    if (p === 'high') return 'High';
+    if (p === 'low') return 'Low';
+    return priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Moderate';
+};
+
 const handleOpenWorkspace = () => {
+    isFullDescriptionModalOpen.value = false;
     emit('open-workspace', task.value);
 };
 </script>
@@ -261,6 +317,21 @@ const handleOpenWorkspace = () => {
     color: #92400e;
 }
 
+.priority-pill-badge.low {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.priority-pill-badge.high {
+    background-color: #ffe4e6;
+    color: #9f1239;
+}
+
+.priority-pill-badge.urgent {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
 .description-section {
     margin-bottom: 24px;
 }
@@ -358,5 +429,99 @@ const handleOpenWorkspace = () => {
 .btn-blue-pill:hover {
     background-color: #1557b0;
     box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
+}
+
+.full-desc-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.full-desc-card {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 520px;
+    padding: 28px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.full-desc-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.full-desc-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+}
+
+.modal-x-btn {
+    background: #f1f5f9;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.modal-x-btn:hover {
+    background: #e2e8f0;
+}
+
+.full-desc-content {
+    max-height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-right: 4px;
+}
+
+.desc-block {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.desc-block-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 6px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.desc-block-text {
+    font-size: 13.5px;
+    color: #475569;
+    margin: 0;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    font-family: 'Manrope', sans-serif;
+}
+
+.full-desc-footer {
+    margin-top: 4px;
 }
 </style>

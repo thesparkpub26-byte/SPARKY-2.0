@@ -38,11 +38,14 @@ class MonitoringSheetController extends Controller
 
         $entry = $monitoringSheet->entries()->create($validated);
         
-        // Notify EICs about new monitoring sheet task
+        // Notify EICs and assigned contributors about new monitoring sheet task
         try {
-            $eics = \App\Models\User::where('role', 'eic')->get();
             $taskTitle = $entry->topic ?: 'New Task';
             $writerText = $entry->writer_assigned ? " assigned to {$entry->writer_assigned}" : '';
+            $notifiedUserIds = [];
+
+            // 1. Notify EICs
+            $eics = \App\Models\User::where('role', 'eic')->get();
             foreach ($eics as $eic) {
                 \App\Models\Notification::create([
                     'user_id' => $eic->id,
@@ -51,6 +54,36 @@ class MonitoringSheetController extends Controller
                     'type'    => 'press_work_update',
                     'data'    => ['sheet_id' => $monitoringSheet->id, 'entry_id' => $entry->id],
                 ]);
+                $notifiedUserIds[] = $eic->id;
+            }
+
+            // 2. Notify Assigned Writer
+            if (!empty($entry->writer_assigned)) {
+                $writer = \App\Models\User::where('name', $entry->writer_assigned)->first();
+                if ($writer && !in_array($writer->id, $notifiedUserIds)) {
+                    \App\Models\Notification::create([
+                        'user_id' => $writer->id,
+                        'title'   => 'Press Work Task Assigned',
+                        'message' => "You have been assigned as writer for '{$taskTitle}' in {$entry->section} ({$monitoringSheet->title}).",
+                        'type'    => 'press_work_update',
+                        'data'    => ['sheet_id' => $monitoringSheet->id, 'entry_id' => $entry->id],
+                    ]);
+                    $notifiedUserIds[] = $writer->id;
+                }
+            }
+
+            // 3. Notify Assigned Artist/PJ
+            if (!empty($entry->artist_assigned) && $entry->artist_assigned !== 'No Graphics' && $entry->artist_assigned !== 'N/A') {
+                $artist = \App\Models\User::where('name', $entry->artist_assigned)->first();
+                if ($artist && !in_array($artist->id, $notifiedUserIds)) {
+                    \App\Models\Notification::create([
+                        'user_id' => $artist->id,
+                        'title'   => 'Press Work Media Assigned',
+                        'message' => "You have been assigned to '{$taskTitle}' ({$entry->media_type}) in {$entry->section} ({$monitoringSheet->title}).",
+                        'type'    => 'press_work_update',
+                        'data'    => ['sheet_id' => $monitoringSheet->id, 'entry_id' => $entry->id],
+                    ]);
+                }
             }
         } catch (\Throwable $e) {}
 
