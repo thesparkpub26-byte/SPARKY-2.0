@@ -11,6 +11,7 @@ use App\Http\Controllers\SectionController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PressWorkController;
 use App\Http\Controllers\MonitoringSheetController;
+use App\Http\Controllers\AnalyticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +25,7 @@ Route::post('/login',          [AuthController::class,  'login']);
 Route::post('/register/send-otp',   [RegisterController::class, 'sendOtp']);
 Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp']);
 Route::post('/register/resend-otp', [RegisterController::class, 'resendOtp']);
+Route::post('/analytics/page-view', [AnalyticsController::class, 'recordPageView']);
 
 // Protected routes (require Sanctum token)
 Route::middleware('auth:sanctum')->group(function () {
@@ -32,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/admin/overview', [AdminController::class, 'overview']);
+    Route::get('/eic/overview', [AdminController::class, 'eicOverview']);
+    Route::get('/admin/analytics', [AnalyticsController::class, 'adminReport']);
     Route::get('/press-works', [PressWorkController::class, 'index']);
     Route::post('/press-works', [PressWorkController::class, 'store']);
     Route::delete('/press-works/{year}', [PressWorkController::class, 'destroyByYear']);

@@ -4,47 +4,15 @@
         <aside class="sidebar">
             <div class="brand">
                 <img src="/assets/Spark_Logo.png" alt="The Spark Logo">
-                <div class="brand-text">
-                    <h2>TheSpark</h2>
-                    <p>Publication System</p>
-                </div>
             </div>
 
             <nav class="nav-menu">
-                <!-- Overview Nav Item -->
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'overview' }" @click.prevent="activeTab = 'overview'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        Overview
-                    </div>
-                </a>
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'overview' }" @click.prevent="activeTab = 'overview'"><div class="nav-item-left">Overview</div></a>
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'endorsements' }" @click.prevent="activeTab = 'endorsements'"><div class="nav-item-left">Endorsements</div></a>
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'pressWorks' }" @click.prevent="activeTab = 'pressWorks'"><div class="nav-item-left">Press Works</div></a>
+            </nav>
 
-                <!-- Endorsements Nav Item -->
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'endorsements' }" @click.prevent="activeTab = 'endorsements'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                            <polyline points="22,6 12,13 2,6"/>
-                        </svg>
-                        Endorsements
-                    </div>
-                </a>
-
-                <!-- Press Works Nav Item -->
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'pressWorks' }" @click.prevent="activeTab = 'pressWorks'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                        </svg>
-                        Press Works
-                    </div>
-                </a>
+            <nav class="nav-menu">
 
                 <!-- Published Articles Nav Item -->
                 <a href="#" class="nav-item" :class="{ active: activeTab === 'articles' }" @click.prevent="activeTab = 'articles'">
@@ -99,13 +67,13 @@
             </nav>
 
             <div class="user-profile">
-                <img src="https://picsum.photos/200?random=22" alt="Profile">
+                <img :src="eicUser.profile_picture_url || 'https://picsum.photos/200?random=22'" alt="Profile">
                 <div class="user-info">
-                    <span class="role-badge" style="background-color: #1a73e8; color: white;">Administrator</span>
-                    <h4>Editor-in-Chief</h4>
-                    <p>eic@thesparkpub.com</p>
+                    <span class="role-badge" style="background-color: #1a73e8; color: white;">{{ formatRole(eicUser.role) }}</span>
+                    <h4>{{ eicUser.name || 'Editor-in-Chief' }}</h4>
+                    <p>{{ eicUser.email || 'eic@thesparkpub.com' }}</p>
                 </div>
-                <button class="settings-btn">
+                <button class="settings-btn" type="button" aria-label="Open profile" @click="router.push('/profile')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path><path d="M12 2v2"></path><path d="M12 22v-2"></path><path d="m17 4-1.5 1.5"></path><path d="M22 12h-2"></path><path d="m17 20-1.5-1.5"></path><path d="M2 12h2"></path><path d="m7 4 1.5 1.5"></path><path d="m7 20 1.5-1.5"></path></svg>
                 </button>
             </div>
@@ -155,7 +123,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <div class="metric-val">2.1K</div>
+                                    <div class="metric-val">{{ formatCount(eicOverview.summary.articles) }}</div>
                                     <div class="metric-lbl">Total Articles</div>
                                 </div>
                             </div>
@@ -166,7 +134,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <div class="metric-val">81</div>
+                                    <div class="metric-val">{{ formatCount(eicOverview.summary.endorsements) }}</div>
                                     <div class="metric-lbl">Endorsements</div>
                                 </div>
                             </div>
@@ -178,7 +146,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <div class="metric-val">61</div>
+                                    <div class="metric-val">{{ formatCount(eicOverview.summary.ready_to_publish) }}</div>
                                     <div class="metric-lbl">Ready to Publish</div>
                                 </div>
                             </div>
@@ -190,12 +158,12 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <div class="metric-val">1.9K</div>
+                                    <div class="metric-val">{{ formatCount(eicOverview.summary.published) }}</div>
                                     <div class="metric-lbl">Published</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="updated-time">Updated just now</div>
+                        <div class="updated-time">{{ updatedLabel }}</div>
                     </div>
 
                     <div class="activities-card">
@@ -210,54 +178,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td style="padding-left: 28px; font-weight: 600;">Endorsed article for final review</td>
-                                    <td>Johan Abinal</td>
-                                    <td><span class="role-pill role-pill-writer">News Writer</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 4, 2026 17:07:42</td>
+                                <tr v-for="activity in eicOverview.activities" :key="activity.id">
+                                    <td style="padding-left: 28px; font-weight: 600;">{{ activity.action }}<span v-if="activity.subject">: {{ activity.subject }}</span></td>
+                                    <td>{{ activity.user }}</td>
+                                    <td><span class="role-pill role-pill-writer">{{ formatRole(activity.role) }}</span></td>
+                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">{{ formatDate(activity.created_at) }}</td>
                                 </tr>
-                                <tr>
-                                    <td style="padding-left: 28px; font-weight: 600;">Approved an article for publishing</td>
-                                    <td>Fernan Enimedez</td>
-                                    <td><span class="role-pill role-pill-eic">Editor-in-Chief</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 4, 2026 09:01:52</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-left: 28px; font-weight: 600;">Returned article for revision</td>
-                                    <td>Fernan Enimedez</td>
-                                    <td><span class="role-pill role-pill-eic">Editor-in-Chief</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 3, 2026 07:07:42</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-left: 28px; font-weight: 600;">Submitted final review</td>
-                                    <td>Dustin Jake Nas</td>
-                                    <td><span class="role-pill role-pill-editor">Feature Editor</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 1, 2026 21:37:12</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-left: 28px; font-weight: 600;">Approved thumbnail submission</td>
-                                    <td>Fernan Enimedez</td>
-                                    <td><span class="role-pill role-pill-eic">Editor-in-Chief</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 1, 2026 23:08:22</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-left: 28px; font-weight: 600;">Published feature article</td>
-                                    <td>Fernan Enimedez</td>
-                                    <td><span class="role-pill role-pill-eic">Editor-in-Chief</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 1, 2026 21:37:12</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-left: 28px; font-weight: 600;">Archived issue publication</td>
-                                    <td>Fernan Enimedez</td>
-                                    <td><span class="role-pill role-pill-eic">Editor-in-Chief</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 1, 2026 23:08:22</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-left: 28px; font-weight: 600;">Returned sports article</td>
-                                    <td>Fernan Enimedez</td>
-                                    <td><span class="role-pill role-pill-eic">Editor-in-Chief</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 1, 2026 21:37:12</td>
-                                </tr>
+                                <tr v-if="!eicOverview.activities.length"><td colspan="4" class="empty-activity">No recent activities found.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -267,11 +194,16 @@
                 <div v-show="activeTab === 'endorsements'" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
                     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <h1 class="page-title" style="margin-bottom: 0;">Endorsements</h1>
-                        <div class="filter-pills-group">
-                            <button class="filter-dropdown-btn">Status <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
-                            <button class="filter-dropdown-btn">Section <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
-                            <button class="filter-dropdown-btn">Priority <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
-                            <button class="filter-dropdown-btn">Deadline <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                        <div class="filter-pills-group eic-endorsement-filters">
+                            <div v-for="filter in eicEndorsementFilterDefinitions" :key="filter.key" class="eic-custom-filter" @click.stop>
+                                <button type="button" class="eic-filter-trigger" @click="toggleEicFilter(filter.key)">
+                                    <span>{{ eicFilterLabel(filter.key) }}</span>
+                                    <svg :class="{ rotated: activeEicFilter === filter.key }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                </button>
+                                <div v-if="activeEicFilter === filter.key" class="eic-filter-menu">
+                                    <button v-for="option in filter.options" :key="option.value" type="button" :class="{ selected: eicFilters[filter.key] === option.value }" @click="selectEicFilter(filter.key, option.value)">{{ option.label }}</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="articles-card">
@@ -280,63 +212,29 @@
                                 <tr>
                                     <th style="padding-left: 28px;">Title</th>
                                     <th>Section</th>
-                                    <th>Coverage</th>
                                     <th>Status</th>
                                     <th>Priority</th>
                                     <th style="padding-right: 28px; text-align: right;">Deadline</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr @click="openArticleDetails({ title: 'Enrollment Update for Second Semester', section: 'News', coverage: 'AY 2025 - 2026 Issue 1', priority: 'Moderate' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 600;">Enrollment Update for Second Semester</td>
-                                    <td><span class="section-badge">News</span></td>
-                                    <td style="color: #64748b;">AY 2025 -2026 Issue 1</td>
-                                    <td><span class="status-pill status-for-approval">For Approval</span></td>
-                                    <td><span class="priority-pill priority-moderate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Moderate</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 16 &bull; 5:00 PM</td>
+                                <tr v-for="article in paginatedEicEndorsements" :key="article.id" @click="openArticleDetails(article)" style="cursor: pointer;">
+                                    <td style="padding-left: 28px; font-weight: 600;">{{ article.title }}</td>
+                                    <td><span class="section-badge">{{ article.section?.name || 'Unassigned' }}</span></td>
+                                    <td><span class="status-pill" :class="eicStatusClass(article.status)">{{ eicStatusLabel(article.status) }}</span></td>
+                                    <td><span class="priority-pill priority-moderate">Moderate</span></td>
+                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">{{ formatDate(article.created_at) }}</td>
                                 </tr>
-                                <tr @click="openArticleDetails({ title: 'Student Election Coverage', section: 'News', coverage: 'Election Coverage 2026', priority: 'High' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 600;">Student Election Coverage</td>
-                                    <td><span class="section-badge">News</span></td>
-                                    <td style="color: #64748b;">Election Coverage 2026</td>
-                                    <td><span class="status-pill status-returned">Returned</span></td>
-                                    <td><span class="priority-pill priority-high"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> High</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 17 &bull; 2:00 PM</td>
-                                </tr>
-                                <tr @click="openArticleDetails({ title: 'Wellness Campaigne Launch', section: 'Feature', coverage: 'Student Wellness', priority: 'Low' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 600;">Wellness Campaigne Launch</td>
-                                    <td><span class="section-badge">Feature</span></td>
-                                    <td style="color: #64748b;">Student Wellness</td>
-                                    <td><span class="status-pill status-approved">Approved</span></td>
-                                    <td><span class="priority-pill priority-low"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Low</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 18 &bull; 6:00 PM</td>
-                                </tr>
-                                <tr @click="openArticleDetails({ title: 'Intramural Opening Day Highlights', section: 'Sports', coverage: 'Foundation Day 2026', priority: 'Moderate' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 600;">Intramural Opening Day Highlights</td>
-                                    <td><span class="section-badge">Sports</span></td>
-                                    <td style="color: #64748b;">Foundation Day 2026</td>
-                                    <td><span class="status-pill status-for-approval">For Approval</span></td>
-                                    <td><span class="priority-pill priority-moderate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Moderate</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 18 &bull; 4:30 PM</td>
-                                </tr>
-                                <tr @click="openArticleDetails({ title: 'Campus Wi-Fi Expansion Project', section: 'News', coverage: 'Tech & Innovation Series', priority: 'High' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 600;">Campus Wi-Fi Expansion Project</td>
-                                    <td><span class="section-badge">News</span></td>
-                                    <td style="color: #64748b;">Tech &amp; Innovation Series</td>
-                                    <td><span class="status-pill status-for-approval">For Approval</span></td>
-                                    <td><span class="priority-pill priority-high"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> High</span></td>
-                                    <td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 14 &bull; 4:00 PM</td>
-                                </tr>
+                                <tr v-if="!filteredEicEndorsements.length"><td colspan="5" class="empty-activity">No endorsement articles found.</td></tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="pagination-container">
+                    <div class="pagination-container eic-endorsement-pagination">
                         <div class="pagination-pill">
-                            <button class="page-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous</button>
-                            <a href="#" class="page-number active">1</a><a href="#" class="page-number">2</a><a href="#" class="page-number">3</a><a href="#" class="page-number">4</a><a href="#" class="page-number">5</a>
-                            <span class="page-dots">&bull;&bull;&bull;</span>
-                            <button class="page-btn">Next <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
-                            <div class="page-results-count">Showing <strong>12</strong> results</div>
+                            <button class="page-btn" :disabled="eicEndorsementPage === 1" @click="eicEndorsementPage--">Previous</button>
+                            <button v-for="page in eicEndorsementPageCount" :key="page" class="page-number" :class="{ active: eicEndorsementPage === page }" @click="eicEndorsementPage = page">{{ page }}</button>
+                            <button class="page-btn" :disabled="eicEndorsementPage === eicEndorsementPageCount" @click="eicEndorsementPage++">Next</button>
+                            <div class="page-results-count">Showing <strong>{{ filteredEicEndorsements.length }}</strong> results</div>
                         </div>
                     </div>
                 </div>
@@ -395,8 +293,8 @@
                         </div>
                     </div>
                     <div class="articles-card">
-                        <table class="articles-table">
-                            <thead><tr><th style="padding-left: 28px;">Title</th><th>Section</th><th>Coverage</th><th style="padding-right: 28px; text-align: right;">Published Date</th></tr></thead>
+                        <table class="articles-table eic-published-articles-table">
+                            <thead><tr><th style="padding-left: 28px;">Title</th><th>Section</th><th style="padding-right: 28px; text-align: right;">Published Date</th></tr></thead>
                             <tbody>
                                 <tr><td style="padding-left: 28px; font-weight: 600;">Foundation Day 2026 Highlights</td><td><span class="section-badge">News</span></td><td style="color: #64748b;">Foundation Day 2026</td><td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 14, 2026</td></tr>
                                 <tr><td style="padding-left: 28px; font-weight: 600;">College Fair Attracts Hundreds</td><td><span class="section-badge">Feature</span></td><td style="color: #64748b;">AY 2025 - 2026 Issue 1</td><td style="padding-right: 28px; text-align: right; color: #64748b;">Apr 12, 2026</td></tr>
@@ -610,7 +508,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import AssignTaskModal from '../../components/AssignTaskModal.vue';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
@@ -621,6 +519,19 @@ import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
 const activeTab = ref('overview');
+const eicUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
+const eicOverview = ref({
+    summary: { articles: 0, endorsements: 0, ready_to_publish: 0, published: 0 },
+    activities: [],
+    updated_at: null,
+});
+const eicArticles = ref([]);
+const eicAcademicYears = ref([]);
+const eicExpandedYears = ref({});
+const activeEicFilter = ref(null);
+const eicEndorsementPage = ref(1);
+const eicEndorsementPageSize = 8;
+const eicFilters = reactive({ status: 'all', section: 'all', priority: 'all', deadline: 'newest' });
 const isAssignTaskModalOpen = ref(false);
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
@@ -628,6 +539,145 @@ const isArticleDetailsOpen = ref(false);
 
 const selectedTask = ref({});
 const selectedArticle = ref({});
+
+const formatCount = (value) => Number(value || 0).toLocaleString();
+const formatRole = (role) => {
+    if (role === 'eic') return 'Editor in Chief';
+    if (role === 'system') return 'System';
+    return (role || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+const formatDate = (date) => date
+    ? new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+    : '—';
+const updatedLabel = computed(() => eicOverview.value.updated_at
+    ? `Updated ${new Date(eicOverview.value.updated_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+    : 'Loading...');
+
+const eicStatusLabel = (status) => (status || 'unknown').replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+const eicStatusClass = (status) => ({
+    submitted: 'status-for-approval',
+    under_review: 'status-for-approval',
+    endorsed: 'status-approved',
+    approved: 'status-approved',
+    rejected: 'status-returned',
+}[status] || 'status-for-approval');
+const eicEndorsementCandidates = computed(() => eicArticles.value.filter(article => [
+    'submitted', 'under_review', 'endorsed', 'approved', 'rejected',
+].includes(article.status)));
+const eicEndorsementFilterDefinitions = computed(() => [
+    {
+        key: 'status',
+        options: [{ value: 'all', label: 'Status' }, ...[...new Set(eicEndorsementCandidates.value.map(article => article.status))].sort().map(status => ({ value: status, label: eicStatusLabel(status) }))],
+    },
+    {
+        key: 'section',
+        options: [
+            { value: 'all', label: 'Section' },
+            ...['News', 'Opinion', 'Editorial', 'Feature', 'DevCom', 'Sports', 'Literary'].map(section => ({ value: section, label: section })),
+        ],
+    },
+    {
+        key: 'priority',
+        options: [
+            { value: 'all', label: 'Priority' },
+            ...['Low', 'Moderate', 'High', 'Urgent'].map(priority => ({ value: priority.toLowerCase(), label: priority })),
+        ],
+    },
+    {
+        key: 'deadline',
+        options: [{ value: 'newest', label: 'Newest' }, { value: 'oldest', label: 'Oldest' }],
+    },
+]);
+const eicFilterLabel = (filter) => eicEndorsementFilterDefinitions.value.find(definition => definition.key === filter)?.options.find(option => option.value === eicFilters[filter])?.label || filter;
+const filteredEicEndorsements = computed(() => {
+    const filtered = eicEndorsementCandidates.value.filter(article =>
+        (eicFilters.status === 'all' || article.status === eicFilters.status)
+        && (eicFilters.section === 'all' || article.section?.name === eicFilters.section)
+        && (eicFilters.priority === 'all' || (article.priority || 'moderate').toLowerCase() === eicFilters.priority)
+    );
+
+    return filtered.sort((first, second) => {
+        const firstDate = new Date(first.created_at || 0).getTime();
+        const secondDate = new Date(second.created_at || 0).getTime();
+        return eicFilters.deadline === 'oldest' ? firstDate - secondDate : secondDate - firstDate;
+    });
+});
+const eicEndorsementPageCount = computed(() => Math.max(1, Math.ceil(filteredEicEndorsements.value.length / eicEndorsementPageSize)));
+const paginatedEicEndorsements = computed(() => {
+    const start = (eicEndorsementPage.value - 1) * eicEndorsementPageSize;
+    return filteredEicEndorsements.value.slice(start, start + eicEndorsementPageSize);
+});
+
+const toggleEicFilter = (filter) => {
+    activeEicFilter.value = activeEicFilter.value === filter ? null : filter;
+};
+const selectEicFilter = (filter, value) => {
+    eicFilters[filter] = value;
+    activeEicFilter.value = null;
+};
+
+const loadEicOverview = async () => {
+    try {
+        const response = await fetch('/api/eic/overview', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) eicOverview.value = await response.json();
+    } catch {
+        // Keep the zero state if the overview endpoint is unavailable.
+    }
+};
+
+const loadEicArticles = async () => {
+    try {
+        const response = await fetch('/api/articles', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) eicArticles.value = await response.json();
+    } catch {
+        eicArticles.value = [];
+    }
+};
+
+const loadEicPressWorks = async () => {
+    try {
+        const response = await fetch('/api/press-works', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) {
+            const data = await response.json();
+            eicAcademicYears.value = data.academic_years || [];
+            if (eicAcademicYears.value.length) eicExpandedYears.value[eicAcademicYears.value[0].academic_year] = true;
+        }
+    } catch {
+        eicAcademicYears.value = [];
+    }
+};
+
+const toggleEicYear = (academicYear) => {
+    eicExpandedYears.value[academicYear] = !eicExpandedYears.value[academicYear];
+};
+
+onMounted(() => {
+    loadEicOverview();
+    loadEicArticles();
+    loadEicPressWorks();
+});
+
+watch(eicFilters, () => {
+    eicEndorsementPage.value = 1;
+}, { deep: true });
+watch(eicEndorsementPageCount, (pageCount) => {
+    if (eicEndorsementPage.value > pageCount) eicEndorsementPage.value = pageCount;
+});
 
 const openTaskModal = (task = {}) => {
     selectedTask.value = {

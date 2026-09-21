@@ -11,16 +11,13 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    /** List all users, optionally filter by role/section */
+    /** List all users, optionally filter by role */
     public function index(Request $request)
     {
-        $query = User::with('section');
+        $query = User::query();
 
         if ($request->has('role')) {
             $query->where('role', $request->role);
-        }
-        if ($request->has('section_id')) {
-            $query->where('section_id', $request->section_id);
         }
         if ($request->has('active')) {
             $query->where('is_active', $request->boolean('active'));
@@ -32,7 +29,7 @@ class UserController extends Controller
     /** Get a single user */
     public function show(User $user)
     {
-        return response()->json($user->load(['section', 'assignedTasks', 'articles']));
+        return response()->json($user->load(['assignedTasks', 'articles']));
     }
 
     /** Create a new user */
@@ -43,7 +40,8 @@ class UserController extends Controller
             'email'      => 'required|email|unique:users',
             'password'   => 'required|string|min:8',
             'role'       => 'required|in:admin,eic,section_editor,staff_writer,staff_artist,reader',
-            'section_id' => 'nullable|exists:sections,id',
+            'program'    => 'nullable|string|max:255',
+            'year_section' => 'nullable|string|max:255',
             'bio'        => 'nullable|string',
             'is_active'  => 'sometimes|boolean',
             'profile_picture' => 'sometimes|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
@@ -56,7 +54,7 @@ class UserController extends Controller
         $user = User::create($validated);
         Activity::record($request->user(), 'Added a user', $user);
 
-        return response()->json($user->load('section'), 201);
+        return response()->json($user, 201);
     }
 
     /** Update a user */
@@ -67,7 +65,8 @@ class UserController extends Controller
             'email'      => 'sometimes|email|unique:users,email,' . $user->id,
             'password'   => 'sometimes|string|min:8',
             'role'       => 'sometimes|in:admin,eic,section_editor,staff_writer,staff_artist,reader',
-            'section_id' => 'nullable|exists:sections,id',
+            'program'    => 'nullable|string|max:255',
+            'year_section' => 'nullable|string|max:255',
             'bio'        => 'nullable|string',
             'avatar'     => 'nullable|string',
             'is_active'  => 'sometimes|boolean',
@@ -80,7 +79,7 @@ class UserController extends Controller
         $user->update($validated);
         Activity::record($request->user(), 'Updated a user', $user);
 
-        return response()->json($user->load('section'));
+        return response()->json($user);
     }
 
     /** Delete a user (admin action) */
@@ -120,7 +119,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Profile updated successfully.',
-            'user'    => $user->fresh()->load('section'),
+            'user'    => $user->fresh(),
         ]);
     }
 

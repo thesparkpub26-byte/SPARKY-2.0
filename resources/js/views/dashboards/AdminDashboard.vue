@@ -95,7 +95,7 @@
             <header class="top-header">
                 <div class="search-bar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" placeholder="Search">
+                    <input v-model="searchQuery" type="search" :placeholder="searchPlaceholder" aria-label="Search current view">
                 </div>
                 <div class="top-header-right" style="display: flex; align-items: center; gap: 16px;">
                     <button v-if="activeTab !== 'press-works'" class="new-user-btn" type="button" @click="openNewUserModal">
@@ -106,7 +106,6 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         Add Presswork
                     </button>
-                    <NotificationsPopover />
                 </div>
             </header>
 
@@ -236,13 +235,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="activity in overview.activities" :key="activity.id">
+                            <tr v-for="activity in filteredOverviewActivities" :key="activity.id">
                                 <td>{{ activity.action }}<span v-if="activity.subject">: {{ activity.subject }}</span></td>
                                 <td>{{ activity.user }}</td>
                                 <td><span class="role-pill">{{ formatRole(activity.role) }}</span></td>
                                 <td>{{ formatDate(activity.created_at) }}</td>
                             </tr>
-                            <tr v-if="!overview.activities.length">
+                            <tr v-if="!filteredOverviewActivities.length">
                                 <td colspan="4" class="empty-activity">No activity has been recorded yet.</td>
                             </tr>
                         </tbody>
@@ -255,28 +254,26 @@
             <section id="section-user-management" class="content-section" :class="{ active: activeTab === 'user-management' || activeTab === 'editorial-board' || activeTab === 'staff-writers' || activeTab === 'readers' }" v-show="activeTab === 'user-management' || activeTab === 'editorial-board' || activeTab === 'staff-writers' || activeTab === 'readers'">
                 <div class="page-header" style="align-items: center;">
                 <h1 class="page-title">{{ activeTab === 'staff-writers' ? 'Staff Writers' : activeTab === 'readers' ? 'Readers' : activeTab === 'editorial-board' ? 'Editorial Board' : 'User Management' }}</h1>
-                <div class="filters">
-                    <button class="filter-dropdown">
-                        AY 2025 - 2026
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
-                    <button class="filter-dropdown">
-                        All Roles
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
-                    <button class="filter-dropdown">
-                        Newest
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
+                <div class="filters admin-user-filters">
+                    <div class="custom-filter-dropdown admin-user-filter role-filter" @click.stop>
+                        <button type="button" class="custom-filter-trigger" @click="toggleManagementDropdown('role')">
+                            <span>{{ managementRole === 'all' ? 'All Roles' : formatRole(managementRole) }}</span>
+                            <svg :class="{ rotated: activeManagementDropdown === 'role' }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        </button>
+                        <div v-if="activeManagementDropdown === 'role'" class="custom-filter-menu">
+                            <button type="button" :class="{ selected: managementRole === 'all' }" @click="selectManagementFilter('role', 'all')">All Roles</button>
+                            <button v-for="role in managementRoles" :key="role" type="button" :class="{ selected: managementRole === role }" @click="selectManagementFilter('role', role)">{{ formatRole(role) }}</button>
+                        </div>
+                    </div>
+                    <div class="custom-filter-dropdown admin-user-filter sort-filter" @click.stop>
+                        <button type="button" class="custom-filter-trigger" @click="toggleManagementDropdown('sort')">
+                            <span>{{ managementSortLabels[managementSort] }}</span>
+                            <svg :class="{ rotated: activeManagementDropdown === 'sort' }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        </button>
+                        <div v-if="activeManagementDropdown === 'sort'" class="custom-filter-menu">
+                            <button v-for="(label, value) in managementSortLabels" :key="value" type="button" :class="{ selected: managementSort === value }" @click="selectManagementFilter('sort', value)">{{ label }}</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -289,8 +286,8 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
-                                <th>Program</th>
-                                <th>Year/Section</th>
+                                <th v-if="activeTab !== 'readers'">Program</th>
+                                <th v-if="activeTab !== 'readers'">Year/Section</th>
                                 <th>Date Added</th>
                                 <th>Actions</th>
                             </tr>
@@ -301,8 +298,8 @@
                                 <td>{{ member.name }}</td>
                                 <td>{{ member.email }}</td>
                                 <td><span class="role-pill">{{ formatRole(member.role) }}</span></td>
-                                <td>—</td>
-                                <td>—</td>
+                                <td v-if="activeTab !== 'readers'">{{ member.program || '—' }}</td>
+                                <td v-if="activeTab !== 'readers'">{{ member.year_section || '—' }}</td>
                                 <td>{{ formatDate(member.created_at) }}</td>
                                 <td>
                                     <div class="action-icons">
@@ -317,7 +314,7 @@
                             </tr>
                             </template>
                             <tr v-if="['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab) && !filteredManagementUsers.length">
-                                <td colspan="7" class="empty-activity">No matching users found.</td>
+                                <td :colspan="activeTab === 'readers' ? 5 : 7" class="empty-activity">No matching users found.</td>
                             </tr>
                             <tr v-show="false">
                                 <td>Fernan Matthew A. Enimedez</td>
@@ -617,23 +614,16 @@
             <section id="section-articles" class="content-section" :class="{ active: activeTab === 'articles' }" v-show="activeTab === 'articles'">
                 <div class="page-header" style="align-items: center;">
                 <h1 class="page-title">Articles</h1>
-                <div class="filters">
-                    <button class="filter-dropdown">
-                        Status
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </button>
-                    <button class="filter-dropdown">
-                        Section
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </button>
-                    <button class="filter-dropdown">
-                        Coverage
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </button>
-                    <button class="filter-dropdown">
-                        Date
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </button>
+                <div class="filters admin-article-filters">
+                    <div v-for="filter in articleFilterDefinitions" :key="filter.key" class="custom-filter-dropdown article-filter" @click.stop>
+                        <button type="button" class="custom-filter-trigger" @click="toggleArticleDropdown(filter.key)">
+                            <span>{{ articleFilterLabel(filter.key) }}</span>
+                            <svg :class="{ rotated: activeArticleDropdown === filter.key }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        </button>
+                        <div v-if="activeArticleDropdown === filter.key" class="custom-filter-menu">
+                            <button v-for="option in filter.options" :key="option.value" type="button" :class="{ selected: articleFilters[filter.key] === option.value }" @click="selectArticleFilter(filter.key, option.value)">{{ option.label }}</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -645,7 +635,6 @@
                             <tr>
                                 <th>Title</th>
                                 <th>Section</th>
-                                <th>Coverage</th>
                                 <th>Writer</th>
                                 <th>Status</th>
                                 <th>Date & Time</th>
@@ -656,13 +645,12 @@
                             <tr v-for="article in paginatedArticles" :key="article.id">
                                 <td>{{ article.title }}</td>
                                 <td><span class="section-pill">{{ article.section?.name || 'Unassigned' }}</span></td>
-                                <td>{{ article.monitoring_sheet_url || '—' }}</td>
                                 <td>{{ article.author?.name || 'Unknown' }}</td>
                                 <td><span class="status-pill" :class="articleStatusClass(article.status)">{{ articleStatusLabel(article.status) }}</span></td>
                                 <td>{{ formatDate(article.created_at) }}</td>
                                 <td><div class="action-icons"><button class="action-btn edit" type="button" aria-label="Edit article" @click="openEditArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></button><button class="action-btn delete" type="button" aria-label="Delete article" @click="openDeleteArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg></button></div></td>
                             </tr>
-                            <tr v-if="!articles.length"><td colspan="7" class="empty-activity">No articles found.</td></tr>
+                            <tr v-if="!filteredArticles.length"><td colspan="6" class="empty-activity">No articles found.</td></tr>
                         </tbody>
                         <tbody v-if="false">
                             <tr>
@@ -810,7 +798,7 @@
                             <button class="page-nav" :disabled="articlePage === articlePageCount" @click="articlePage++">Next</button>
                         </div>
                     </div>
-                    <div class="page-info">Showing <strong>{{ paginatedArticles.length }}</strong> of <strong>{{ articles.length }}</strong> articles</div>
+                    <div class="page-info">Showing <strong>{{ paginatedArticles.length }}</strong> of <strong>{{ filteredArticles.length }}</strong> articles</div>
                 </div>
                 <div v-if="false" style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
                     <div style="flex: 1; display: flex; justify-content: center;">
@@ -853,8 +841,8 @@
                         No academic years found. Click "New Academic Year" to create one.
                     </div>
                     
-                    <div v-else class="academic-years-container">
-                        <div v-for="yearGroup in academicYears" :key="yearGroup.academic_year" class="academic-year-folder">
+                    <div v-else-if="filteredAcademicYears.length" class="academic-years-container">
+                        <div v-for="yearGroup in filteredAcademicYears" :key="yearGroup.academic_year" class="academic-year-folder">
                             <div class="folder-header" @click="toggleYear(yearGroup.academic_year)">
                                 <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -881,6 +869,7 @@
                             </div>
                         </div>
                     </div>
+                    <div v-else class="empty-activity" style="text-align: center; padding: 40px;">No matching academic years found.</div>
                 </div>
             </section>
 
@@ -888,84 +877,134 @@
             <section id="section-archive" class="content-section" :class="{ active: activeTab === 'archive' }" v-show="activeTab === 'archive'">
                 <div class="page-header" style="align-items: center;">
                 <h1 class="page-title">Archive</h1>
-                <div class="filters">
-                    <button class="filter-dropdown">
-                        Sort from
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </button>
-                </div>
             </div>
 
-            <!-- Archive Grid -->
-            <div class="archive-grid">
-                <!-- Template for SVG Folder -->
-                <svg width="0" height="0" style="position:absolute">
-                    <defs>
-                        <linearGradient id="folderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#90bbf8" />
-                            <stop offset="100%" stop-color="#719bf0" />
-                        </linearGradient>
-                        <g id="folderIcon">
-                            <!-- White Paper -->
-                            <path d="M 20 20 C 20 5, 30 0, 40 0 L 160 0 C 170 0, 180 5, 180 20 L 180 100 L 20 100 Z" fill="#ffffff" />
-                            <!-- Blue Folder -->
-                            <path d="M 0 50 C 0 30, 10 20, 30 20 L 80 20 C 90 20, 95 35, 100 40 C 105 45, 110 50, 120 50 L 170 50 C 190 50, 200 60, 200 80 L 200 200 L 0 200 Z" fill="url(#folderGrad)" />
-                        </g>
-                    </defs>
-                </svg>
+            <div class="archive-explorer">
+                <div class="archive-explorer-header">
+                    <span class="archive-breadcrumb">Archive</span>
+                    <span class="archive-breadcrumb-separator">›</span>
+                    <span class="archive-breadcrumb-current">School Years</span>
+                </div>
 
-                <!-- Cards -->
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2025 - 2026</h4><p>218 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2024 - 2025</h4><p>206 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2023 - 2024</h4><p>194 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2022 - 2023</h4><p>181 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2021 - 2022</h4><p>169 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2020 - 2021</h4><p>158 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2019 - 2020</h4><p>147 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2018 - 2019</h4><p>136 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2017 - 2018</h4><p>125 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2016 - 2017</h4><p>114 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2015 - 2016</h4><p>103 articles</p></div></div>
-                <div class="archive-card"><svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg><div class="archive-card-content"><h4>AY 2014 - 2015</h4><p>92 articles</p></div></div>
+                <div class="archive-grid">
+                    <svg width="0" height="0" style="position:absolute">
+                        <defs>
+                            <linearGradient id="folderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#90bbf8" />
+                                <stop offset="100%" stop-color="#719bf0" />
+                            </linearGradient>
+                            <g id="folderIcon">
+                                <path d="M 20 20 C 20 5, 30 0, 40 0 L 160 0 C 170 0, 180 5, 180 20 L 180 100 L 20 100 Z" fill="#ffffff" />
+                                <path d="M 0 50 C 0 30, 10 20, 30 20 L 80 20 C 90 20, 95 35, 100 40 C 105 45, 110 50, 120 50 L 170 50 C 190 50, 200 60, 200 80 L 200 200 L 0 200 Z" fill="url(#folderGrad)" />
+                            </g>
+                        </defs>
+                    </svg>
+
+                    <div
+                        v-for="folder in paginatedArchiveFolders"
+                        :key="folder.key"
+                        class="archive-card explorer-folder"
+                        @click="openArchiveFolder(folder)"
+                    >
+                        <svg class="folder-bg" viewBox="0 0 200 200" preserveAspectRatio="none"><use href="#folderIcon" /></svg>
+                        <div class="archive-card-content">
+                            <h4>{{ folder.label }}</h4>
+                            <p>{{ folder.articles.length }} article{{ folder.articles.length === 1 ? '' : 's' }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Floating Pagination -->
             <div class="floating-pagination">
                 <div class="pagination" style="margin-top: 0;">
-                    <button class="page-nav">
+                    <button class="page-nav" :disabled="archivePage === 1" @click="archivePage--">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="m15 18-6-6 6-6"/></svg>
                         Previous
                     </button>
-                    <button class="page-btn">1</button>
-                    <button class="page-btn">2</button>
-                    <button class="page-btn active">3</button>
-                    <button class="page-btn">4</button>
-                    <button class="page-btn">5</button>
-                    <span style="margin: 0 4px; color: #555; font-weight: 700;">...</span>
-                    <button class="page-nav">
+                    <button v-for="page in archivePageNumbers" :key="page" class="page-btn" :class="{ active: archivePage === page }" @click="archivePage = page">{{ page }}</button>
+                    <span v-if="archivePageCount > 5 && archivePage < archivePageCount - 1" style="margin: 0 4px; color: #555; font-weight: 700;">...</span>
+                    <button class="page-nav" :disabled="archivePage === archivePageCount" @click="archivePage++">
                         Next
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m9 18 6-6-6-6"/></svg>
                     </button>
                 </div>
                 <div class="page-info" style="margin-left: 0; padding-left: 32px; border-left: 1px solid #eef0f4;">
-                    Showing <strong>12</strong> of <strong>2,137</strong> articles
+                    Showing <strong>{{ paginatedArchiveFolders.length }}</strong> of <strong>{{ filteredArchiveFolders.length }}</strong> folders
                 </div>
             </div>
+            </section>
+
+            <section id="section-archive-year" class="content-section" :class="{ active: activeTab === 'archive-year' }" v-show="activeTab === 'archive-year'">
+                <div class="page-header" style="align-items: center; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <button class="btn-back" type="button" @click="closeArchiveFolder" style="padding: 0; color: #1a73e8; font-size: 14px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                            Back
+                        </button>
+                        <h1 class="page-title" style="margin: 0;">{{ selectedArchiveFolder?.label || 'Archive' }}</h1>
+                    </div>
+                </div>
+
+                <div class="card" style="flex: 1; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                    <div class="table-container" style="flex: 1; padding: 24px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Section</th>
+                                    <th>Writer</th>
+                                    <th>Status</th>
+                                    <th>Date & Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="article in paginatedArchiveArticles" :key="article.id">
+                                    <td>{{ article.title }}</td>
+                                    <td><span class="section-pill">{{ article.section?.name || 'Unassigned' }}</span></td>
+                                    <td>{{ article.author?.name || 'Unknown' }}</td>
+                                    <td><span class="status-pill" :class="articleStatusClass(article.status)">{{ articleStatusLabel(article.status) }}</span></td>
+                                    <td>{{ formatDate(article.created_at) }}</td>
+                                    <td>
+                                        <div class="action-icons">
+                                            <button class="action-btn edit" type="button" aria-label="Edit article" @click="openEditArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></button>
+                                            <button class="action-btn delete" type="button" aria-label="Delete article" @click="openDeleteArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-if="!selectedArchiveArticles.length"><td colspan="6" class="empty-activity">No articles found for this academic year.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
+                        <div style="flex: 1; display: flex; justify-content: center;">
+                            <div class="pagination">
+                                <button class="page-nav" :disabled="archiveYearPage === 1" @click="archiveYearPage--">Previous</button>
+                                <button v-for="page in archiveYearPageCount" :key="page" class="page-btn" :class="{ active: archiveYearPage === page }" @click="archiveYearPage = page">{{ page }}</button>
+                                <button class="page-nav" :disabled="archiveYearPage === archiveYearPageCount" @click="archiveYearPage++">Next</button>
+                            </div>
+                        </div>
+                        <div class="page-info">Showing <strong>{{ paginatedArchiveArticles.length }}</strong> of <strong>{{ selectedArchiveArticles.length }}</strong> articles</div>
+                    </div>
+                </div>
             </section>
 
             <!-- Analytics Section -->
             <section id="section-analytics" class="content-section" :class="{ active: activeTab === 'analytics' }" v-show="activeTab === 'analytics'">
                 <div class="page-header" style="align-items: center;">
                 <h1 class="page-title">Analytics</h1>
-                <div class="filters">
-                    <button class="filter-dropdown">
-                        AY 2025 - 2026
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </button>
-                    <button class="filter-dropdown">
-                        Last 30 days
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </button>
+                <div class="filters admin-analytics-filters">
+                    <div class="custom-filter-dropdown analytics-filter" @click.stop>
+                        <button type="button" class="custom-filter-trigger" @click="toggleAnalyticsDropdown">
+                            <span>{{ analyticsPeriodLabels[analyticsPeriod] }}</span>
+                            <svg :class="{ rotated: activeAnalyticsDropdown }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                        </button>
+                        <div v-if="activeAnalyticsDropdown" class="custom-filter-menu">
+                            <button v-for="(label, value) in analyticsPeriodLabels" :key="value" type="button" :class="{ selected: analyticsPeriod === value }" @click="selectAnalyticsPeriod(value)">{{ label }}</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -978,55 +1017,24 @@
                     <!-- Content Performance -->
                     <div class="card">
                         <h3 class="card-header">Content Performance</h3>
-                        
-                        <div class="analytics-list-item">
+                        <div v-if="analyticsError" class="empty-activity">{{ analyticsError }}</div>
+                        <div v-else-if="!filteredAnalyticsPages.length" class="empty-activity">No site traffic data for this period.</div>
+                        <div v-for="page in filteredAnalyticsPages" :key="page.title" class="analytics-list-item">
                             <div class="analytics-item-left">
-                                <div class="analytics-item-title">CSPC Launches New Digital Learning Hub</div>
+                                <div class="analytics-item-title">{{ page.title }}</div>
                                 <div class="analytics-item-meta">
-                                    <span class="section">News</span>
-                                    <span>Jhea Nicole N. Comandante</span>
+                                    <span class="section">Site analytics</span>
+                                    <span>{{ formatCount(page.users) }} active users</span>
                                 </div>
                             </div>
                             <div class="analytics-item-right">
                                 <div class="metric-pill">
-                                    2,031
+                                    {{ formatCount(page.views) }}
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 9.2-9.2M17 17V7H7"/></svg>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="analytics-list-item">
-                            <div class="analytics-item-left">
-                                <div class="analytics-item-title">Blue Stallions Dominate Regional Meet...</div>
-                                <div class="analytics-item-meta">
-                                    <span class="section">Sports</span>
-                                    <span>Hanna Grace A. Clevillas</span>
-                                </div>
-                            </div>
-                            <div class="analytics-item-right">
-                                <div class="metric-pill">
-                                    1,245
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="analytics-list-item">
-                            <div class="analytics-item-left">
-                                <div class="analytics-item-title">The Rise of Campus Creatives</div>
-                                <div class="analytics-item-meta">
-                                    <span class="section">Feature</span>
-                                    <span>Gabrielle M. Loquias</span>
-                                </div>
-                            </div>
-                            <div class="analytics-item-right">
-                                <div class="metric-pill">
-                                    1,102
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="#" class="view-all">View All <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="m9 18 6-6-6-6"/></svg></a>
+                        <p v-if="analytics.configured" class="updated-text">{{ analytics.start_date }} to {{ analytics.end_date }}</p>
                     </div>
 
                     <!-- Recent Publications -->
@@ -1042,30 +1050,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td style="border-bottom: none;">Blue Stallions Dominate Regional Me...</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">Sports</span></td>
-                                    <td style="border-bottom: none;">Apr 4, 2026</td>
-                                    <td style="border-bottom: none; font-weight: 600;">1,245 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-left: 4px;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></td>
+                                <tr v-for="page in filteredAnalyticsPages" :key="`publication-${page.title}`">
+                                    <td style="border-bottom: none;">{{ page.title }}</td>
+                                    <td style="border-bottom: none;"><span class="section-pill">Web</span></td>
+                                    <td style="border-bottom: none;">{{ analytics.end_date || '—' }}</td>
+                                    <td style="border-bottom: none; font-weight: 600;">{{ formatCount(page.views) }}</td>
                                 </tr>
-                                <tr>
-                                    <td style="border-bottom: none;">CSPC Launches New Digital Learning...</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">News</span></td>
-                                    <td style="border-bottom: none;">Apr 4, 2026</td>
-                                    <td style="border-bottom: none; font-weight: 600;">2,031 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-left: 4px;"><path d="m7 17 9.2-9.2M17 17V7H7"/></svg></td>
-                                </tr>
-                                <tr>
-                                    <td style="border-bottom: none;">Sa Likod ng Tinta</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">Literary</span></td>
-                                    <td style="border-bottom: none;">Apr 4, 2026</td>
-                                    <td style="border-bottom: none; font-weight: 600;">876 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-left: 4px;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></td>
-                                </tr>
-                                <tr>
-                                    <td style="border-bottom: none;">The Rise of Campus Creatives</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">Feature</span></td>
-                                    <td style="border-bottom: none;">Apr 4, 2026</td>
-                                    <td style="border-bottom: none; font-weight: 600;">1,102 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-left: 4px;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></td>
-                                </tr>
+                                <tr v-if="!filteredAnalyticsPages.length"><td colspan="4" class="empty-activity">No publication traffic data.</td></tr>
                             </tbody>
                         </table>
                         <a href="#" class="view-all">View All <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="m9 18 6-6-6-6"/></svg></a>
@@ -1083,28 +1074,18 @@
                             <div style="display: flex; flex-direction: column; gap: 16px;">
                                 <div class="engagement-box" style="flex: 1;">
                                     <div class="engagement-label">Total Views</div>
-                                    <div class="engagement-value">82.5K</div>
+                                    <div class="engagement-value">{{ formatCount(analytics.metrics.page_views) }}</div>
                                 </div>
                                 <div class="engagement-box" style="flex: 1;">
-                                    <div class="engagement-label">Average Views per Article</div>
-                                    <div class="engagement-value">341</div>
+                                    <div class="engagement-label">Unique Visitors</div>
+                                    <div class="engagement-value">{{ formatCount(analytics.metrics.active_users) }}</div>
                                 </div>
                             </div>
                             <div class="engagement-box tall">
-                                <div class="engagement-label" style="margin-bottom: 16px;">Most Viewed Categories</div>
-                                
-                                <div class="category-bar news">
-                                    <span>News</span>
-                                    <span>7.1K</span>
-                                </div>
-                                <div class="category-bar sports">
-                                    <span>Sports</span>
-                                    <span>2.9K</span>
-                                </div>
-                                <div class="category-bar literary">
-                                    <span>Literary</span>
-                                    <span>1.3K</span>
-                                </div>
+                                <div class="engagement-label" style="margin-bottom: 16px;">Tracked Visitors</div>
+                                <div class="engagement-value">{{ formatCount(analytics.metrics.sessions) }}</div>
+                                <div class="engagement-label" style="margin: 16px 0 4px;">Published Articles</div>
+                                <div class="engagement-value">{{ formatCount(articles.filter(article => article.status === 'published').length) }}</div>
                             </div>
                         </div>
                     </div>
@@ -1115,15 +1096,15 @@
                         <div class="workflow-grid">
                             <div class="workflow-box">
                                 <div class="workflow-label">Avg. Time to Publish</div>
-                                <div class="workflow-value-large">2.4<span style="font-size: 16px;">d</span></div>
+                                <div class="workflow-value-large">{{ averagePublishDays }}<span style="font-size: 16px;">d</span></div>
                             </div>
                             <div class="workflow-box">
                                 <div class="workflow-label">Articles to Review</div>
-                                <div class="workflow-value-large">88</div>
+                                <div class="workflow-value-large">{{ formatCount((articleStatusCounts.submitted || 0) + (articleStatusCounts.under_review || 0) + (articleStatusCounts.endorsed || 0)) }}</div>
                             </div>
                             <div class="workflow-box">
                                 <div class="workflow-label">Revision Rate</div>
-                                <div class="workflow-value-large">28<span style="font-size: 16px;">%</span></div>
+                                <div class="workflow-value-large">{{ revisionRate }}<span style="font-size: 16px;">%</span></div>
                             </div>
                         </div>
                     </div>
@@ -1134,23 +1115,23 @@
                         <div class="status-list">
                             <div class="status-list-item">
                                 <span>Draft</span>
-                                <div class="status-count">45</div>
+                                <div class="status-count">{{ formatCount(articleStatusCounts.draft || 0) }}</div>
                             </div>
                             <div class="status-list-item">
                                 <span>In Review</span>
-                                <div class="status-count">88</div>
+                                <div class="status-count">{{ formatCount((articleStatusCounts.submitted || 0) + (articleStatusCounts.under_review || 0) + (articleStatusCounts.endorsed || 0)) }}</div>
                             </div>
                             <div class="status-list-item">
                                 <span>Under Revision</span>
-                                <div class="status-count">32</div>
+                                <div class="status-count">{{ formatCount(articleStatusCounts.rejected || 0) }}</div>
                             </div>
                             <div class="status-list-item">
                                 <span>Approved</span>
-                                <div class="status-count">217</div>
+                                <div class="status-count">{{ formatCount(articleStatusCounts.approved || 0) }}</div>
                             </div>
                             <div class="status-list-item">
                                 <span>Published</span>
-                                <div class="status-count">1.9K</div>
+                                <div class="status-count">{{ formatCount(articleStatusCounts.published || 0) }}</div>
                             </div>
                         </div>
                     </div>
@@ -1194,7 +1175,18 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div v-if="newUserForm.role !== 'reader'" class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Program</label>
+                        <input v-model="newUserForm.program" type="text" class="form-control" placeholder="Program">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Year/Section</label>
+                        <input v-model="newUserForm.year_section" type="text" class="form-control" placeholder="Year/Section">
+                    </div>
+                </div>
+
+                <div class="form-group new-user-username-group">
                     <label class="form-label">Username</label>
                     <input v-model="newUserForm.name" type="text" class="form-control" placeholder="Username">
                 </div>
@@ -1216,15 +1208,13 @@
                     <label class="form-label">Account Details</label>
                     <div class="form-row">
                         <div class="form-group">
-                            <div class="input-icon-wrap">
+                            <div class="input-icon-wrap custom-select-wrap">
                                 <select v-model="newUserForm.role" class="form-control select-control"><option value="" disabled>Role</option><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="reader">Reader</option></select>
-                                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="input-icon-wrap">
+                            <div class="input-icon-wrap custom-select-wrap">
                                 <select v-model="newUserForm.status" class="form-control select-control"><option value="" disabled>Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
-                                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                             </div>
                         </div>
                     </div>
@@ -1277,7 +1267,11 @@
                     <div class="form-group"><label class="form-label">Role</label><select v-model="editUserForm.role" class="form-control select-control" required><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="reader">Reader</option></select></div>
                     <div class="form-group"><label class="form-label">Status</label><select v-model="editUserForm.is_active" class="form-control select-control"><option :value="true">Active</option><option :value="false">Inactive</option></select></div>
                 </div>
-                <div class="form-group"><label class="form-label">New Password <span class="optional">(leave blank to keep)</span></label><input v-model="editUserForm.password" type="password" class="form-control" minlength="8"></div>
+                <div v-if="['eic', 'section_editor', 'staff_writer', 'staff_artist'].includes(editUserForm.role)" class="form-row edit-user-academic-group">
+                    <div class="form-group"><label class="form-label">Program</label><input v-model="editUserForm.program" class="form-control" placeholder="Program"></div>
+                    <div class="form-group"><label class="form-label">Year/Section</label><input v-model="editUserForm.year_section" class="form-control" placeholder="Year/Section"></div>
+                </div>
+                <div class="form-group edit-user-password-group"><label class="form-label">New Password <span class="optional">(leave blank to keep)</span></label><input v-model="editUserForm.password" type="password" class="form-control" minlength="8"></div>
                 <p v-if="editUserError" class="new-user-error">{{ editUserError }}</p>
                 <div class="modal-footer"><button class="btn-back" type="button" @click="closeEditUser">Cancel</button><button class="btn-next" type="submit" :disabled="editUserSaving">{{ editUserSaving ? 'Saving...' : 'Save Changes' }}</button></div>
             </div>
@@ -1350,15 +1344,15 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
-import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
 const activeTab = ref('overview');
+const searchQuery = ref('');
 const adminUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 const overview = ref({
     summary: { articles: 0, users: 0, pending: 0, published: 0 },
@@ -1383,6 +1377,158 @@ const articlePage = ref(1);
 const articlePageSize = 8;
 const managementPage = ref(1);
 const managementPageSize = 8;
+const managementRole = ref('all');
+const managementSort = ref('newest');
+const activeManagementDropdown = ref(null);
+const activeArticleDropdown = ref(null);
+const activeAnalyticsDropdown = ref(false);
+const articleFilters = reactive({ status: 'all', section: 'all', date: 'newest' });
+const managementSortLabels = {
+    newest: 'Newest',
+    oldest: 'Oldest',
+    name_asc: 'Name A-Z',
+    name_desc: 'Name Z-A',
+};
+
+const toggleManagementDropdown = (dropdown) => {
+    activeManagementDropdown.value = activeManagementDropdown.value === dropdown ? null : dropdown;
+};
+
+const selectManagementFilter = (filter, value) => {
+    if (filter === 'role') managementRole.value = value;
+    if (filter === 'sort') managementSort.value = value;
+    activeManagementDropdown.value = null;
+};
+
+const toggleArticleDropdown = (filter) => {
+    activeArticleDropdown.value = activeArticleDropdown.value === filter ? null : filter;
+};
+
+const selectArticleFilter = (filter, value) => {
+    articleFilters[filter] = value;
+    activeArticleDropdown.value = null;
+};
+
+const analyticsPeriodLabels = {
+    7: 'Last 7 days',
+    30: 'Last 30 days',
+    90: 'Last 90 days',
+};
+
+const toggleAnalyticsDropdown = () => {
+    activeAnalyticsDropdown.value = !activeAnalyticsDropdown.value;
+};
+
+const selectAnalyticsPeriod = (period) => {
+    analyticsPeriod.value = period;
+    activeAnalyticsDropdown.value = false;
+    loadAnalytics();
+};
+const archivePage = ref(1);
+const archivePageSize = 10;
+const archiveYearPage = ref(1);
+const archiveYearPageSize = 8;
+const selectedArchiveFolder = ref(null);
+const analyticsPeriod = ref('30');
+const analytics = ref({
+    configured: false,
+    metrics: { page_views: 0, active_users: 0, sessions: 0, average_session_duration: 0 },
+    top_pages: [],
+    start_date: null,
+    end_date: null,
+});
+const analyticsError = ref('');
+
+const normalizedSearch = computed(() => searchQuery.value.trim().toLowerCase());
+const searchPlaceholder = computed(() => activeTab.value === 'archive-year'
+    ? 'Search archived articles'
+    : activeTab.value === 'archive'
+        ? 'Search archive folders'
+        : activeTab.value === 'press-works'
+            ? 'Search press works'
+            : activeTab.value === 'articles'
+                ? 'Search articles'
+                : ['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab.value)
+                    ? 'Search users'
+                    : 'Search');
+
+const matchesSearch = (...values) => !normalizedSearch.value
+    || values.some(value => String(value ?? '').toLowerCase().includes(normalizedSearch.value));
+const filteredOverviewActivities = computed(() => overview.value.activities.filter(activity => matchesSearch(
+    activity.action,
+    activity.subject,
+    activity.user,
+    activity.role,
+)));
+const filteredAnalyticsPages = computed(() => analytics.value.top_pages.filter(page => matchesSearch(
+    page.title,
+    'Site analytics',
+)));
+
+const getAcademicYearMeta = (dateInput = new Date()) => {
+    const date = new Date(dateInput);
+    const startYear = date.getMonth() >= 6 ? date.getFullYear() : date.getFullYear() - 1;
+    const endYear = startYear + 1;
+    return {
+        key: `A/Y ${startYear} - ${endYear}`,
+        label: `A/Y July ${startYear} - June ${endYear}`,
+        startYear,
+        endYear,
+    };
+};
+
+const archiveFolders = computed(() => {
+    const folders = new Map();
+    const currentFolder = getAcademicYearMeta();
+    folders.set(currentFolder.key, { key: currentFolder.key, label: currentFolder.label, articles: [] });
+
+    [2022, 2023, 2024, 2025].forEach((startYear) => {
+        const yearMeta = getAcademicYearMeta(new Date(startYear, 6, 1));
+        folders.set(yearMeta.key, { key: yearMeta.key, label: yearMeta.label, articles: [] });
+    });
+
+    articles.value.forEach((article) => {
+        const articleDate = article.created_at ? new Date(article.created_at) : new Date();
+        const yearMeta = getAcademicYearMeta(articleDate);
+        const existing = folders.get(yearMeta.key) || {
+            key: yearMeta.key,
+            label: yearMeta.label,
+            articles: [],
+        };
+
+        existing.articles.push(article);
+        folders.set(yearMeta.key, existing);
+    });
+
+    return [...folders.values()].sort((first, second) => {
+        const firstStart = Number((first.key.match(/(\d{4}) - (\d{4})/) || [])[1] || 0);
+        const secondStart = Number((second.key.match(/(\d{4}) - (\d{4})/) || [])[1] || 0);
+        return secondStart - firstStart;
+    });
+});
+
+const filteredArchiveFolders = computed(() => archiveFolders.value.filter(folder =>
+    matchesSearch(folder.label, folder.key, ...folder.articles.map(article => article.title))
+));
+
+const archivePageCount = computed(() => Math.max(1, Math.ceil(filteredArchiveFolders.value.length / archivePageSize)));
+const paginatedArchiveFolders = computed(() => {
+    const start = (archivePage.value - 1) * archivePageSize;
+    return filteredArchiveFolders.value.slice(start, start + archivePageSize);
+});
+const archivePageNumbers = computed(() => {
+    const totalPages = archivePageCount.value;
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
+
+    const pages = [1, 2, 3, 4, 5];
+    if (archivePage.value > 3) pages[0] = archivePage.value - 2;
+    if (archivePage.value > 2) pages[1] = archivePage.value - 1;
+    if (archivePage.value > 1) pages[2] = archivePage.value;
+    if (archivePage.value < totalPages) pages[3] = archivePage.value + 1;
+    if (archivePage.value < totalPages - 1) pages[4] = archivePage.value + 2;
+
+    return [...new Set(pages.filter(page => page >= 1 && page <= totalPages))].slice(0, 5);
+});
 
 const filteredManagementUsers = computed(() => {
     const rolesByTab = {
@@ -1391,10 +1537,30 @@ const filteredManagementUsers = computed(() => {
         'staff-writers': ['staff_writer', 'staff_artist'],
         readers: ['reader'],
     };
-    return users.value
-    .filter(user => rolesByTab[activeTab.value]?.includes(user.role))
-    .sort((first, second) => first.name.localeCompare(second.name));
+    const filtered = users.value
+        .filter(user => rolesByTab[activeTab.value]?.includes(user.role))
+        .filter(user => managementRole.value === 'all' || user.role === managementRole.value)
+        .filter(user => matchesSearch(
+            user.name,
+            user.email,
+            user.program,
+            user.year_section,
+            formatRole(user.role),
+            getAcademicYearMeta(user.created_at).key,
+            getAcademicYearMeta(user.created_at).label,
+        ));
+
+    return filtered.sort((first, second) => {
+        if (managementSort.value === 'name_asc') return first.name.localeCompare(second.name);
+        if (managementSort.value === 'name_desc') return second.name.localeCompare(first.name);
+
+        const firstDate = new Date(first.created_at || 0).getTime();
+        const secondDate = new Date(second.created_at || 0).getTime();
+        return managementSort.value === 'oldest' ? firstDate - secondDate : secondDate - firstDate;
+    });
 });
+
+const managementRoles = computed(() => [...new Set(users.value.map(user => user.role).filter(Boolean))].sort());
 
 const managementPageCount = computed(() => Math.max(1, Math.ceil(filteredManagementUsers.value.length / managementPageSize)));
 const paginatedManagementUsers = computed(() => {
@@ -1402,10 +1568,84 @@ const paginatedManagementUsers = computed(() => {
     return filteredManagementUsers.value.slice(start, start + managementPageSize);
 });
 
-const articlePageCount = computed(() => Math.max(1, Math.ceil(articles.value.length / articlePageSize)));
+const articleFilterDefinitions = computed(() => [
+    {
+        key: 'status',
+        options: [
+            { value: 'all', label: 'Status' },
+            ...[...new Set(articles.value.map(article => article.status).filter(Boolean))].sort().map(status => ({ value: status, label: articleStatusLabel(status) })),
+        ],
+    },
+    {
+        key: 'section',
+        options: [
+            { value: 'all', label: 'Section' },
+            ...[...new Set(articles.value.map(article => article.section?.name).filter(Boolean))].sort().map(section => ({ value: section, label: section })),
+        ],
+    },
+    {
+        key: 'date',
+        options: [
+            { value: 'newest', label: 'Newest' },
+            { value: 'oldest', label: 'Oldest' },
+        ],
+    },
+]);
+const articleFilterLabel = (filter) => articleFilterDefinitions.value
+    .find(definition => definition.key === filter)?.options
+    .find(option => option.value === articleFilters[filter])?.label || filter;
+const filteredArticles = computed(() => {
+    const filtered = articles.value.filter(article => matchesSearch(
+        article.title,
+        article.author?.name,
+        article.section?.name,
+        article.monitoring_sheet_url,
+        articleStatusLabel(article.status),
+    ) && (articleFilters.status === 'all' || article.status === articleFilters.status)
+        && (articleFilters.section === 'all' || article.section?.name === articleFilters.section));
+
+    return filtered.sort((first, second) => {
+        const firstDate = new Date(first.created_at || 0).getTime();
+        const secondDate = new Date(second.created_at || 0).getTime();
+        return articleFilters.date === 'oldest' ? firstDate - secondDate : secondDate - firstDate;
+    });
+});
+const articlePageCount = computed(() => Math.max(1, Math.ceil(filteredArticles.value.length / articlePageSize)));
 const paginatedArticles = computed(() => {
     const start = (articlePage.value - 1) * articlePageSize;
-    return articles.value.slice(start, start + articlePageSize);
+    return filteredArticles.value.slice(start, start + articlePageSize);
+});
+
+const selectedArchiveArticles = computed(() => selectedArchiveFolder.value
+    ? selectedArchiveFolder.value.articles.filter(article => matchesSearch(
+        article.title,
+        article.author?.name,
+        article.section?.name,
+        article.monitoring_sheet_url,
+        articleStatusLabel(article.status),
+    ))
+    : []);
+const archiveYearPageCount = computed(() => Math.max(1, Math.ceil(selectedArchiveArticles.value.length / archiveYearPageSize)));
+const paginatedArchiveArticles = computed(() => {
+    const start = (archiveYearPage.value - 1) * archiveYearPageSize;
+    return selectedArchiveArticles.value.slice(start, start + archiveYearPageSize);
+});
+
+const articleStatusCounts = computed(() => articles.value.reduce((counts, article) => {
+    counts[article.status] = (counts[article.status] || 0) + 1;
+    return counts;
+}, {}));
+const averagePublishDays = computed(() => {
+    const durations = articles.value
+        .filter(article => article.status === 'published' && article.created_at && article.approved_at)
+        .map(article => (new Date(article.approved_at) - new Date(article.created_at)) / 86400000)
+        .filter(duration => Number.isFinite(duration) && duration >= 0);
+
+    return durations.length ? (durations.reduce((total, duration) => total + duration, 0) / durations.length).toFixed(1) : '0.0';
+});
+const revisionRate = computed(() => {
+    if (!articles.value.length) return 0;
+    return Math.round(((articleStatusCounts.value.rejected || 0) / articles.value.length) * 100);
 });
 
 const pressworkSheets = computed(() => {
@@ -1421,6 +1661,17 @@ const pressworkSheets = computed(() => {
     return allSheets;
 });
 
+const filteredAcademicYears = computed(() => academicYears.value
+    .map(yearGroup => ({
+        ...yearGroup,
+        monitoring_sheets: yearGroup.monitoring_sheets.filter(sheet => matchesSearch(
+            yearGroup.academic_year,
+            sheet.title,
+            sheet.publication_type,
+        )),
+    }))
+    .filter(yearGroup => matchesSearch(yearGroup.academic_year) || yearGroup.monitoring_sheets.length));
+
 const yearAlreadyExists = computed(() => {
     return academicYears.value.some(year => year.academic_year === pressworkForm.value.academic_year);
 });
@@ -1435,9 +1686,28 @@ watch([managementPageCount, activeTab], ([pageCount]) => {
     if (activeTab.value !== 'user-management') managementPage.value = 1;
 });
 
+watch([managementRole, managementSort], () => {
+    managementPage.value = 1;
+});
+
 watch(articlePageCount, (pageCount) => {
     if (articlePage.value > pageCount) articlePage.value = pageCount;
 });
+
+watch(archivePageCount, (pageCount) => {
+    if (archivePage.value > pageCount) archivePage.value = pageCount;
+});
+
+watch(searchQuery, () => {
+    articlePage.value = 1;
+    managementPage.value = 1;
+    archivePage.value = 1;
+    archiveYearPage.value = 1;
+});
+
+watch(articleFilters, () => {
+    articlePage.value = 1;
+}, { deep: true });
 
 const updatedLabel = computed(() => overview.value.updated_at
     ? `Updated ${new Date(overview.value.updated_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
@@ -1510,6 +1780,29 @@ const loadArticles = async () => {
     }
 };
 
+const loadAnalytics = async () => {
+    analyticsError.value = '';
+
+    try {
+        const response = await fetch(`/api/admin/analytics?period=${analyticsPeriod.value}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            analyticsError.value = data.message || 'Google Analytics data is unavailable.';
+            return;
+        }
+
+        analytics.value = data;
+    } catch {
+        analyticsError.value = 'Unable to load Google Analytics data.';
+    }
+};
+
 const loadPressWorks = async () => {
     try {
         const token = localStorage.getItem('sparky_token');
@@ -1541,6 +1834,7 @@ onMounted(() => {
     loadOverview();
     loadUsers();
     loadArticles();
+    loadAnalytics();
     loadPressWorks();
 });
 const openDropdown = ref(null);
@@ -1560,7 +1854,7 @@ const editUserSaving = ref(false);
 const deleteUserSaving = ref(false);
 const editUserError = ref('');
 const deleteUserError = ref('');
-const editUserForm = ref({ name: '', email: '', role: '', is_active: true, password: '' });
+const editUserForm = ref({ name: '', email: '', role: '', is_active: true, program: '', year_section: '', password: '' });
 const isEditArticleModalOpen = ref(false);
 const isDeleteArticleModalOpen = ref(false);
 const selectedArticle = ref(null);
@@ -1576,6 +1870,8 @@ const newUserForm = ref({
     status: '',
     password: '',
     passwordConfirmation: '',
+    program: '',
+    year_section: '',
     image: null,
 });
 
@@ -1588,7 +1884,7 @@ const openNewUserModal = () => {
 const closeNewUserModal = () => {
     isNewUserModalOpen.value = false;
     newUserImagePreview.value = '';
-    newUserForm.value = { name: '', email: '', role: '', status: '', password: '', passwordConfirmation: '', image: null };
+    newUserForm.value = { name: '', email: '', role: '', status: '', password: '', passwordConfirmation: '', program: '', year_section: '', image: null };
 };
 
 const handleNewUserImage = (event) => {
@@ -1599,7 +1895,15 @@ const handleNewUserImage = (event) => {
 
 const openEditUser = (member) => {
     selectedUser.value = member;
-    editUserForm.value = { name: member.name, email: member.email, role: member.role, is_active: member.is_active !== false, password: '' };
+    editUserForm.value = {
+        name: member.name,
+        email: member.email,
+        role: member.role,
+        is_active: member.is_active !== false,
+        program: member.program || '',
+        year_section: member.year_section || '',
+        password: '',
+    };
     editUserError.value = '';
     isEditUserModalOpen.value = true;
 };
@@ -1733,6 +2037,10 @@ const saveNewUser = async () => {
     payload.append('name', newUserForm.value.name);
     payload.append('email', newUserForm.value.email);
     payload.append('role', newUserForm.value.role);
+    if (newUserForm.value.role !== 'reader') {
+        payload.append('program', newUserForm.value.program || '');
+        payload.append('year_section', newUserForm.value.year_section || '');
+    }
     payload.append('password', newUserForm.value.password);
     payload.append('is_active', newUserForm.value.status !== 'inactive' ? '1' : '0');
     if (newUserForm.value.image) payload.append('profile_picture', newUserForm.value.image);
@@ -1837,6 +2145,18 @@ const openMonitoringSheet = (sheet) => {
 
 const toggleYear = (year) => {
     expandedYears.value[year] = !expandedYears.value[year];
+};
+
+const openArchiveFolder = (folder) => {
+    selectedArchiveFolder.value = folder;
+    archiveYearPage.value = 1;
+    activeTab.value = 'archive-year';
+};
+
+const closeArchiveFolder = () => {
+    activeTab.value = 'archive';
+    selectedArchiveFolder.value = null;
+    archiveYearPage.value = 1;
 };
 
 const openDeleteYearModal = (year) => {

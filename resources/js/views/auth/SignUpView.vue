@@ -15,15 +15,6 @@
         <h2>Create Your Account</h2>
         <p class="subtitle">Join the community as a reader or contributor and<br>start exploring stories.</p>
         
-        <button class="google-btn" @click.prevent>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" class="google-icon">
-          Continue with <strong>Google</strong>
-        </button>
-        
-        <div class="divider">
-          <span>or</span>
-        </div>
-        
         <form @submit.prevent="handleSignUp">
           <div class="input-group">
             <label for="name">Name</label>
@@ -134,6 +125,7 @@ const handleSignUp = async () => {
     loading.value = false;
   }
 };
+
 </script>
 
 <style scoped>

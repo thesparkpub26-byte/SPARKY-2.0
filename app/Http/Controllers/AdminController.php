@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -54,4 +53,34 @@ class AdminController extends Controller
             'updated_at' => now(),
         ]);
     }
+
+    public function eicOverview(Request $request)
+    {
+        abort_unless($request->user()->isEIC(), 403);
+
+        $recentActivities = Activity::with('actor:id,name,email,role,profile_picture')
+            ->latest('created_at')
+            ->limit(10)
+            ->get()
+            ->map(fn (Activity $activity) => [
+                'id' => $activity->id,
+                'action' => $activity->action,
+                'subject' => $activity->subject_label,
+                'user' => $activity->actor?->name ?? 'System',
+                'role' => $activity->actor?->role ?? 'system',
+                'created_at' => $activity->created_at,
+            ]);
+
+        return response()->json([
+            'summary' => [
+                'articles' => Article::count(),
+                'endorsements' => Article::where('status', Article::STATUS_ENDORSED)->count(),
+                'ready_to_publish' => Article::where('status', Article::STATUS_APPROVED)->count(),
+                'published' => Article::where('status', Article::STATUS_PUBLISHED)->count(),
+            ],
+            'activities' => $recentActivities,
+            'updated_at' => now(),
+        ]);
+    }
+
 }

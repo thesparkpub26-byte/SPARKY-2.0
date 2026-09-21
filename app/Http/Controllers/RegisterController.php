@@ -87,7 +87,7 @@ class RegisterController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user'  => $user->load('section'),
+            'user'  => $user,
         ], 201);
     }
 

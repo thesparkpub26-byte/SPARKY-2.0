@@ -17,7 +17,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'section_id',
+        'program',
+        'year_section',
         'avatar',
         'bio',
         'is_active',
@@ -26,15 +27,11 @@ class User extends Authenticatable
 
     protected $appends = ['profile_picture_url'];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password'];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
@@ -49,11 +46,6 @@ class User extends Authenticatable
     const ROLE_READER         = 'reader';
 
     // Relationships
-    public function section()
-    {
-        return $this->belongsTo(Section::class);
-    }
-
     public function articles()
     {
         return $this->hasMany(Article::class, 'author_id');

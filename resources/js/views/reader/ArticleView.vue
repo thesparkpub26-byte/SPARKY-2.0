@@ -145,13 +145,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import Navbar from '../../components/Navbar.vue';
 import Footer from '../../components/Footer.vue';
 import NewsletterCard from '../../components/NewsletterCard.vue';
 import ArticleCard from '../../components/ArticleCard.vue';
 
 const commentText = ref('');
+
+onMounted(() => {
+  fetch('/api/analytics/page-view', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      page_path: window.location.pathname,
+      page_title: 'CSPC Launches New Student Portal',
+    }),
+  }).catch(() => {
+    // Analytics must never block article reading.
+  });
+});
 
 const submitComment = () => {
   if (commentText.value) {

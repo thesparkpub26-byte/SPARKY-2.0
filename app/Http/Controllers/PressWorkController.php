@@ -58,9 +58,9 @@ class PressWorkController extends Controller
         }
 
         $pressWork = DB::transaction(function () use ($request, $validated) {
-            // Create a default press work for the academic year
+            // Create the first issue for the academic year
             $pressWork = PressWork::create([
-                'title' => 'Default Press Work',
+                'title' => 'Issue 1',
                 'academic_year' => $validated['academic_year'],
                 'created_by' => $request->user()->id,
             ]);

@@ -19,15 +19,6 @@
         <h2>Welcome Back!</h2>
         <p class="subtitle">Access your account and continue your reading or<br>publishing journey.</p>
         
-        <button class="google-btn" @click.prevent>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" class="google-icon">
-          Continue with <strong>Google</strong>
-        </button>
-        
-        <div class="divider">
-          <span>or</span>
-        </div>
-        
         <form @submit.prevent="handleLogin">
           <div class="input-group">
             <label for="email">Your Email</label>
@@ -120,6 +111,7 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+
 </script>
 
 <style scoped>
