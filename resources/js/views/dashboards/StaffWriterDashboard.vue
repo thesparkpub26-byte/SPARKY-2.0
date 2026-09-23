@@ -40,7 +40,7 @@
                     </div>
                 </a>
 
-                <!-- Recent Submissions Nav Item -->
+                <!-- Artist's Submissions Nav Item -->
                 <a href="#" class="nav-item" :class="{ active: activeTab === 'submissions' }" @click.prevent="activeTab = 'submissions'">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -51,7 +51,7 @@
                             <line x1="3" y1="10" x2="21" y2="10" />
                             <path d="m9 16 2 2 4-4" />
                         </svg>
-                        Recent Submissions
+                        Artist's Submissions
                     </div>
                 </a>
 
@@ -139,28 +139,36 @@
                                 <div 
                                     v-for="task in pendingTasks" 
                                     :key="task.id || task.title"
-                                    class="task-card" 
+                                    class="task-card-enhanced" 
                                     :class="getPriorityClass(task.priority)"
                                     @click="openTaskModal(task)"
                                     style="cursor: pointer;"
                                 >
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        {{ formatPriorityLabel(task.priority) }}
-                                    </span>
-                                    <h4 class="card-title">{{ task.title }}</h4>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
+                                    <div class="task-card-header">
+                                        <span class="priority-badge">
+                                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                             </svg>
-                                            {{ task.deadline }}
+                                            {{ formatPriorityLabel(task.priority) }}
+                                        </span>
+                                        <span class="section-badge">{{ task.section }}</span>
+                                    </div>
+                                    <h4 class="card-title">{{ task.title }}</h4>
+                                    <div class="task-card-details">
+                                        <div class="task-detail-item">
+                                            <span class="detail-label">Deadline:</span>
+                                            <span class="detail-value">{{ task.deadline }}</span>
                                         </div>
+                                        <div class="task-detail-item" v-if="task.mediaArtist">
+                                            <span class="detail-label">Artist:</span>
+                                            <span class="detail-value">{{ task.mediaArtist }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="task-card-footer">
+                                        <span class="date-pill" v-if="task.deadline && task.deadline !== 'No deadline'">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                            {{ task.deadline }}
+                                        </span>
                                         <div class="avatar-group" v-if="task.assignees && task.assignees.length">
                                             <img 
                                                 v-for="(assignee, idx) in task.assignees" 
@@ -185,28 +193,43 @@
                                 <div 
                                     v-for="task in ongoingTasks" 
                                     :key="task.id || task.title"
-                                    class="task-card" 
+                                    class="task-card-enhanced" 
                                     :class="getPriorityClass(task.priority)"
                                     @click="openTaskModal(task)"
                                     style="cursor: pointer;"
                                 >
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        {{ formatPriorityLabel(task.priority) }}
-                                    </span>
-                                    <h4 class="card-title">{{ task.title }}</h4>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
+                                    <div class="task-card-header">
+                                        <span class="priority-badge">
+                                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                             </svg>
-                                            {{ task.deadline }}
+                                            {{ formatPriorityLabel(task.priority) }}
+                                        </span>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <span v-if="task.status === 'returned'" class="status-badge" style="background: #fee2e2; color: #dc2626; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">Returned</span>
+                                            <span class="section-badge">{{ task.section }}</span>
                                         </div>
+                                    </div>
+                                    <h4 class="card-title">{{ task.title }}</h4>
+                                    <div class="task-card-details">
+                                        <div class="task-detail-item">
+                                            <span class="detail-label">Deadline:</span>
+                                            <span class="detail-value">{{ task.deadline }}</span>
+                                        </div>
+                                        <div class="task-detail-item" v-if="task.mediaArtist">
+                                            <span class="detail-label">Artist:</span>
+                                            <span class="detail-value">{{ task.mediaArtist }}</span>
+                                        </div>
+                                        <div class="task-detail-item" v-if="task.status === 'returned' && task.notes" style="margin-top: 4px;">
+                                            <span class="detail-label" style="color: #dc2626; font-weight: 600;">Revision Notes:</span>
+                                            <span class="detail-value" style="color: #991b1b; font-size: 12px; line-height: 1.4;">{{ task.notes }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="task-card-footer">
+                                        <span class="date-pill" v-if="task.deadline && task.deadline !== 'No deadline'">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                            {{ task.deadline }}
+                                        </span>
                                         <div class="avatar-group" v-if="task.assignees && task.assignees.length">
                                             <img 
                                                 v-for="(assignee, idx) in task.assignees" 
@@ -231,28 +254,36 @@
                                 <div 
                                     v-for="task in submittedTasks" 
                                     :key="task.id || task.title"
-                                    class="task-card" 
+                                    class="task-card-enhanced" 
                                     :class="getPriorityClass(task.priority)"
                                     @click="openTaskModal(task)"
                                     style="cursor: pointer;"
                                 >
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                                        </svg>
-                                        {{ formatPriorityLabel(task.priority) }}
-                                    </span>
-                                    <h4 class="card-title">{{ task.title }}</h4>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" />
-                                                <line x1="8" y1="2" x2="8" y2="6" />
-                                                <line x1="3" y1="10" x2="21" y2="10" />
+                                    <div class="task-card-header">
+                                        <span class="priority-badge">
+                                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                                             </svg>
-                                            {{ task.deadline }}
+                                            {{ formatPriorityLabel(task.priority) }}
+                                        </span>
+                                        <span class="section-badge">{{ task.section }}</span>
+                                    </div>
+                                    <h4 class="card-title">{{ task.title }}</h4>
+                                    <div class="task-card-details">
+                                        <div class="task-detail-item">
+                                            <span class="detail-label">Deadline:</span>
+                                            <span class="detail-value">{{ task.deadline }}</span>
                                         </div>
+                                        <div class="task-detail-item" v-if="task.mediaArtist">
+                                            <span class="detail-label">Artist:</span>
+                                            <span class="detail-value">{{ task.mediaArtist }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="task-card-footer">
+                                        <span class="date-pill" v-if="task.deadline && task.deadline !== 'No deadline'">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                            {{ task.deadline }}
+                                        </span>
                                         <div class="avatar-group" v-if="task.assignees && task.assignees.length">
                                             <img 
                                                 v-for="(assignee, idx) in task.assignees" 
@@ -277,92 +308,63 @@
                     <div class="page-header"
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <h1 class="page-title" style="margin-bottom: 0;">My Articles</h1>
-                        <button class="status-filter-btn">
-                            Status
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m6 9 6 6 6-6" />
-                            </svg>
-                        </button>
+                        <div class="filter-pills-group">
+                            <div class="custom-filter" @click.stop>
+                                <button type="button" class="filter-trigger" @click="toggleStatusFilter">
+                                    <span>{{ statusFilterLabel }}</span>
+                                    <svg :class="{ rotated: activeStatusFilter }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m6 9 6 6 6-6" />
+                                    </svg>
+                                </button>
+                                <div v-if="activeStatusFilter" class="filter-menu">
+                                    <button v-for="option in statusFilterOptions" :key="option.value" type="button" :class="{ selected: selectedStatusFilter === option.value }" @click="selectStatusFilter(option.value)">{{ option.label }}</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="articles-card">
                         <table class="articles-table">
                             <thead>
                                 <tr>
                                     <th style="padding-left: 28px;">Title</th>
-                                    <th>Coverage</th>
                                     <th style="text-align: center;">Status</th>
-                                    <th style="padding-right: 28px;">Last Updated</th>
+                                    <th>Last Updated</th>
+                                    <th style="padding-right: 28px; text-align: right;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr @click="openTaskModal({ title: 'Wellness Campaign Launch', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">Wellness Campaign Launch</td>
-                                    <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
+                                <tr v-for="article in paginatedArticles" :key="article.id" @click="openArticleModal(article)" style="cursor: pointer;">
+                                    <td style="padding-left: 28px; font-weight: 700;">{{ article.title }}</td>
                                     <td style="text-align: center;">
-                                        <span class="status-pill status-draft">Draft</span>
+                                        <span class="status-pill" :class="getStatusClass(article.status)">{{ formatStatus(article.status) }}</span>
                                     </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 15 &bull; 3:10 PM</td>
+                                    <td style="color: #64748b;">{{ formatArticleDate(article.lastUpdated) }}</td>
+                                    <td style="padding-right: 28px; text-align: right;" @click.stop>
+                                        <button class="article-delete-btn" @click.stop="confirmDeleteArticle(article)" title="Delete Article">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    </td>
                                 </tr>
-                                <tr @click="openTaskModal({ title: 'Campus Wi-Fi Expansion Project', section: 'News', coverage: 'Tech & Innovation Series' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">Campus Wi-Fi Expansion Project</td>
-                                    <td style="color: #64748b;">Tech &amp; Innovation Series</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-for-review">For Review</span>
+                                <tr v-if="filteredArticles.length === 0">
+                                    <td colspan="4" style="text-align: center; padding: 40px; color: #64748b;">
+                                        No articles found
                                     </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 14 &bull; 5:05 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'The Rise of Campus Creatives', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 2' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">The Rise of Campus Creatives</td>
-                                    <td style="color: #64748b;">AY 2025 - 2026 Issue 2</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-under-revision">Under Revision</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 14 &bull; 10:45 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'New Campus Laboratory Building Opens', section: 'News', coverage: 'Foundation Day 2026' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">New Campus Laboratory Building Opens</td>
-                                    <td style="color: #64748b;">Foundation Day 2026</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-published">Published</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 12 &bull; 4:00 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'College Fair Highlights', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">College Fair Highlights</td>
-                                    <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-published">Published</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 8 &bull; 6:00 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'College Fair Attracts Hundreds', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">College Fair Attracts Hundreds</td>
-                                    <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-published">Published</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 7 &bull; 5:30 PM</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="pagination-container">
+                    <div class="pagination-container" v-if="filteredArticles.length > 0">
                         <div class="pagination-pill">
-                            <button class="page-btn">
+                            <button class="page-btn" @click="changeArticlesPage(articlesCurrentPage - 1)" :disabled="articlesCurrentPage === 1">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="m15 18-6-6 6-6" />
                                 </svg>
                                 Previous
                             </button>
-                            <a href="#" class="page-number active">1</a>
-                            <a href="#" class="page-number">2</a>
-                            <a href="#" class="page-number">3</a>
-                            <a href="#" class="page-number">4</a>
-                            <a href="#" class="page-number">5</a>
-                            <span class="page-dots">&bull;&bull;&bull;</span>
-                            <button class="page-btn">
+                            <a v-for="page in Math.min(totalArticlesPages, 5)" :key="page" href="#" class="page-number" :class="{ active: page === articlesCurrentPage }" @click.prevent="changeArticlesPage(page)">{{ page }}</a>
+                            <span v-if="totalArticlesPages > 5" class="page-dots">&bull;&bull;&bull;</span>
+                            <button class="page-btn" @click="changeArticlesPage(articlesCurrentPage + 1)" :disabled="articlesCurrentPage === totalArticlesPages">
                                 Next
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -370,199 +372,115 @@
                                 </svg>
                             </button>
                             <div class="page-results-count">
-                                Showing <strong>6</strong> results
+                                Showing <strong>{{ paginatedArticles.length }}</strong> of {{ filteredArticles.length }} articles
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- RECENT SUBMISSIONS TAB -->
+                <!-- ARTIST'S SUBMISSIONS TAB -->
                 <div v-show="activeTab === 'submissions'" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
                     <div class="page-header" style="margin-bottom: 4px;">
-                        <h1 class="page-title">Recent Submissions</h1>
+                        <h1 class="page-title">Artist's Submissions</h1>
                     </div>
                     <div class="articles-card">
                         <table class="articles-table">
                             <thead>
                                 <tr>
-                                    <th style="padding-left: 28px;">Title</th>
-                                    <th>Press Work</th>
+                                    <th style="padding-left: 28px;">Article Title</th>
+                                    <th>Artist/PJ</th>
+                                    <th>Submission Type</th>
                                     <th style="text-align: center;">Status</th>
-                                    <th style="padding-right: 28px;">Last Updated</th>
+                                    <th style="padding-right: 28px;">Submitted</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr @click="openTaskModal({ title: 'Wellness Campaign Launch', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">Wellness Campaign Launch</td>
-                                    <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-for-review">For Review</span>
+                                <tr v-for="submission in artistSubmissions" :key="submission.id" @click="openArtistSubmissionModal(submission)" style="cursor: pointer;">
+                                    <td style="padding-left: 28px; font-weight: 700;">{{ submission.articleTitle }}</td>
+                                    <td style="color: #64748b;">{{ submission.artistName }}</td>
+                                    <td>
+                                        <span class="submission-type-badge">{{ submission.submissionType }}</span>
                                     </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 15 &bull; 3:10 PM</td>
+                                    <td style="text-align: center;">
+                                        <span class="status-pill" :class="getStatusClass(submission.status)">{{ formatStatus(submission.status) }}</span>
+                                    </td>
+                                    <td style="padding-right: 28px; color: #64748b;">{{ formatArticleDate(submission.submittedAt) }}</td>
                                 </tr>
-                                <tr @click="openTaskModal({ title: 'Campus Wi-Fi Expansion Project', section: 'News', coverage: 'Tech & Innovation Series' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">Campus Wi-Fi Expansion Project</td>
-                                    <td style="color: #64748b;">Tech &amp; Innovation Series</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-for-review">For Review</span>
+                                <tr v-if="artistSubmissions.length === 0">
+                                    <td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">
+                                        No artist submissions found
                                     </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 11 &bull; 5:05 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'The Rise of Campus Creatives', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 2' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">The Rise of Campus Creatives</td>
-                                    <td style="color: #64748b;">AY 2025 - 2026 Issue 2</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-endorsed">Endorsed</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 14 &bull; 10:45 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'New Campus Laboratory Building Opens', section: 'News', coverage: 'Foundation Day 2026' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">New Campus Laboratory Building Opens</td>
-                                    <td style="color: #64748b;">Foundation Day 2026</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-published">Published</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 12 &bull; 4:00 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'College Fair Highlights', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">College Fair Highlights</td>
-                                    <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-published">Published</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 8 &bull; 6:00 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'College Fair Attracts Hundreds', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">College Fair Attracts Hundreds</td>
-                                    <td style="color: #64748b;">AY 2025 - 2026 Issue 1</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-published">Published</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 7 &bull; 5:30 PM</td>
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-                    <div class="pagination-container">
-                        <div class="pagination-pill">
-                            <button class="page-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="m15 18-6-6 6-6" />
-                                </svg>
-                                Previous
-                            </button>
-                            <a href="#" class="page-number active">1</a>
-                            <a href="#" class="page-number">2</a>
-                            <a href="#" class="page-number">3</a>
-                            <a href="#" class="page-number">4</a>
-                            <a href="#" class="page-number">5</a>
-                            <span class="page-dots">&bull;&bull;&bull;</span>
-                            <button class="page-btn">
-                                Next
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="m9 18 6-6-6-6" />
-                                </svg>
-                            </button>
-                            <div class="page-results-count">
-                                Showing <strong>6</strong> results
-                            </div>
-                        </div>
                     </div>
                 </div>
 
                 <!-- PRESS WORKS TAB -->
-                <div v-show="activeTab === 'pressWorks'" style="display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
-                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div v-show="activeTab === 'pressWorks'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+                    <div class="page-header" style="margin-bottom: 4px;">
                         <h1 class="page-title">Press Works</h1>
                     </div>
 
-                    <div class="card" style="padding: 16px 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
-                        <div class="table-wrapper">
-                            <table class="activities-table articles-table">
-                                <thead>
-                                    <tr>
-                                        <th style="padding-left: 24px;">Press Works</th>
-                                        <th>Publication Type</th>
-                                        <th>Academic Year</th>
-                                        <th>Members</th>
-                                        <th>Date Created</th>
-                                        <th style="padding-right: 24px;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                        <td style="padding-left: 24px;">Issue 1</td>
-                                        <td><span class="pub-badge pub-newsletter">Newsletter</span></td>
-                                        <td>2025-2026</td>
-                                        <td>18</td>
-                                        <td>May 15, 2025</td>
-                                        <td style="padding-right: 24px;">
-                                            <button class="action-menu-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                        <td style="padding-left: 24px;">Issue 1</td>
-                                        <td><span class="pub-badge pub-tabloid">Tabloid</span></td>
-                                        <td>2025-2026</td>
-                                        <td>24</td>
-                                        <td>May 15, 2025</td>
-                                        <td style="padding-right: 24px;">
-                                            <button class="action-menu-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                        <td style="padding-left: 24px;">Issue 1</td>
-                                        <td><span class="pub-badge pub-magazine">Magazine</span></td>
-                                        <td>2025-2026</td>
-                                        <td>14</td>
-                                        <td>May 15, 2025</td>
-                                        <td style="padding-right: 24px;">
-                                            <button class="action-menu-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                        <td style="padding-left: 24px; border-bottom: none;">Issue 1</td>
-                                        <td style="border-bottom: none;"><span class="pub-badge pub-litfolio">Litfolio</span></td>
-                                        <td style="border-bottom: none;">2025-2026</td>
-                                        <td style="border-bottom: none;">12</td>
-                                        <td style="border-bottom: none;">May 15, 2025</td>
-                                        <td style="padding-right: 24px; border-bottom: none;">
-                                            <button class="action-menu-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <!-- Academic Years Folders -->
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div
+                            v-for="yearGroup in staffAcademicYears"
+                            :key="yearGroup.academic_year"
+                            style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;"
+                        >
+                            <!-- Folder Header (Expandable) -->
+                            <div
+                                class="folder-header-btn"
+                                @click="toggleStaffYear(yearGroup.academic_year)"
+                                style="padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; user-select: none;"
+                            >
+                                <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                <span class="folder-title" style="font-weight: 700; flex: 1; color: #0f172a;">{{ yearGroup.academic_year }}</span>
+                                <span style="color: #64748b; font-size: 13px; font-weight: 600;">{{ (yearGroup.monitoring_sheets || []).length }} Monitoring Sheet{{ (yearGroup.monitoring_sheets || []).length !== 1 ? 's' : '' }}</span>
+                                <svg
+                                    class="chevron-icon"
+                                    :style="{ transform: staffExpandedYears[yearGroup.academic_year] ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }"
+                                    xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                >
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+
+                            <!-- Folder Content (Monitoring Sheets) -->
+                            <div v-show="staffExpandedYears[yearGroup.academic_year]" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 8px;">
+                                <div
+                                    v-for="sheet in yearGroup.monitoring_sheets"
+                                    :key="sheet.id"
+                                    class="monitoring-sheet-row"
+                                    @click="openMonitoringSheet(sheet)"
+                                    style="padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;"
+                                >
+                                    <span :class="`pub-badge pub-${sheet.publication_type.toLowerCase()}`" style="padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap;">{{ sheet.publication_type }}</span>
+                                    <span style="flex: 1; font-weight: 600; color: #0f172a;">{{ sheet.title }}</span>
+                                    <span style="color: #94a3b8; font-size: 13px;">{{ formatDate(sheet.created_at) }}</span>
+                                    <button
+                                        class="action-menu-btn"
+                                        type="button"
+                                        @click.stop="openMonitoringSheet(sheet)"
+                                        aria-label="Open monitoring sheet"
+                                        style="padding: 4px 8px; cursor: pointer; background: none; border: none; color: #64748b;"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                    </button>
+                                </div>
+                                <div v-if="(yearGroup.monitoring_sheets || []).length === 0" style="padding: 20px; text-align: center; color: #94a3b8;">
+                                    No monitoring sheets yet
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="pagination-pill">
-                        <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
-                        </button>
-                        <div class="page-numbers" style="display: flex; gap: 8px;">
-                            <button class="page-num active" style="background: #2563eb; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
-                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
-                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
-                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
-                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
-                            <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
-                        </div>
-                        <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
-                            Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                        </button>
-                        <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
-                            Showing <b>4</b> Press Works
-                        </div>
+                    <!-- No Press Works Message -->
+                    <div v-if="staffAcademicYears.length === 0" style="padding: 40px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                        No press works available yet. New press works will appear here once they're created.
                     </div>
                 </div>
 
@@ -587,13 +505,33 @@
         @task-saved-as-draft="handleTaskSavedAsDraft"
         @view-submissions="handleViewSubmissions"
     />
+
+    <!-- Artist Submission Details & Download Modal -->
+    <ArtistSubmissionModal
+        :is-open="isArtistSubmissionModalOpen"
+        :submission-data="selectedArtistSubmission"
+        @close="isArtistSubmissionModalOpen = false"
+    />
+
+    <!-- Delete Article Confirmation Modal -->
+    <div v-if="articleToDelete" class="writer-confirm-overlay" @click.self="articleToDelete = null">
+        <div class="writer-confirm-card">
+            <h3 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#0f172a;">Delete Article?</h3>
+            <p style="margin:0 0 20px;font-size:13.5px;color:#64748b;line-height:1.5;">This will permanently delete <strong>"{{ articleToDelete.title }}"</strong>. This cannot be undone.</p>
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+                <button class="btn-cancel" @click="articleToDelete = null" :disabled="deletingArticle">Cancel</button>
+                <button class="btn-confirm-delete" @click="doDeleteArticle" :disabled="deletingArticle">{{ deletingArticle ? 'Deleting…' : 'Delete' }}</button>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
+import ArtistSubmissionModal from '../../components/ArtistSubmissionModal.vue';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
@@ -602,7 +540,9 @@ const activeTab = ref('tasks');
 const searchQuery = ref('');
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
+const isArtistSubmissionModalOpen = ref(false);
 const selectedTask = ref({});
+const selectedArtistSubmission = ref({});
 const isLoadingTasks = ref(false);
 
 // ── User Management ─────────────────────────────────────────────────────────────
@@ -697,6 +637,21 @@ const parseNotesField = (notes, key) => {
 // ── Tasks State ────────────────────────────────────────────────────────────────
 const tasks = ref([]);
 
+// ── Articles State ──────────────────────────────────────────────────────────────
+const articles = ref([]);
+const articlesCurrentPage = ref(1);
+const articlesPerPage = 8;
+const activeStatusFilter = ref(false);
+const selectedStatusFilter = ref('all');
+
+// ── Artist Submissions State ─────────────────────────────────────────────────────
+const artistSubmissions = ref([]);
+const allTasks = ref([]); // Store all tasks to find artist submissions
+
+// ── Press Works State ───────────────────────────────────────────────────────
+const staffAcademicYears = ref([]);
+const staffExpandedYears = ref({});
+
 // ── Fetch Tasks from Backend ───────────────────────────────────────────────────
 const fetchTasks = async () => {
     if (!token) return;
@@ -711,13 +666,36 @@ const fetchTasks = async () => {
         if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data)) {
-                // Only show tasks assigned specifically to this logged-in writer
-                const userTasks = user.value.id 
-                    ? data.filter(t => t.assignee_id === user.value.id)
-                    : data;
-                
+                // Store all tasks for artist submission matching
+                allTasks.value = data;
+
+                // Only show writing-type tasks assigned specifically to this logged-in writer
+                const userTasks = user.value.id
+                    ? data.filter(t => t.assignee_id === user.value.id && t.type === 'writing')
+                    : data.filter(t => t.type === 'writing');
+
                 tasks.value = userTasks.map(t => {
                     const dueTime = parseNotesField(t.notes, 'Due Time');
+                    let mediaArtist = parseNotesField(t.notes, 'Media Artist') || '';
+                    let mediaArtistRole = '';
+
+                    // Fallback: find the paired artist task by exact base title matching
+                    // (e.g. "The Mob 3 (Visuals / Graphics)" matches "The Mob 3")
+                    if (!mediaArtist) {
+                        const writerClean = (t.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
+                        const pairedTask = data.find(other => {
+                            if (other.assignee_id === user.value.id) return false;
+                            if (other.type === 'writing') return false;
+                            if (other.article_id && t.article_id && other.article_id === t.article_id) return true;
+                            const otherClean = (other.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
+                            return otherClean && writerClean && otherClean === writerClean;
+                        });
+                        if (pairedTask && pairedTask.assignee) {
+                            mediaArtist = pairedTask.assignee.name;
+                            mediaArtistRole = pairedTask.assignee.secondary_role || 'Graphic Artist / PJ';
+                        }
+                    }
+
                     return {
                         id: t.id,
                         title: t.title,
@@ -727,10 +705,12 @@ const fetchTasks = async () => {
                         deadline: formatDeadline(t.deadline, dueTime),
                         priority: t.priority || 'medium',
                         status: t.status || 'pending',
-                        articleDesc: t.description || 'Write a clear article according to editorial board guidelines.',
-                        thumbnailDesc: parseNotesField(t.notes, 'Thumbnail') || 'Create a clean thumbnail using campus-related visuals with readable title placement...',
-                        mediaArtist: parseNotesField(t.notes, 'Media Artist') || '',
-                        assignees: t.assignee ? [{ name: t.assignee.name, avatar: t.assignee.profile_picture ? `/storage/${t.assignee.profile_picture}` : (t.assignee.profile_picture_url || 'https://picsum.photos/100?random=15') }] : [],
+                        articleDesc: t.description || '',
+                        thumbnailDesc: parseNotesField(t.notes, 'Thumbnail') || '',
+                        mediaArtist: mediaArtist,
+                        mediaArtistRole: mediaArtistRole || 'Graphic Artist / PJ',
+                        notes: t.notes || '',
+                        assignees: t.assignee ? [{ name: t.assignee.name, secondary_role: t.assignee.secondary_role || '', role: t.assignee.role || 'Staff Writer', avatar: t.assignee.profile_picture ? `/storage/${t.assignee.profile_picture}` : (t.assignee.profile_picture_url || '') }] : [],
                         raw: t
                     };
                 });
@@ -741,6 +721,147 @@ const fetchTasks = async () => {
     } finally {
         isLoadingTasks.value = false;
     }
+};
+
+// ── Fetch Articles from Backend ────────────────────────────────────────────────
+const articleToDelete = ref(null);
+const deletingArticle = ref(false);
+
+const confirmDeleteArticle = (article) => {
+    articleToDelete.value = article;
+};
+
+const doDeleteArticle = async () => {
+    if (!articleToDelete.value) return;
+    deletingArticle.value = true;
+    try {
+        const res = await fetch(`/api/articles/${articleToDelete.value.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (res.ok) {
+            articleToDelete.value = null;
+            await fetchArticles();
+            await fetchTasks();
+        }
+    } catch (err) {
+        console.warn('Could not delete article:', err);
+    } finally {
+        deletingArticle.value = false;
+    }
+};
+
+const fetchArticles = async () => {
+    if (!token || !user.value?.id) return;
+    try {
+        if (!allTasks.value || !allTasks.value.length) {
+            await fetchTasks();
+        }
+        const res = await fetch(`/api/articles?author_id=${user.value.id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                // If a draft article was linked to a task that has been deleted,
+                // verify that the task still exists in the database
+                const validArticles = data.filter(a => {
+                    if (a.status === 'draft') {
+                        return allTasks.value.some(t =>
+                            (t.article_id && t.article_id === a.id) ||
+                            (t.raw?.article_id && t.raw?.article_id === a.id) ||
+                            (t.title && t.title.toLowerCase().trim() === (a.title || '').toLowerCase().trim())
+                        );
+                    }
+                    return true;
+                });
+
+                articles.value = validArticles.map(a => {
+                    return {
+                        id: a.id,
+                        title: a.title,
+                        status: a.status,
+                        section: a.section?.name || 'News',
+                        type: a.type || 'article',
+                        lastUpdated: a.updated_at || a.created_at,
+                        raw: a
+                    };
+                });
+            }
+        }
+    } catch (err) {
+        console.warn('Could not fetch backend articles:', err);
+    }
+};
+
+watch(activeTab, (tab) => {
+    if (tab === 'articles') {
+        fetchArticles();
+    } else if (tab === 'tasks') {
+        fetchTasks();
+    }
+});
+
+// ── Process Artist Submissions ───────────────────────────────────────────────────
+const processArtistSubmissions = () => {
+    const submissions = [];
+
+    // Get the writer's tasks to find related artist tasks
+    const writerTasks = allTasks.value.filter(t =>
+        t.assignee_id === user.value.id && t.type === 'writing'
+    );
+
+    writerTasks.forEach(writerTask => {
+        const writerClean = (writerTask.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
+
+        // Find related artist tasks by exact base title matching
+        const relatedArtistTasks = allTasks.value.filter(artistTask => {
+            if (artistTask.assignee_id === user.value.id) return false; // Skip writer's own tasks
+            if (artistTask.type === 'writing') return false; // Skip other writing tasks
+
+            // 1. If both tasks share article_id
+            if (artistTask.article_id && writerTask.article_id && artistTask.article_id === writerTask.article_id) {
+                return true;
+            }
+
+            // 2. Strict exact match on base title
+            const artistClean = (artistTask.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
+
+            return artistClean && writerClean && artistClean === writerClean;
+        });
+
+        relatedArtistTasks.forEach(artistTask => {
+            const thumbnail = parseNotesField(artistTask.notes, 'Thumbnail') || '';
+            const mediaUploads = parseNotesField(artistTask.notes, 'Media Uploads') || '';
+
+            // Only add if there are actual submissions
+            if (thumbnail || mediaUploads) {
+                submissions.push({
+                    id: artistTask.id,
+                    articleTitle: writerTask.title,
+                    artistName: artistTask.assignee?.name || 'Unknown Artist',
+                    artistRole: artistTask.assignee?.secondary_role || 'Artist/PJ',
+                    submissionType: thumbnail && mediaUploads ? 'Thumbnail + Media' : (thumbnail ? 'Thumbnail' : 'Media Uploads'),
+                    thumbnail: thumbnail,
+                    mediaUploads: mediaUploads,
+                    status: artistTask.status || 'pending',
+                    submittedAt: artistTask.updated_at || artistTask.created_at,
+                    raw: artistTask
+                });
+            }
+        });
+    });
+
+    // Sort by submission date (newest first)
+    submissions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+    artistSubmissions.value = submissions;
 };
 
 // ── Computed Filtered Tasks for Kanban ─────────────────────────────────────────
@@ -767,6 +888,97 @@ const submittedTasks = computed(() => {
     return filteredTasks.value.filter(t => t.status === 'submitted' || t.status === 'completed');
 });
 
+// ── Articles Pagination ─────────────────────────────────────────────────────────
+const filteredArticles = computed(() => {
+    if (selectedStatusFilter.value === 'all') {
+        return articles.value;
+    }
+    return articles.value.filter(article => article.status === selectedStatusFilter.value);
+});
+
+const paginatedArticles = computed(() => {
+    const start = (articlesCurrentPage.value - 1) * articlesPerPage;
+    const end = start + articlesPerPage;
+    return filteredArticles.value.slice(start, end);
+});
+
+const totalArticlesPages = computed(() => {
+    return Math.ceil(filteredArticles.value.length / articlesPerPage);
+});
+
+const formatArticleDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+};
+
+const changeArticlesPage = (page) => {
+    if (page >= 1 && page <= totalArticlesPages.value) {
+        articlesCurrentPage.value = page;
+    }
+};
+
+const formatStatus = (status) => {
+    const statusMap = {
+        'draft': 'Draft',
+        'submitted': 'For Review',
+        'under_review': 'Under Review',
+        'endorsed': 'Endorsed',
+        'approved': 'Approved',
+        'rejected': 'Rejected',
+        'published': 'Published'
+    };
+    return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const getStatusClass = (status) => {
+    const classMap = {
+        'draft': 'status-draft',
+        'submitted': 'status-for-review',
+        'under_review': 'status-under-revision',
+        'endorsed': 'status-endorsed',
+        'approved': 'status-approved',
+        'rejected': 'status-rejected',
+        'published': 'status-published'
+    };
+    return classMap[status] || 'status-draft';
+};
+
+// ── Status Filter ───────────────────────────────────────────────────────────────
+const statusFilterOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'submitted', label: 'For Review' },
+    { value: 'under_review', label: 'Under Review' },
+    { value: 'endorsed', label: 'Endorsed' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'published', label: 'Published' }
+];
+
+const statusFilterLabel = computed(() => {
+    const option = statusFilterOptions.find(opt => opt.value === selectedStatusFilter.value);
+    return option ? option.label : 'Status';
+});
+
+const toggleStatusFilter = () => {
+    activeStatusFilter.value = !activeStatusFilter.value;
+};
+
+const selectStatusFilter = (value) => {
+    selectedStatusFilter.value = value;
+    activeStatusFilter.value = false;
+    articlesCurrentPage.value = 1; // Reset to first page when filter changes
+};
+
+// Close dropdown when clicking outside
+const handleStatusFilterClickOutside = (event) => {
+    if (activeStatusFilter.value && !event.target.closest('.custom-filter')) {
+        activeStatusFilter.value = false;
+    }
+};
+
 // ── Modal & Action Handlers ─────────────────────────────────────────────────────
 const openTaskModal = (task = {}) => {
     selectedTask.value = {
@@ -776,8 +988,10 @@ const openTaskModal = (task = {}) => {
         deadline: task.deadline || 'No deadline',
         priority: task.priority || 'Moderate',
         articleDesc: task.articleDesc || task.description || '',
-        thumbnailDesc: task.thumbnailDesc || '',
-        mediaArtist: task.mediaArtist || ''
+        thumbnailDesc: task.thumbnailDesc || task.thumbnail || '',
+        mediaUploads: Array.isArray(task.mediaUploads) ? task.mediaUploads : (task.mediaUploads || []),
+        mediaArtist: task.mediaArtist || task.artistName || '',
+        notes: task.notes || ''
     };
     isAssignedTaskModalOpen.value = true;
 };
@@ -792,10 +1006,13 @@ const handleTaskSavedAsDraft = (draftTask) => {
     const targetId = draftTask.id || selectedTask.value.id;
     const index = tasks.value.findIndex(t => t.id === targetId || t.title === draftTask.title);
     if (index !== -1) {
+        // Update the existing task with the draft data
         tasks.value[index] = {
             ...tasks.value[index],
             ...draftTask,
-            status: 'in_progress'
+            status: 'in_progress',
+            // Preserve the formatted deadline
+            deadline: tasks.value[index].deadline
         };
     } else {
         tasks.value.unshift({
@@ -803,6 +1020,22 @@ const handleTaskSavedAsDraft = (draftTask) => {
             status: 'in_progress'
         });
     }
+
+    // Update the corresponding article's taskData
+    const articleIndex = articles.value.findIndex(a => a.title === draftTask.title);
+    if (articleIndex !== -1) {
+        articles.value[articleIndex].taskData = {
+            ...articles.value[articleIndex].taskData,
+            ...draftTask,
+            status: 'in_progress'
+        };
+    }
+
+    // Refresh articles to update task matching
+    fetchArticles();
+
+    // Don't refresh from backend - it would overwrite the local content changes
+    // The backend only stores status, not article content/media
 };
 
 const handleTaskSubmitted = (submittedTask) => {
@@ -820,19 +1053,122 @@ const handleTaskSubmitted = (submittedTask) => {
             status: 'submitted'
         });
     }
+
+    // Update the corresponding article's taskData
+    const articleIndex = articles.value.findIndex(a => a.title === submittedTask.title);
+    if (articleIndex !== -1) {
+        articles.value[articleIndex].taskData = {
+            ...articles.value[articleIndex].taskData,
+            ...submittedTask,
+            status: 'submitted'
+        };
+    }
+
+    // Refresh articles to update task matching
+    fetchArticles();
 };
 
 const handleViewSubmissions = () => {
     activeTab.value = 'tasks';
 };
 
-const openMonitoringSheet = () => {
-    window.open('/monitoring-sheet', '_blank');
+const openArticleModal = (article) => {
+    // Find the task by article_id, not by title matching
+    const relatedTask = tasks.value.find(t => t.raw?.article_id === article.id);
+
+    if (relatedTask) {
+        // Use the real task data with article status
+        openTaskModal({
+            ...relatedTask,
+            id: article.id,
+            article_id: article.id,
+            status: article.status,
+            mediaUploads: Array.isArray(article.raw?.media_files) ? article.raw.media_files : (relatedTask.mediaUploads || []),
+            raw: article.raw
+        });
+    } else {
+        // Fallback: create task-like object from article data
+        openTaskModal({
+            id: article.id,
+            article_id: article.id,
+            title: article.title,
+            section: article.section,
+            status: article.status,
+            type: article.type,
+            articleDesc: 'Article saved. Open the workspace to view and edit full content.',
+            thumbnailDesc: article.raw?.cover_image || '',
+            mediaUploads: Array.isArray(article.raw?.media_files) ? article.raw?.media_files : [],
+            deadline: 'No deadline',
+            priority: 'Moderate',
+            mediaArtist: '',
+            notes: article.raw?.editor_notes || '',
+            assignees: article.raw?.author ? [{
+                name: article.raw.author.name,
+                secondary_role: article.raw.author.secondary_role || '',
+                role: article.raw.author.role || 'Staff Writer',
+                avatar: article.raw.author.profile_picture ? `/storage/${article.raw.author.profile_picture}` : (article.raw.author.profile_picture_url || '')
+            }] : [],
+            raw: article.raw
+        });
+    }
+};
+
+const openArtistSubmissionModal = (submission) => {
+    selectedArtistSubmission.value = submission;
+    isArtistSubmissionModalOpen.value = true;
 };
 
 const onProfileUpdated = (e) => {
     if (e.detail) {
         user.value = e.detail;
+    }
+};
+
+// ── Fetch Press Works ────────────────────────────────────────────────────────
+const fetchPressWorks = async () => {
+    if (!token) return;
+    try {
+        const res = await fetch('/api/press-works', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.academic_years && Array.isArray(data.academic_years)) {
+                staffAcademicYears.value = data.academic_years;
+                // Initialize all years as collapsed
+                staffExpandedYears.value = {};
+                data.academic_years.forEach(year => {
+                    staffExpandedYears.value[year.academic_year] = false;
+                });
+            }
+        }
+    } catch (err) {
+        console.warn('Could not fetch press works:', err);
+    }
+};
+
+// ── Toggle Press Work Year ───────────────────────────────────────────────────
+const toggleStaffYear = (year) => {
+    staffExpandedYears.value[year] = !staffExpandedYears.value[year];
+};
+
+// ── Format Date ──────────────────────────────────────────────────────────────
+const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+// ── Open Monitoring Sheet ────────────────────────────────────────────────────
+const openMonitoringSheet = (sheet) => {
+    if (sheet && sheet.id) {
+        window.open(`/monitoring-sheet/${sheet.id}`, '_blank');
+    } else {
+        window.open('/monitoring-sheet', '_blank');
     }
 };
 
@@ -852,11 +1188,19 @@ onMounted(async () => {
             console.warn('Could not refresh profile:', e);
         }
     }
+
+    // Fetch tasks first, THEN fetch articles so they can be matched properly
     await fetchTasks();
+    await fetchArticles(); // Now articles can match with tasks that were just loaded
+    await fetchPressWorks(); // Fetch press works for the current user
+    processArtistSubmissions(); // Process artist submissions after tasks are loaded
+
     window.addEventListener('sparky:profile-updated', onProfileUpdated);
+    document.addEventListener('click', handleStatusFilterClickOutside);
 });
 
 onUnmounted(() => {
     window.removeEventListener('sparky:profile-updated', onProfileUpdated);
+    document.removeEventListener('click', handleStatusFilterClickOutside);
 });
 </script>

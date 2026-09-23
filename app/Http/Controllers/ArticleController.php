@@ -12,7 +12,7 @@ class ArticleController extends Controller
     /** List articles with optional filters */
     public function index(Request $request)
     {
-        $query = Article::with(['author', 'section']);
+        $query = Article::with(['author', 'section', 'tasks.assignee']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -47,6 +47,8 @@ class ArticleController extends Controller
             'type'                  => 'nullable|in:article,feature,opinion,photo_essay,illustration',
             'word_count'            => 'nullable|integer|min:0',
             'cover_image'           => 'nullable|string',
+            'media_files'           => 'nullable|array',
+            'media_files.*'         => 'nullable|string',
             'monitoring_sheet_url'  => 'nullable|url',
             'editor_notes'          => 'nullable|string',
         ]);
@@ -69,6 +71,8 @@ class ArticleController extends Controller
             'type'                  => 'nullable|in:article,feature,opinion,photo_essay,illustration',
             'word_count'            => 'nullable|integer|min:0',
             'cover_image'           => 'nullable|string',
+            'media_files'           => 'nullable|array',
+            'media_files.*'         => 'nullable|string',
             'monitoring_sheet_url'  => 'nullable|url',
             'editor_notes'          => 'nullable|string',
             'eic_notes'             => 'nullable|string',
@@ -84,6 +88,7 @@ class ArticleController extends Controller
     public function destroy(Article $article)
     {
         Activity::record(request()->user(), 'Deleted an article', $article);
+        $article->tasks()->delete();
         $article->delete();
         return response()->json(['message' => 'Article deleted successfully.']);
     }
@@ -174,6 +179,27 @@ class ArticleController extends Controller
         ]);
 
         return response()->json($article->load(['author', 'section']));
+    }
+
+    /**
+     * Upload one or more media images for an article.
+     * Accepts multipart/form-data with field "files[]".
+     * Returns an array of public storage URLs.
+     */
+    public function uploadMedia(Request $request)
+    {
+        $request->validate([
+            'files'   => 'required|array|min:1|max:3',
+            'files.*' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+        ]);
+
+        $urls = [];
+        foreach ($request->file('files') as $file) {
+            $path = $file->store('article-media', 'public');
+            $urls[] = '/storage/' . $path;
+        }
+
+        return response()->json(['urls' => $urls], 201);
     }
 
     private function notifySectionEditors(Article $article, string $title, string $message): void

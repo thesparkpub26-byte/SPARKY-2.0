@@ -1,22 +1,22 @@
 <template>
     <div class="assigned-task-modal-overlay" v-if="isOpen" @click.self="closeModal">
         <div class="assigned-task-card">
-            
+
             <!-- Header -->
             <div class="modal-hdr">
                 <h2 class="modal-blue-title">Assigned Task</h2>
-                <button class="modal-dots-btn" @click="closeModal" title="Options / Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="1.5"/>
-                        <circle cx="12" cy="5" r="1.5"/>
-                        <circle cx="12" cy="19" r="1.5"/>
+                <button class="modal-close-btn" @click="closeModal" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                 </button>
             </div>
 
+            <!-- Content -->
             <!-- Section Badge -->
             <div class="badge-container">
-                <span class="section-pill-badge">{{ typeof task.section === 'object' ? (task.section.name || 'News') : (task.section || 'News') }}</span>
+                <span class="section-pill-badge">{{ (task.section && typeof task.section === 'object') ? (task.section.name || 'News') : (task.section || 'News') }}</span>
             </div>
 
             <!-- Article Title -->
@@ -38,21 +38,24 @@
                         {{ formatPriority(task.priority) }}
                     </span>
                 </div>
-                <div class="meta-item full-width-meta" v-if="task.mediaArtist || (task.assignees && task.assignees.length > 1)">
+                <div class="meta-item full-width-meta" v-if="(writerPill && writerPill.name) || (artistPill && artistPill.name)">
                     <span class="meta-label">Collaborators / Assignees</span>
-                    <div class="collaborator-names-row">
-                        <span class="collab-name-tag" v-if="task.mediaArtist">
-                            🎨 {{ task.mediaArtist }} (Media/Artist)
-                        </span>
-                        <div class="collaborator-avatars-row" v-if="task.assignees && task.assignees.length">
-                            <img 
-                                v-for="(assignee, idx) in task.assignees" 
-                                :key="idx" 
-                                :src="assignee.avatar || 'https://picsum.photos/100?random=101'" 
-                                :alt="assignee.name || 'Collaborator'" 
-                                class="collab-avatar" 
-                                :title="assignee.name"
-                            />
+                    <div class="collab-pills-row">
+                        <!-- Writer pill -->
+                        <div class="collab-person-pill" v-if="writerPill && writerPill.name" :title="writerPill.name">
+                            <img :src="writerPill.avatar" :alt="writerPill.name" class="collab-person-avatar" />
+                            <div class="collab-person-info">
+                                <span class="collab-person-name">{{ writerPill.name }}</span>
+                                <span class="collab-person-role">{{ writerPill.role }}</span>
+                            </div>
+                        </div>
+                        <!-- Artist / PJ pill -->
+                        <div class="collab-person-pill artist" v-if="artistPill && artistPill.name" :title="artistPill.name">
+                            <img :src="artistPill.avatar" :alt="artistPill.name" class="collab-person-avatar" />
+                            <div class="collab-person-info">
+                                <span class="collab-person-name">{{ artistPill.name }}</span>
+                                <span class="collab-person-role">{{ artistPill.role }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -63,12 +66,9 @@
                 <h4 class="description-hdr">Description</h4>
                 <div class="description-card-box">
                     <p class="description-text">
-                        <strong>Article:</strong> {{ task.articleDesc || task.description || 'Write a clear update according to section guidelines.' }}
+                        {{ cleanDescription }}
                     </p>
-                    <p class="description-text" style="margin-top: 8px;" v-if="task.thumbnailDesc">
-                        <strong>Thumbnail:</strong> {{ task.thumbnailDesc }}
-                    </p>
-                    
+
                     <div class="read-full-row">
                         <button class="read-full-link" type="button" @click="isFullDescriptionModalOpen = true">Read full text</button>
                     </div>
@@ -90,7 +90,7 @@
         </div>
 
         <!-- Full Description Sub-Modal -->
-        <div class="full-desc-overlay" v-if="isFullDescriptionModalOpen" @click.self="isFullDescriptionModalOpen = false">
+        <div class="full-desc-overlay" v-if="isFullDescriptionModalOpen && task && task.id" @click.self="isFullDescriptionModalOpen = false">
             <div class="full-desc-card">
                 <div class="full-desc-hdr">
                     <h3 class="full-desc-title">Description & Guidelines</h3>
@@ -100,16 +100,7 @@
                 </div>
                 <div class="full-desc-content">
                     <div class="desc-block">
-                        <h4 class="desc-block-title">Article Assignment</h4>
-                        <p class="desc-block-text">{{ task.articleDesc || task.description || 'No detailed article description provided.' }}</p>
-                    </div>
-                    <div class="desc-block" v-if="task.thumbnailDesc">
-                        <h4 class="desc-block-title">Thumbnail & Visual Requirements</h4>
-                        <p class="desc-block-text">{{ task.thumbnailDesc }}</p>
-                    </div>
-                    <div class="desc-block" v-if="task.notes">
-                        <h4 class="desc-block-title">Assignment Notes</h4>
-                        <p class="desc-block-text">{{ task.notes }}</p>
+                        <p class="desc-block-text">{{ cleanDescription }}</p>
                     </div>
                 </div>
                 <div class="full-desc-footer">
@@ -121,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
     isOpen: {
@@ -139,32 +130,173 @@ const emit = defineEmits(['close', 'open-workspace']);
 const isFullDescriptionModalOpen = ref(false);
 const task = computed(() => props.taskData || {});
 
+// Debug logging - simplified
+console.log('Modal component mounted, task:', task.value);
+
 const closeModal = () => {
     isFullDescriptionModalOpen.value = false;
     emit('close');
 };
 
 const getPriorityClass = (priority) => {
-    const p = (priority || '').toLowerCase();
-    if (p === 'low') return 'low';
-    if (p === 'high') return 'high';
-    if (p === 'urgent') return 'urgent';
-    return 'moderate';
+    try {
+        const p = (priority || '').toLowerCase();
+        if (p === 'low') return 'low';
+        if (p === 'high') return 'high';
+        if (p === 'urgent') return 'urgent';
+        return 'moderate';
+    } catch (e) {
+        console.error('getPriorityClass error:', e, priority);
+        return 'moderate';
+    }
 };
 
 const formatPriority = (priority) => {
-    const p = (priority || '').toLowerCase();
-    if (p === 'medium') return 'Moderate';
-    if (p === 'urgent') return 'Urgent';
-    if (p === 'high') return 'High';
-    if (p === 'low') return 'Low';
-    return priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Moderate';
+    try {
+        const p = (priority || '').toLowerCase();
+        if (p === 'medium') return 'Moderate';
+        if (p === 'urgent') return 'Urgent';
+        if (p === 'high') return 'High';
+        if (p === 'low') return 'Low';
+        return priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Moderate';
+    } catch (e) {
+        console.error('formatPriority error:', e, priority);
+        return 'Moderate';
+    }
 };
 
 const handleOpenWorkspace = () => {
     isFullDescriptionModalOpen.value = false;
     emit('open-workspace', task.value);
 };
+
+const allUsers = ref([]);
+
+const fetchUsers = async () => {
+    try {
+        const token = localStorage.getItem('sparky_token');
+        const res = await fetch('/api/users', {
+            headers: token ? { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } : { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            allUsers.value = Array.isArray(data) ? data : (data.users || []);
+        }
+    } catch (e) {
+        console.warn('Could not fetch users in AssignedTaskModal:', e);
+    }
+};
+
+watch(() => props.isOpen, (newVal) => {
+    if (newVal && allUsers.value.length === 0) {
+        fetchUsers();
+    }
+}, { immediate: true });
+
+const cleanDescription = computed(() => {
+    let desc = task.value.articleDesc || task.value.description || '';
+    if (!desc || typeof desc !== 'string' || desc.trim() === '') {
+        return 'Write a clear update according to section guidelines.';
+    }
+    // If the description contains HTML tags like <div>, strip them so only plain text is shown
+    if (/<[a-z][\s\S]*>/i.test(desc)) {
+        const stripped = desc.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+        return stripped || 'Write a clear update according to section guidelines.';
+    }
+    return desc;
+});
+
+const getUserAvatar = (userObj) => {
+    if (!userObj) return '';
+    if (userObj.profile_picture) return '/storage/' + userObj.profile_picture;
+    if (userObj.profile_picture_url) return userObj.profile_picture_url;
+    if (userObj.avatar) return userObj.avatar;
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userObj.name || 'User')}&backgroundColor=ffd5dc`;
+};
+
+// Build writer pill from assignees or paired writer
+const writerPill = computed(() => {
+    let ass = props.taskData?.writer || props.taskData?.author;
+    if (!ass && props.taskData?.assignee) {
+        const role = (props.taskData.assignee.role || '').toLowerCase();
+        if (role.includes('writer') || role === 'staff_writer' || role === 'section_editor' || role === 'eic') {
+            ass = props.taskData.assignee;
+        }
+    }
+    if (!ass && props.taskData?.user) {
+        ass = props.taskData.user;
+    }
+    if (!ass && Array.isArray(props.taskData?.assignees) && props.taskData.assignees.length) {
+        const w = props.taskData.assignees.find(a => !(a.role || '').toLowerCase().includes('artist'));
+        if (w) ass = w;
+    }
+
+    if (ass) {
+        if (typeof ass === 'string') {
+            const foundUser = allUsers.value.find(u => u.name && u.name.trim().toLowerCase() === ass.trim().toLowerCase());
+            if (foundUser) {
+                return {
+                    name: foundUser.name,
+                    role: foundUser.secondary_role || foundUser.role || 'Staff Writer',
+                    avatar: getUserAvatar(foundUser)
+                };
+            }
+            return { name: ass, role: 'Staff Writer', avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(ass)}&backgroundColor=ffd5dc` };
+        }
+        if (ass.name) {
+            const foundUser = allUsers.value.find(u => u.id === ass.id || (u.name && u.name.trim().toLowerCase() === ass.name.trim().toLowerCase()));
+            const userWithPic = (ass.profile_picture || ass.profile_picture_url) ? ass : (foundUser || ass);
+            return {
+                name: ass.name,
+                role: ass.secondary_role || ass.role || 'Staff Writer',
+                avatar: getUserAvatar(userWithPic)
+            };
+        }
+    }
+    return null;
+});
+
+// Build artist pill from mediaArtist field or artist assignee
+const artistPill = computed(() => {
+    let art = props.taskData?.mediaArtist || props.taskData?.artist || props.taskData?.media_artist;
+    if (!art && props.taskData?.assignee) {
+        const role = (props.taskData.assignee.role || '').toLowerCase();
+        if (role.includes('artist') || role === 'staff_artist' || role.includes('photo') || role.includes('broadcaster')) {
+            art = props.taskData.assignee;
+        }
+    }
+    if (!art && Array.isArray(props.taskData?.assignees) && props.taskData.assignees.length) {
+        const a = props.taskData.assignees.find(item => {
+            const r = (item.role || item.secondary_role || '').toLowerCase();
+            return r.includes('artist') || r.includes('photo') || r.includes('cartoon') || r.includes('illustrat') || r.includes('video');
+        });
+        if (a) art = a;
+    }
+
+    if (art) {
+        if (typeof art === 'string') {
+            const foundUser = allUsers.value.find(u => u.name && u.name.trim().toLowerCase() === art.trim().toLowerCase());
+            if (foundUser) {
+                return {
+                    name: foundUser.name,
+                    role: foundUser.secondary_role || props.taskData?.mediaArtistRole || (foundUser.role === 'staff_artist' ? 'Staff Artist' : foundUser.role),
+                    avatar: getUserAvatar(foundUser)
+                };
+            }
+            return { name: art, role: props.taskData?.mediaArtistRole || 'Staff Artist', avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(art)}&backgroundColor=fdf4ff` };
+        }
+        if (art.name) {
+            const foundUser = allUsers.value.find(u => u.id === art.id || (u.name && u.name.trim().toLowerCase() === art.name.trim().toLowerCase()));
+            const userWithPic = (art.profile_picture || art.profile_picture_url) ? art : (foundUser || art);
+            return {
+                name: art.name,
+                role: art.secondary_role || art.role || props.taskData?.mediaArtistRole || 'Staff Artist',
+                avatar: getUserAvatar(userWithPic)
+            };
+        }
+    }
+    return null;
+});
 </script>
 
 <style scoped>
@@ -214,20 +346,24 @@ const handleOpenWorkspace = () => {
     font-family: 'Manrope', -apple-system, sans-serif;
 }
 
-.modal-dots-btn {
-    background: transparent;
+.modal-close-btn {
+    background: #f1f5f9;
     border: none;
     cursor: pointer;
-    padding: 6px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    color: #64748b;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
 }
 
-.modal-dots-btn:hover {
-    background: #f1f5f9;
+.modal-close-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
 }
 
 .badge-container {
@@ -286,18 +422,73 @@ const handleOpenWorkspace = () => {
     font-family: 'Manrope', sans-serif;
 }
 
-.collaborator-avatars-row {
+/* Collaborator Pills */
+.collab-pills-row {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 2px;
 }
 
-.collab-avatar {
-    width: 28px;
-    height: 28px;
+.collab-person-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    padding: 5px 14px 5px 5px;
+    width: fit-content;
+    max-width: 100%;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.collab-person-pill:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+
+.collab-person-pill.artist {
+    background: #fdf4ff;
+    border-color: #e9d5ff;
+}
+
+.collab-person-pill.artist:hover {
+    background: #f5e8ff;
+    border-color: #d8b4fe;
+}
+
+.collab-person-avatar {
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    border: 2px solid #ffffff;
-    margin-right: -8px;
     object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.collab-person-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.collab-person-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    font-family: 'Manrope', sans-serif;
+}
+
+.collab-person-role {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+    font-family: 'Manrope', sans-serif;
 }
 
 .priority-pill-badge {

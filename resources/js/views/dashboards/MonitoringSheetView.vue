@@ -11,7 +11,7 @@
         <div class="header-actions">
             <span class="save-status"><i></i> Auto-saving enabled</span>
             <button class="back-button" type="button" @click="goBack">Back to Press Works</button>
-            <button class="add-task-button" type="button" @click.prevent="isAddTaskModalOpen = true">
+            <button v-if="canAddTask" class="add-task-button" type="button" @click.prevent="isAddTaskModalOpen = true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -460,6 +460,21 @@ const isAddTaskModalOpen = ref(false);
 const isUploadModalOpen = ref(false);
 const selectedEntry = ref(null);
 const isSaving = ref(false);
+
+// Get current user role
+const currentUser = computed(() => {
+    try {
+        return JSON.parse(localStorage.getItem('sparky_user') || '{}');
+    } catch {
+        return {};
+    }
+});
+
+// Check if user can add tasks (Admin, EIC, Section Editor only)
+const canAddTask = computed(() => {
+    const allowedRoles = ['admin', 'eic', 'section_editor'];
+    return allowedRoles.includes(currentUser.value?.role);
+});
 const saveArticleError = ref('');
 const saveArticleSuccess = ref(false);
 const isTaskDetailModalOpen = ref(false);

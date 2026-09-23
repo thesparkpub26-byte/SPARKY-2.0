@@ -13,8 +13,18 @@ class PressWorkController extends Controller
 
     public function index()
     {
+        $user = auth()->user();
         $pressWorks = PressWork::with('monitoringSheets')->latest()->get();
-        
+
+        // For staff writers, staff artists, staff broadcasters, and section editors:
+        // Show all press works (both current and newly created ones)
+        // Since they only get access to press works that are actively created/maintained,
+        // we don't need to filter by historical academic years
+        if ($user && in_array($user->role, ['staff_writer', 'staff_artist', 'staff_broadcaster', 'section_editor'])) {
+            // All press works are accessible to active staff members
+            // (The EIC only creates new academic years when they need active staff to contribute)
+        }
+
         // Group by academic year and flatten monitoring sheets
         $grouped = $pressWorks->groupBy('academic_year')->map(function ($works, $year) {
             $monitoringSheets = $works->flatMap(function ($work) {

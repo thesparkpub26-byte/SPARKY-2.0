@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\Article;
 use App\Models\Activity;
 use App\Models\Notification;
 use Illuminate\Http\Request;
@@ -83,6 +84,7 @@ class TaskController extends Controller
             'section_id'           => 'nullable|exists:sections,id',
             'type'                 => 'nullable|in:writing,illustration,photography,layout,editing',
             'priority'             => 'nullable|in:low,medium,high,urgent',
+            'status'               => 'nullable|in:pending,in_progress,submitted,returned,completed',
             'deadline'             => 'nullable|date',
             'notes'                => 'nullable|string',
             'monitoring_sheet_url' => 'nullable|url',
@@ -99,7 +101,35 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         Activity::record(request()->user(), 'Deleted a task', $task);
+
+        $articleId = $task->article_id;
+        $title = $task->title;
+        $assigneeId = $task->assignee_id;
+
         $task->delete();
+
+        if ($articleId) {
+            $article = Article::find($articleId);
+            if ($article) {
+                $otherTasksCount = Task::where('article_id', $article->id)->count();
+                if ($otherTasksCount === 0) {
+                    $article->delete();
+                }
+            }
+        } else {
+            // Also check for draft article created with matching title and author
+            $matchingArticle = Article::where('title', $title)
+                ->where('author_id', $assigneeId)
+                ->where('status', 'draft')
+                ->first();
+            if ($matchingArticle) {
+                $otherTasksCount = Task::where('article_id', $matchingArticle->id)->count();
+                if ($otherTasksCount === 0) {
+                    $matchingArticle->delete();
+                }
+            }
+        }
+
         return response()->json(['message' => 'Task deleted successfully.']);
     }
 

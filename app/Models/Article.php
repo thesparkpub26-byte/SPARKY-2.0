@@ -26,6 +26,7 @@ class Article extends Model
         'eic_notes',
         'editor_notes',
         'cover_image',
+        'media_files',
         'monitoring_sheet_url',
     ];
 
@@ -33,9 +34,10 @@ class Article extends Model
     {
         return [
             'submitted_at' => 'datetime',
-            'endorsed_at' => 'datetime',
-            'approved_at' => 'datetime',
-            'rejected_at' => 'datetime',
+            'endorsed_at'  => 'datetime',
+            'approved_at'  => 'datetime',
+            'rejected_at'  => 'datetime',
+            'media_files'  => 'array',
         ];
     }
 

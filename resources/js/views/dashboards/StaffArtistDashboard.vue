@@ -1,5 +1,5 @@
 <template>
-<div class="dashboard-container">
+    <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
@@ -53,13 +53,13 @@
             </nav>
 
             <div class="user-profile">
-                <img src="https://picsum.photos/200?random=18" alt="Profile">
+                <img :src="user.profile_picture ? ('/storage/' + user.profile_picture) : (user.profile_picture_url || 'https://api.dicebear.com/7.x/lorelei/svg?seed=' + (user.name || 'artist') + '&backgroundColor=ffd5dc')" alt="Profile">
                 <div class="user-info">
-                    <span class="role-badge" style="background-color: #1a73e8; color: white;">Layout Artist</span>
-                    <h4>Artists' Name</h4>
-                    <p>imanartist@my.cspc.edu.ph</p>
+                    <span class="role-badge" style="background-color: #1a73e8; color: white;">{{ formatRole(user.role, user.secondary_role) }}</span>
+                    <h4>{{ user.name || 'Staff Artist' }}</h4>
+                    <p>{{ user.email || 'artist@thesparkpub.com' }}</p>
                 </div>
-                <button class="settings-btn">
+                <button class="settings-btn" type="button" aria-label="Open profile" title="View Profile" @click="router.push('/profile')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path><path d="M12 2v2"></path><path d="M12 22v-2"></path><path d="m17 4-1.5 1.5"></path><path d="M22 12h-2"></path><path d="m17 20-1.5-1.5"></path><path d="M2 12h2"></path><path d="m7 4 1.5 1.5"></path><path d="m7 20 1.5-1.5"></path></svg>
                 </button>
             </div>
@@ -93,17 +93,17 @@
                     </div>
 
                     <div class="kanban-board">
-                        <!-- Column 1: Pending (1) -->
+                        <!-- Column 1: Pending -->
                         <div class="kanban-column">
-                            <h3 class="column-header">Pending (1)</h3>
+                            <h3 class="column-header">Pending ({{ pendingTasks.length }})</h3>
                             <div class="cards-container">
-                                <div class="task-card card-moderate" @click="openTaskModal({ title: 'Enrollment Update for Second Semester', section: 'News', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 15 • 5:00 PM', priority: 'Moderate' })" style="cursor: pointer;">
+                                <div v-for="task in pendingTasks" :key="task.id" :class="['task-card', 'card-' + (task.priority || 'medium')]" @click="openTaskModal(task)" style="cursor: pointer;">
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                        Moderate
+                                        {{ formatPriorityLabel(task.priority) }}
                                     </span>
-                                    <h4 class="card-title">Enrollment Update for Second Semester</h4>
-                                    <span class="card-subtitle">AY 2025 - 2026 Issue 1</span>
+                                    <h4 class="card-title">{{ task.title }}</h4>
+                                    <span class="card-subtitle">{{ task.article?.title || task.description || task.category }}</span>
                                     <div class="card-footer">
                                         <div class="date-pill">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -112,28 +112,27 @@
                                                 <line x1="8" y1="2" x2="8" y2="6"/>
                                                 <line x1="3" y1="10" x2="21" y2="10"/>
                                             </svg>
-                                            Apr 15 &bull; 5:00 PM
+                                            {{ formatDeadline(task.deadline) }}
                                         </div>
                                         <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member1&backgroundColor=ffd5dc" alt="Assignee" class="assignee-avatar">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member2&backgroundColor=d1fae5" alt="Assignee" class="assignee-avatar">
+                                            <img :src="task.assignee?.profile_picture ? ('/storage/' + task.assignee.profile_picture) : ('https://api.dicebear.com/7.x/lorelei/svg?seed=' + (task.assignee?.name || 'artist') + '&backgroundColor=ffd5dc')" alt="Assignee" class="assignee-avatar">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Column 2: Ongoing (1) -->
+                        <!-- Column 2: Ongoing -->
                         <div class="kanban-column">
-                            <h3 class="column-header">Ongoing (1)</h3>
+                            <h3 class="column-header">Ongoing ({{ ongoingTasks.length }})</h3>
                             <div class="cards-container">
-                                <div class="task-card card-high" @click="openTaskModal({ title: 'The Rise of Campus Creatives', section: 'Feature', coverage: 'AY 2025 - 2026 Issue 1', deadline: 'Apr 14 • 10:45 PM', priority: 'High' })" style="cursor: pointer;">
+                                <div v-for="task in ongoingTasks" :key="task.id" :class="['task-card', 'card-' + (task.priority || 'medium')]" @click="openTaskModal(task)" style="cursor: pointer;">
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                        High
+                                        {{ formatPriorityLabel(task.priority) }}
                                     </span>
-                                    <h4 class="card-title">The Rise of Campus Creatives</h4>
-                                    <span class="card-subtitle">AY 2025 -2026 Issue 1</span>
+                                    <h4 class="card-title">{{ task.title }}</h4>
+                                    <span class="card-subtitle">{{ task.article?.title || task.description || task.category }}</span>
                                     <div class="card-footer">
                                         <div class="date-pill">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -142,28 +141,27 @@
                                                 <line x1="8" y1="2" x2="8" y2="6"/>
                                                 <line x1="3" y1="10" x2="21" y2="10"/>
                                             </svg>
-                                            Apr 14 &bull; 10:45 PM
+                                            {{ formatDeadline(task.deadline) }}
                                         </div>
                                         <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
+                                            <img :src="task.assignee?.profile_picture ? ('/storage/' + task.assignee.profile_picture) : ('https://api.dicebear.com/7.x/lorelei/svg?seed=' + (task.assignee?.name || 'artist') + '&backgroundColor=fed7aa')" alt="Assignee" class="assignee-avatar">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Column 3: Submitted (2) -->
+                        <!-- Column 3: Submitted -->
                         <div class="kanban-column">
-                            <h3 class="column-header">Submitted (2)</h3>
+                            <h3 class="column-header">Submitted ({{ submittedTasks.length }})</h3>
                             <div class="cards-container">
-                                <div class="task-card card-high" @click="openTaskModal({ title: 'New Campus Laboratory Building Opens', section: 'News', coverage: 'Foundation Day 2026', deadline: 'Apr 12 • 4:00 PM', priority: 'High' })" style="cursor: pointer;">
+                                <div v-for="task in submittedTasks" :key="task.id" :class="['task-card', 'card-' + (task.priority || 'medium')]" @click="openTaskModal(task)" style="cursor: pointer;">
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                        High
+                                        {{ formatPriorityLabel(task.priority) }}
                                     </span>
-                                    <h4 class="card-title">New Campus Laboratory Building Opens</h4>
-                                    <span class="card-subtitle">Foundation Day 2026</span>
+                                    <h4 class="card-title">{{ task.title }}</h4>
+                                    <span class="card-subtitle">{{ task.article?.title || task.description || task.category }}</span>
                                     <div class="card-footer">
                                         <div class="date-pill">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -172,35 +170,10 @@
                                                 <line x1="8" y1="2" x2="8" y2="6"/>
                                                 <line x1="3" y1="10" x2="21" y2="10"/>
                                             </svg>
-                                            Apr 12 &bull; 4:00 PM
+                                            {{ formatDeadline(task.deadline) }}
                                         </div>
                                         <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="task-card card-high" @click="openTaskModal({ title: 'Campus Wi-Fi Expansion Project', section: 'News', coverage: 'Tech & Innovation Series', deadline: 'Apr 14 • 5:00 PM', priority: 'High' })" style="cursor: pointer;">
-                                    <span class="priority-badge">
-                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                        High
-                                    </span>
-                                    <h4 class="card-title">Campus Wi-Fi Expansion Project</h4>
-                                    <span class="card-subtitle">Tech &amp; Innovation Series</span>
-                                    <div class="card-footer">
-                                        <div class="date-pill">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                                <line x1="3" y1="10" x2="21" y2="10"/>
-                                            </svg>
-                                            Apr 14 &bull; 5:00 PM
-                                        </div>
-                                        <div class="avatar-group">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member3&backgroundColor=fed7aa" alt="Assignee" class="assignee-avatar">
-                                            <img src="https://api.dicebear.com/7.x/lorelei/svg?seed=member4&backgroundColor=fecdd3" alt="Assignee" class="assignee-avatar">
+                                            <img :src="task.assignee?.profile_picture ? ('/storage/' + task.assignee.profile_picture) : ('https://api.dicebear.com/7.x/lorelei/svg?seed=' + (task.assignee?.name || 'artist') + '&backgroundColor=fecdd3')" alt="Assignee" class="assignee-avatar">
                                         </div>
                                     </div>
                                 </div>
@@ -213,149 +186,158 @@
                 <div v-show="activeTab === 'submissions'" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
                     <div class="page-header" style="margin-bottom: 4px;">
                         <h1 class="page-title">Recent Submissions</h1>
+                        <p style="font-size: 13px; color: #94a3b8; margin: 0;">Visual assets you have submitted to writers</p>
                     </div>
 
-                    <div class="articles-card">
+                    <!-- Filled state -->
+                    <div class="articles-card" v-if="recentSubmissions.length > 0">
                         <table class="articles-table">
                             <thead>
                                 <tr>
-                                    <th style="padding-left: 28px;">Title</th>
-                                    <th>Coverage</th>
-                                    <th style="text-align: center;">Submission Status</th>
-                                    <th style="padding-right: 28px;">Last Updated</th>
+                                    <th style="padding-left: 28px;">Task Title</th>
+                                    <th>Sent To</th>
+                                    <th>Assets</th>
+                                    <th style="text-align: center;">Status</th>
+                                    <th style="padding-right: 28px;">Submitted</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr @click="openTaskModal({ title: 'New Campus Laboratory Building Opens', section: 'News', coverage: 'Foundation Day 2026' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">New Campus Laboratory Building Opens</td>
-                                    <td style="color: #64748b;">Foundation Day 2026</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-published">Published</span>
+                                <tr
+                                    v-for="sub in paginatedSubmissions"
+                                    :key="sub.id"
+                                    @click="openTaskModal(sub.raw)"
+                                    style="cursor: pointer;"
+                                    class="clickable-row"
+                                >
+                                    <td style="padding-left: 28px;">
+                                        <div style="font-weight: 700; color: #1e293b;">{{ sub.title }}</div>
+                                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">{{ sub.section }}</div>
                                     </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 15 &bull; 3:10 PM</td>
-                                </tr>
-                                <tr @click="openTaskModal({ title: 'Campus Wi-Fi Expansion Project', section: 'News', coverage: 'Tech & Innovation Series' })" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">Campus Wi-Fi Expansion Project</td>
-                                    <td style="color: #64748b;">Tech &amp; Innovation Series</td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill status-endorsed">Endorsed</span>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <img
+                                                :src="sub.writerAvatar"
+                                                :alt="sub.writerName"
+                                                style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover;"
+                                            >
+                                            <div>
+                                                <div style="font-weight: 600; font-size: 13px; color: #334155;">{{ sub.writerName }}</div>
+                                                <div style="font-size: 11px; color: #94a3b8;">Staff Writer</div>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td style="padding-right: 28px; color: #64748b;">Apr 11 &bull; 1:10 PM</td>
+                                    <td>
+                                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                            <span v-if="sub.hasThumbnail" style="background: #eff6ff; color: #1d4ed8; border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 600;">🖼 Thumbnail</span>
+                                            <span v-if="sub.mediaCount > 0" style="background: #f0fdf4; color: #166534; border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 600;">📁 {{ sub.mediaCount }} File{{ sub.mediaCount > 1 ? 's' : '' }}</span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span :class="getSubmissionStatusClass(sub.status)">{{ getSubmissionStatusLabel(sub.status) }}</span>
+                                    </td>
+                                    <td style="padding-right: 28px; color: #64748b; font-size: 13px;">{{ sub.submittedAt }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="pagination-container">
+                    <!-- Empty state -->
+                    <div v-else style="padding: 60px 40px; text-align: center; background: #f8fafc; border-radius: 20px; border: 1px dashed #cbd5e1;">
+                        <div style="font-size: 40px; margin-bottom: 12px;">📭</div>
+                        <p style="font-weight: 700; color: #334155; margin: 0 0 4px;">No submissions yet</p>
+                        <p style="color: #94a3b8; font-size: 13px; margin: 0;">Complete a task and send your visuals to a writer to see them here.</p>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination-container" v-if="totalSubmissionsPages > 1">
                         <div class="pagination-pill">
-                            <button class="page-btn">
+                            <button class="page-btn" :disabled="submissionsCurrentPage === 1" @click="submissionsCurrentPage--">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                                 Previous
                             </button>
-                            <a href="#" class="page-number active">1</a>
-                            <a href="#" class="page-number">2</a>
-                            <a href="#" class="page-number">3</a>
-                            <a href="#" class="page-number">4</a>
-                            <a href="#" class="page-number">5</a>
-                            <span class="page-dots">&bull;&bull;&bull;</span>
+                            <a
+                                v-for="p in totalSubmissionsPages"
+                                :key="p"
+                                href="#"
+                                class="page-number"
+                                :class="{ active: p === submissionsCurrentPage }"
+                                @click.prevent="submissionsCurrentPage = p"
+                            >{{ p }}</a>
                             <div class="page-results-count">
-                                Showing <strong>2</strong> results
+                                Showing <strong>{{ paginatedSubmissions.length }}</strong> of {{ recentSubmissions.length }} results
                             </div>
                         </div>
+                    </div>
+                    <div v-if="recentSubmissions.length > 0 && totalSubmissionsPages <= 1" style="font-size: 13px; color: #94a3b8; text-align: right;">
+                        Showing {{ recentSubmissions.length }} result{{ recentSubmissions.length !== 1 ? 's' : '' }}
                     </div>
                 </div>
 
                 <!-- PRESS WORKS TAB -->
-                <div v-show="activeTab === 'pressWorks'" style="display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
-                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div v-show="activeTab === 'pressWorks'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+                    <div class="page-header" style="margin-bottom: 4px;">
                         <h1 class="page-title">Press Works</h1>
                     </div>
 
-                    <div class="card" style="padding: 16px 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
-                        <div class="table-wrapper">
-                            <table class="activities-table articles-table">
-                                <thead>
-                                    <tr>
-                                        <th style="padding-left: 24px;">Press Works</th>
-                                        <th>Publication Type</th>
-                                        <th>Academic Year</th>
-                                        <th>Members</th>
-                                        <th>Date Created</th>
-                                        <th style="padding-right: 24px;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                        <td style="padding-left: 24px;">Issue 1</td>
-                                        <td><span class="pub-badge pub-newsletter">Newsletter</span></td>
-                                        <td>2025-2026</td>
-                                        <td>18</td>
-                                        <td>May 15, 2025</td>
-                                        <td style="padding-right: 24px;">
-                                            <button class="action-menu-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                        <td style="padding-left: 24px;">Issue 1</td>
-                                        <td><span class="pub-badge pub-tabloid">Tabloid</span></td>
-                                        <td>2025-2026</td>
-                                        <td>24</td>
-                                        <td>May 15, 2025</td>
-                                        <td style="padding-right: 24px;">
-                                            <button class="action-menu-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                        <td style="padding-left: 24px;">Issue 1</td>
-                                        <td><span class="pub-badge pub-magazine">Magazine</span></td>
-                                        <td>2025-2026</td>
-                                        <td>14</td>
-                                        <td>May 15, 2025</td>
-                                        <td style="padding-right: 24px;">
-                                            <button class="action-menu-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr @click="openMonitoringSheet" style="cursor: pointer;" class="clickable-row">
-                                        <td style="padding-left: 24px; border-bottom: none;">Issue 1</td>
-                                        <td style="border-bottom: none;"><span class="pub-badge pub-litfolio">Litfolio</span></td>
-                                        <td style="border-bottom: none;">2025-2026</td>
-                                        <td style="border-bottom: none;">12</td>
-                                        <td style="border-bottom: none;">May 15, 2025</td>
-                                        <td style="padding-right: 24px; border-bottom: none;">
-                                            <button class="action-menu-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <!-- Academic Years Folders -->
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div
+                            v-for="yearGroup in staffAcademicYears"
+                            :key="yearGroup.academic_year"
+                            style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;"
+                        >
+                            <!-- Folder Header (Expandable) -->
+                            <div
+                                class="folder-header-btn"
+                                @click="toggleStaffYear(yearGroup.academic_year)"
+                                style="padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; user-select: none;"
+                            >
+                                <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                <span class="folder-title" style="font-weight: 700; flex: 1; color: #0f172a;">{{ yearGroup.academic_year }}</span>
+                                <span style="color: #64748b; font-size: 13px; font-weight: 600;">{{ (yearGroup.monitoring_sheets || []).length }} Monitoring Sheet{{ (yearGroup.monitoring_sheets || []).length !== 1 ? 's' : '' }}</span>
+                                <svg
+                                    class="chevron-icon"
+                                    :style="{ transform: staffExpandedYears[yearGroup.academic_year] ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }"
+                                    xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                >
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </div>
+
+                            <!-- Folder Content (Monitoring Sheets) -->
+                            <div v-show="staffExpandedYears[yearGroup.academic_year]" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 8px;">
+                                <div
+                                    v-for="sheet in yearGroup.monitoring_sheets"
+                                    :key="sheet.id"
+                                    class="monitoring-sheet-row"
+                                    @click="openMonitoringSheet(sheet)"
+                                    style="padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;"
+                                >
+                                    <span :class="`pub-badge pub-${(sheet.publication_type || '').toLowerCase()}`" style="padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap;">{{ sheet.publication_type }}</span>
+                                    <span style="flex: 1; font-weight: 600; color: #0f172a;">{{ sheet.title }}</span>
+                                    <span style="color: #94a3b8; font-size: 13px;">{{ formatDate(sheet.created_at) }}</span>
+                                    <button
+                                        class="action-menu-btn"
+                                        type="button"
+                                        @click.stop="openMonitoringSheet(sheet)"
+                                        aria-label="Open monitoring sheet"
+                                        style="padding: 4px 8px; cursor: pointer; background: none; border: none; color: #64748b;"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                                    </button>
+                                </div>
+                                <div v-if="(yearGroup.monitoring_sheets || []).length === 0" style="padding: 20px; text-align: center; color: #94a3b8;">
+                                    No monitoring sheets yet
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="pagination-pill">
-                        <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
-                        </button>
-                        <div class="page-numbers" style="display: flex; gap: 8px;">
-                            <button class="page-num active" style="background: #2563eb; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
-                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
-                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
-                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
-                            <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
-                            <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
-                        </div>
-                        <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
-                            Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                        </button>
-                        <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
-                            Showing <b>4</b> Press Works
-                        </div>
+                    <!-- No Press Works Message -->
+                    <div v-if="staffAcademicYears.length === 0" style="padding: 40px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                        No press works available yet. New press works will appear here once they're created.
                     </div>
                 </div>
 
@@ -363,56 +345,385 @@
         </main>
     </div>
 
-    <!-- Assigned Task Quick Modal -->
-    <AssignedTaskModal 
-        :is-open="isAssignedTaskModalOpen" 
+    <!-- Assigned Task Modal -->
+    <AssignedTaskModal
+        :is-open="isAssignedTaskModalOpen"
         :task-data="selectedTask"
-        @close="isAssignedTaskModalOpen = false" 
-        @open-workspace="handleOpenWorkspace" 
+        @close="isAssignedTaskModalOpen = false"
+        @open-workspace="handleOpenWorkspace"
     />
 
-    <!-- Full Assignment Workspace Modal -->
-    <AssignmentWorkspaceModal 
-        :is-open="isWorkspaceModalOpen" 
+    <!-- Artist Visuals & Media Workspace Modal -->
+    <ArtistWorkspaceModal
+        :is-open="isWorkspaceModalOpen"
         :task-data="selectedTask"
-        @close="isWorkspaceModalOpen = false" 
+        @close="isWorkspaceModalOpen = false"
+        @task-submitted="handleTaskSubmitted"
+        @task-saved-as-draft="handleTaskSavedAsDraft"
     />
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
-import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
+import ArtistWorkspaceModal from '../../components/ArtistWorkspaceModal.vue';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
+// Utilities
+const formatRole = (role, secondaryRole) => {
+    if (secondaryRole) return secondaryRole;
+    const roles = { admin: 'Administrator', eic: 'EIC', section_editor: 'Section Editor', staff_writer: 'Staff Writer', staff_artist: 'Staff Artist', staff_broadcaster: 'Staff Broadcaster' };
+    return roles[role] || role;
+};
+
+const parseNotesField = (notes, key) => {
+    if (!notes || typeof notes !== 'string') return '';
+    const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
+    return match ? match[1].trim() : '';
+};
+
+const formatDeadline = (dateStr, dueTimeStr) => {
+    if (!dateStr) return 'No deadline';
+    if (typeof dateStr === 'string' && dateStr.includes('•')) return dateStr;
+
+    // Parse the date part cleanly without timezone shifting
+    let datePart = '';
+    const cleanDate = String(dateStr).split('T')[0].split(' ')[0];
+    const parts = cleanDate.split('-');
+    if (parts.length === 3) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const m = months[parseInt(parts[1], 10) - 1] || '';
+        const day = parseInt(parts[2], 10);
+        datePart = `${m} ${day}`;
+    } else {
+        const d = new Date(dateStr);
+        datePart = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : dateStr;
+    }
+
+    let timePart = '';
+    if (dueTimeStr) {
+        if (dueTimeStr.includes('AM') || dueTimeStr.includes('PM')) {
+            timePart = dueTimeStr;
+        } else if (dueTimeStr.includes(':')) {
+            const timeSegments = dueTimeStr.split(':').map(Number);
+            const h = timeSegments[0];
+            const m = timeSegments[1];
+            const period = h >= 12 ? 'PM' : 'AM';
+            const displayH = h % 12 || 12;
+            const displayM = m < 10 ? `0${m}` : m;
+            timePart = `${displayH}:${displayM} ${period}`;
+        }
+    } else if (typeof dateStr === 'string' && dateStr.includes(':') && (dateStr.includes('T') || dateStr.includes(' '))) {
+        const timeObj = new Date(dateStr);
+        if (!isNaN(timeObj.getTime())) {
+            const h = timeObj.getHours();
+            const m = timeObj.getMinutes();
+            if (h !== 0 || m !== 0) {
+                timePart = timeObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            }
+        }
+    }
+
+    return timePart ? `${datePart} • ${timePart}` : datePart;
+};
+
+const formatPriorityLabel = (priority) => {
+    const labels = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent', critical: 'Critical' };
+    return labels[(priority || '').toLowerCase()] || priority || 'Medium';
+};
+
+const getPriorityClass = (priority) => {
+    const classes = { low: 'priority-low', medium: 'priority-medium', high: 'priority-high', urgent: 'priority-critical', critical: 'priority-critical' };
+    return classes[(priority || '').toLowerCase()] || 'priority-medium';
+};
+
+const formatDate = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+// Router
 const router = useRouter();
+
+// State
+const user = ref({});
+const token = ref('');
+const tasks = ref([]);
+const allTasks = ref([]);
 const activeTab = ref('tasks');
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
 const selectedTask = ref({});
 
+// ── Press Works State ─────────────────────────────────────────────────────────
+const staffAcademicYears = ref([]);
+const staffExpandedYears = ref({});
+
+// Computed properties
+const pendingTasks = computed(() => tasks.value.filter(t => t.status === 'pending'));
+const ongoingTasks = computed(() => tasks.value.filter(t => t.status === 'ongoing' || t.status === 'in_progress' || t.status === 'returned'));
+const submittedTasks = computed(() => tasks.value.filter(t => t.status === 'submitted' || t.status === 'completed'));
+
+// ── Recent Submissions (for submissions tab) ─────────────────────────────────
+const submissionsPerPage = 8;
+const submissionsCurrentPage = ref(1);
+
+const recentSubmissions = computed(() => {
+    return tasks.value
+        .filter(t => t.status === 'submitted' || t.status === 'completed')
+        .map(t => {
+            const thumbnail = parseNotesField(t.notes, 'Thumbnail') || '';
+            const mediaRaw = parseNotesField(t.notes, 'Media Uploads') || '';
+            const mediaCount = mediaRaw ? mediaRaw.split(',').filter(Boolean).length : 0;
+            const writer = t.writer || null;
+            const writerName = writer?.name || 'Staff Writer';
+            const writerAvatar = writer?.profile_picture
+                ? `/storage/${writer.profile_picture}`
+                : `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(writerName)}&backgroundColor=d1fae5`;
+            return {
+                id: t.id,
+                title: t.title || 'Untitled Task',
+                section: t.section?.name || (typeof t.section === 'string' ? t.section : '') || 'News',
+                status: t.status,
+                hasThumbnail: !!thumbnail,
+                mediaCount,
+                writerName,
+                writerAvatar,
+                submittedAt: formatSubmittedDate(t.updated_at || t.created_at),
+                raw: t
+            };
+        })
+        .sort((a, b) => new Date(b.raw.updated_at || b.raw.created_at) - new Date(a.raw.updated_at || a.raw.created_at));
+});
+
+const paginatedSubmissions = computed(() => {
+    const start = (submissionsCurrentPage.value - 1) * submissionsPerPage;
+    return recentSubmissions.value.slice(start, start + submissionsPerPage);
+});
+
+const totalSubmissionsPages = computed(() =>
+    Math.ceil(recentSubmissions.value.length / submissionsPerPage)
+);
+
+const formatSubmittedDate = (dateStr) => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        + ' • '
+        + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+};
+
+const getSubmissionStatusLabel = (status) => {
+    const map = { submitted: 'Submitted', completed: 'Reviewed', in_progress: 'In Progress', pending: 'Pending' };
+    return map[status] || status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const getSubmissionStatusClass = (status) => {
+    const map = {
+        submitted: 'status-pill status-for-review',
+        completed: 'status-pill status-approved',
+        in_progress: 'status-pill status-under-revision',
+        pending: 'status-pill status-draft'
+    };
+    return map[status] || 'status-pill status-draft';
+};
+
+// Fetch user data
+const fetchUser = async () => {
+    try {
+        const response = await fetch('/api/me', {
+            headers: { 'Authorization': `Bearer ${token.value}` }
+        });
+        if (response.ok) {
+            user.value = await response.json();
+        }
+    } catch (e) {
+        console.error('Failed to fetch user:', e);
+    }
+};
+
+// Fetch tasks
+const fetchTasks = async () => {
+    try {
+        const response = await fetch('/api/tasks', {
+            headers: { 'Authorization': `Bearer ${token.value}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            const allTasksList = Array.isArray(data) ? data : (data.tasks || []);
+            allTasks.value = allTasksList;
+
+            tasks.value = allTasksList
+                .filter(t => t.assignee_id === user.value.id)
+                .map(t => {
+                    // Find paired writer task by matching title prefix or article_id
+                    let pairedWriter = null;
+                    if (t.article_id) {
+                        const wt = allTasksList.find(other => other.article_id === t.article_id && other.type === 'writing');
+                        if (wt && wt.assignee) pairedWriter = wt.assignee;
+                    }
+                    if (!pairedWriter) {
+                        const cleanTitle = (t.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
+                        const wt = allTasksList.find(other => {
+                            if (other.assignee_id === user.value.id) return false;
+                            if (other.type !== 'writing') return false;
+                            const otherClean = (other.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
+                            return otherClean && cleanTitle && otherClean === cleanTitle;
+                        });
+                        if (wt && wt.assignee) pairedWriter = wt.assignee;
+                    }
+
+                    return {
+                        ...t,
+                        writer: pairedWriter || { name: 'Staff Writer', role: 'Staff Writer' }
+                    };
+                })
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        }
+    } catch (e) {
+        console.error('Failed to fetch tasks:', e);
+    }
+};
+
+// Open task modal
 const openTaskModal = (task = {}) => {
+    console.log('Opening task modal with task:', task);
+    const dueTime = parseNotesField(task.notes, 'Due Time');
+    const sectionName = task.section?.name || (typeof task.section === 'string' ? task.section : parseNotesField(task.notes, 'Section')) || 'News';
+    const formattedDeadline = formatDeadline(task.deadline, dueTime);
+
     selectedTask.value = {
-        title: task.title || 'Enrollment Update for Second Semester',
-        section: task.section || task.category || 'News',
-        coverage: task.coverage || 'AY 2025 - 2026 Issue 1',
-        deadline: task.deadline || 'Apr 16 • 5:00 PM',
-        priority: task.priority || 'Moderate',
-        articleDesc: task.articleDesc || 'Write a clear update about second semester enrollment, including dates, procedures, and registrar announcements.',
-        thumbnailDesc: task.thumbnailDesc || 'Create a clean thumbnail using campus-related visuals with readable title placement...'
+        ...task,
+        title: task.title || 'Untitled Task',
+        section: sectionName,
+        coverage: parseNotesField(task.notes, 'Coverage') || '',
+        dueTime: dueTime,
+        deadline: formattedDeadline,
+        priority: task.priority || 'medium',
+        status: task.status || 'pending',
+        articleDesc: task.description || task.articleDesc || '',
+        thumbnailDesc: parseNotesField(task.notes, 'Thumbnail') || task.thumbnailDesc || '',
+        mediaUploads: Array.isArray(task.mediaUploads) ? task.mediaUploads : (task.mediaUploads || []),
+        notes: task.notes || '',
+        assignee: task.assignee || user.value,
+        writer: task.writer || null,
+        raw: task
     };
     isAssignedTaskModalOpen.value = true;
 };
 
+// Handle workspace opening
 const handleOpenWorkspace = (taskData) => {
     isAssignedTaskModalOpen.value = false;
     selectedTask.value = taskData || selectedTask.value;
     isWorkspaceModalOpen.value = true;
 };
 
-const openMonitoringSheet = () => {
-    window.open('/monitoring-sheet', '_blank');
+const handleTaskSavedAsDraft = (draftTask) => {
+    const targetId = draftTask.id || selectedTask.value.id;
+    const index = tasks.value.findIndex(t => t.id === targetId || t.title === draftTask.title);
+    if (index !== -1) {
+        tasks.value[index] = {
+            ...tasks.value[index],
+            ...draftTask,
+            status: 'in_progress',
+            deadline: tasks.value[index].deadline
+        };
+    }
+    fetchTasks();
 };
+
+const handleTaskSubmitted = (submittedTask) => {
+    const targetId = submittedTask.id || selectedTask.value.id;
+    const index = tasks.value.findIndex(t => t.id === targetId || t.title === submittedTask.title);
+    if (index !== -1) {
+        tasks.value[index] = {
+            ...tasks.value[index],
+            ...submittedTask,
+            status: 'submitted'
+        };
+    }
+    fetchTasks();
+};
+
+// Open monitoring sheet
+const openMonitoringSheet = (sheet) => {
+    if (sheet && sheet.id) {
+        window.open(`/monitoring-sheet/${sheet.id}`, '_blank');
+    }
+};
+
+// ── Fetch Press Works ─────────────────────────────────────────────────────────
+const fetchPressWorks = async () => {
+    if (!token.value) return;
+    try {
+        const res = await fetch('/api/press-works', {
+            headers: {
+                'Authorization': `Bearer ${token.value}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.academic_years && Array.isArray(data.academic_years)) {
+                staffAcademicYears.value = data.academic_years;
+                staffExpandedYears.value = {};
+                data.academic_years.forEach(year => {
+                    staffExpandedYears.value[year.academic_year] = false;
+                });
+            }
+        }
+    } catch (err) {
+        console.warn('Could not fetch press works:', err);
+    }
+};
+
+// ── Toggle Press Work Year ────────────────────────────────────────────────────
+const toggleStaffYear = (year) => {
+    staffExpandedYears.value[year] = !staffExpandedYears.value[year];
+};
+
+// Sign out
+const handleSignOut = async () => {
+    await performSignOut(router);
+};
+
+// Lifecycle hooks
+onMounted(() => {
+    const userData = JSON.parse(localStorage.getItem('sparky_user') || '{}');
+    const userToken = localStorage.getItem('sparky_token');
+
+    if (userData && userData.id) {
+        user.value = userData;
+    }
+    if (userToken) {
+        token.value = userToken;
+    }
+
+    if (user.value.id && token.value) {
+        fetchUser();
+        fetchTasks();
+        fetchPressWorks();
+    }
+
+    // Refresh user on storage change
+    const handleStorageChange = (e) => {
+        if (e.key === 'sparky_user') {
+            user.value = JSON.parse(e.newValue || '{}');
+        }
+        if (e.key === 'sparky_token') {
+            token.value = e.newValue;
+        }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    onUnmounted(() => {
+        window.removeEventListener('storage', handleStorageChange);
+    });
+});
 </script>

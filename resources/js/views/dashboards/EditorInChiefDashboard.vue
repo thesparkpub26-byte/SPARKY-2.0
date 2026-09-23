@@ -29,6 +29,24 @@
                         Press Works
                     </div>
                 </a>
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'my-articles' }" @click.prevent="activeTab = 'my-articles'">
+                    <div class="nav-item-left">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                        My Articles
+                    </div>
+                </a>
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'assignments' }" @click.prevent="activeTab = 'assignments'">
+                    <div class="nav-item-left">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Assignments
+                    </div>
+                </a>
                 <a href="#" class="nav-item" :class="{ active: activeTab === 'articles' }" @click.prevent="activeTab = 'articles'">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -295,6 +313,187 @@
                             </div>
                         </div>
                         <div v-else class="empty-activity" style="text-align: center; padding: 40px;">No matching academic years found.</div>
+                    </div>
+                </div>
+
+                <!-- MY ARTICLES TAB -->
+                <div v-show="activeTab === 'my-articles'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <h1 class="page-title" style="margin-bottom: 0;">My Articles</h1>
+                        <div class="filter-pills-group eic-endorsement-filters">
+                            <div class="eic-custom-filter" @click.stop>
+                                <button type="button" class="eic-filter-trigger" @click="eicMyArticlesStatusDropdownOpen = !eicMyArticlesStatusDropdownOpen">
+                                    <span>{{ eicMyArticlesStatusFilter ? (myArticlesStatusLabelMap[eicMyArticlesStatusFilter] || 'Status') : 'Status' }}</span>
+                                    <svg :class="{ rotated: eicMyArticlesStatusDropdownOpen }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m6 9 6 6 6-6"/>
+                                    </svg>
+                                </button>
+                                <div v-if="eicMyArticlesStatusDropdownOpen" class="eic-filter-menu">
+                                    <button
+                                        v-for="opt in myArticlesStatusOptions"
+                                        :key="opt.value"
+                                        type="button"
+                                        :class="{ selected: eicMyArticlesStatusFilter === opt.value }"
+                                        @click="eicMyArticlesStatusFilter = opt.value; eicMyArticlesStatusDropdownOpen = false; eicMyArticlesPage = 1"
+                                    >
+                                        {{ opt.label }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="articles-card">
+                        <table class="articles-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding-left: 28px;">Title</th>
+                                    <th>Writer</th>
+                                    <th>Status</th>
+                                    <th style="padding-right: 28px; text-align: right;">Last Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-if="eicMyArticlesLoading">
+                                    <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">Loading articles…</td>
+                                </tr>
+                                <tr v-else-if="paginatedEicMyArticles.length === 0">
+                                    <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">No articles found.</td>
+                                </tr>
+                                <template v-else>
+                                    <tr
+                                        v-for="(article, idx) in paginatedEicMyArticles"
+                                        :key="article.id"
+                                        @click="openArticleOrTaskModal(article)"
+                                        style="cursor: pointer;"
+                                    >
+                                        <td :style="idx === paginatedEicMyArticles.length - 1 ? 'padding-left: 28px; border-bottom: none; font-weight: 600;' : 'padding-left: 28px; font-weight: 600;'">
+                                            {{ article.title }}
+                                        </td>
+                                        <td :style="idx === paginatedEicMyArticles.length - 1 ? 'border-bottom: none;' : ''">
+                                            {{ article.author ? (article.author.name ? article.author.name.split(' ').slice(0, 2).join(' ') : article.author) : (eicUser.name || '—') }}
+                                        </td>
+                                        <td :style="idx === paginatedEicMyArticles.length - 1 ? 'border-bottom: none;' : ''">
+                                            <span :class="'status-badge ' + myArticlesStatusBadgeClass(article.status)">{{ myArticlesStatusLabel(article.status) }}</span>
+                                        </td>
+                                        <td :style="idx === paginatedEicMyArticles.length - 1 ? 'padding-right: 28px; text-align: right; border-bottom: none; color: #64748b; font-weight: 500;' : 'padding-right: 28px; text-align: right; color: #64748b; font-weight: 500;'">
+                                            {{ formatDate(article.updated_at || article.created_at) }}
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-container" v-if="filteredEicMyArticles.length > 0">
+                        <div class="pagination-pill">
+                            <button class="page-btn" :disabled="eicMyArticlesPage <= 1" @click="eicMyArticlesPage--">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                                Previous
+                            </button>
+                            <button
+                                v-for="page in eicMyArticlesPageCount"
+                                :key="page"
+                                class="page-number"
+                                :class="{ active: eicMyArticlesPage === page }"
+                                @click="eicMyArticlesPage = page"
+                            >{{ page }}</button>
+                            <button class="page-btn" :disabled="eicMyArticlesPage >= eicMyArticlesPageCount" @click="eicMyArticlesPage++">
+                                Next
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            </button>
+                            <div class="page-results-count">
+                                Showing <strong>{{ paginatedEicMyArticles.length }}</strong> of {{ filteredEicMyArticles.length }} articles
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ASSIGNMENTS TAB -->
+                <div v-show="activeTab === 'assignments'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+                    <div class="page-header" style="margin-bottom: 4px;">
+                        <h1 class="page-title" style="margin-bottom: 0;">Assignments</h1>
+                    </div>
+
+                    <div class="articles-card">
+                        <table class="articles-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding-left: 28px; width: 35%;">Title</th>
+                                    <th style="width: 20%;">Assigned To</th>
+                                    <th style="width: 15%;">Deadline</th>
+                                    <th style="width: 10%;">Priority</th>
+                                    <th style="width: 10%; text-align: center;">Status</th>
+                                    <th style="padding-right: 28px; width: 10%; text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-if="eicAssignedLoading">
+                                    <td colspan="6" class="empty-activity">Loading assignments…</td>
+                                </tr>
+                                <tr v-else-if="eicAssignedPaged.length === 0">
+                                    <td colspan="6" class="empty-activity">No assignments found. Use "+ Assign Task" above to create one.</td>
+                                </tr>
+                                <template v-else>
+                                    <tr v-for="task in eicAssignedPaged" :key="task.id">
+                                        <td style="padding-left: 28px; font-weight: 700;">{{ task.title }}</td>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <img
+                                                    :src="task.assigneeAvatar || avatarFallback(task.assigneeName)"
+                                                    :alt="task.assigneeName"
+                                                    style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #e2e8f0;"
+                                                />
+                                                <span style="font-weight: 600;">{{ task.assigneeName || '—' }}</span>
+                                            </div>
+                                        </td>
+                                        <td style="color: #64748b;">{{ task.deadlineLabel }}</td>
+                                        <td>
+                                            <span class="priority-pill" :class="'priority-' + (task.priority === 'medium' ? 'moderate' : (task.priority || 'moderate'))">
+                                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                                </svg>
+                                                {{ formatPriorityLabel(task.priority) }}
+                                            </span>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="status-pill" :class="assignedStatusClass(task.status)">{{ assignedStatusLabel(task.status) }}</span>
+                                        </td>
+                                        <td style="padding-right: 28px; text-align: center;">
+                                            <div class="action-icons" style="display: flex; gap: 8px; justify-content: center;">
+                                                <button class="action-btn edit" type="button" aria-label="Edit assignment" @click.stop="openEditTask(task)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
+                                                </button>
+                                                <button class="action-btn delete" type="button" aria-label="Delete assignment" @click.stop="confirmDeleteTask(task)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 1 2 1 2v2"></path></svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-container" v-if="eicAssignedFiltered.length > 0">
+                        <div class="pagination-pill">
+                            <button class="page-btn" :disabled="eicAssignedPage <= 1" @click="eicAssignedPage--">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                                Previous
+                            </button>
+                            <button
+                                v-for="page in eicAssignedTotalPages"
+                                :key="page"
+                                class="page-number"
+                                :class="{ active: eicAssignedPage === page }"
+                                @click="eicAssignedPage = page"
+                            >{{ page }}</button>
+                            <button class="page-btn" :disabled="eicAssignedPage >= eicAssignedTotalPages" @click="eicAssignedPage++">
+                                Next
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            </button>
+                            <div class="page-results-count">
+                                Showing <strong>{{ eicAssignedPaged.length }}</strong> of {{ eicAssignedFiltered.length }} assignments
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -728,7 +927,16 @@
     <AssignTaskModal 
         :is-open="isAssignTaskModalOpen" 
         @close="isAssignTaskModalOpen = false" 
-        @view-assignments="activeTab = 'pressWorks'" 
+        @task-added="loadEicMyArticles(); loadEicOverview(); loadEicArticles(); loadEicAssigned();"
+        @view-assignments="activeTab = 'assignments'" 
+    />
+
+    <!-- Edit Task Modal -->
+    <EditTaskModal
+        :is-open="isEditTaskModalOpen"
+        :task="editTaskTarget"
+        @close="isEditTaskModalOpen = false; editTaskTarget = null;"
+        @task-updated="onTaskUpdated"
     />
 
     <!-- Assigned Task Quick Modal -->
@@ -743,7 +951,9 @@
     <AssignmentWorkspaceModal 
         :is-open="isWorkspaceModalOpen" 
         :task-data="selectedTask"
-        @close="isWorkspaceModalOpen = false" 
+        @close="isWorkspaceModalOpen = false; loadEicMyArticles();" 
+        @task-submitted="loadEicMyArticles(); loadEicOverview(); loadEicArticles();"
+        @task-saved-as-draft="loadEicMyArticles(); loadEicOverview(); loadEicArticles();"
     />
 
     <!-- Article Details Modal (EIC Endorsements Review) -->
@@ -866,6 +1076,23 @@
             <div class="modal-footer">
                 <button class="btn-back" type="button" @click="closeDeleteUser">Cancel</button>
                 <button class="btn-next btn-danger" type="button" :disabled="deleteUserSaving" @click="deleteSelectedUser">{{ deleteUserSaving ? 'Deleting...' : 'Delete Contributor' }}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Assignment Modal -->
+    <div v-if="deleteTaskTarget" class="new-user-modal-overlay" @click.self="deleteTaskTarget = null">
+        <div class="new-user-modal new-user-confirm-modal" role="dialog" aria-modal="true">
+            <div class="new-user-modal-header">
+                <h2>Delete Assignment?</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="deleteTaskTarget = null">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <p>Are you sure you want to delete "<strong>{{ deleteTaskTarget?.title }}</strong>"? This will permanently remove the assignment and any associated draft. This action cannot be undone.</p>
+            <div class="modal-footer">
+                <button class="btn-back" type="button" @click="deleteTaskTarget = null">Cancel</button>
+                <button class="btn-next btn-danger" type="button" :disabled="deletingTask" @click="doDeleteTask">{{ deletingTask ? 'Deleting...' : 'Delete Assignment' }}</button>
             </div>
         </div>
     </div>
@@ -1004,6 +1231,7 @@ import AssignTaskModal from '../../components/AssignTaskModal.vue';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
 import ArticleDetailsModal from '../../components/ArticleDetailsModal.vue';
+import EditTaskModal from '../../components/EditTaskModal.vue';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
@@ -1028,6 +1256,66 @@ const isAssignTaskModalOpen = ref(false);
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
 const isArticleDetailsOpen = ref(false);
+
+// ── EIC My Articles State ───────────────────────────────────────────────────
+const eicMyArticles = ref([]);
+const eicMyArticlesLoading = ref(false);
+const eicMyArticlesStatusFilter = ref('');
+const eicMyArticlesStatusDropdownOpen = ref(false);
+const eicMyArticlesPage = ref(1);
+const eicMyArticlesPerPage = 8;
+
+const myArticlesStatusOptions = [
+    { value: '', label: 'All Status' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'submitted', label: 'For Review' },
+    { value: 'under_review', label: 'Under Review' },
+    { value: 'endorsed', label: 'Endorsed' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'published', label: 'Published' },
+];
+
+const myArticlesStatusLabelMap = {
+    '': 'Status',
+    pending: 'Pending',
+    draft: 'Draft',
+    submitted: 'For Review',
+    under_review: 'Under Review',
+    endorsed: 'Endorsed',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    published: 'Published',
+};
+
+const myArticlesStatusLabel = (status) => {
+    const map = {
+        pending: 'Pending',
+        draft: 'Draft',
+        submitted: 'Submitted',
+        under_review: 'Under Review',
+        endorsed: 'Endorsed',
+        approved: 'Approved',
+        published: 'Published',
+        rejected: 'Rejected',
+    };
+    return map[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending');
+};
+
+const myArticlesStatusBadgeClass = (status) => {
+    const map = {
+        pending: 'status-draft',
+        draft: 'status-draft',
+        submitted: 'status-for-review',
+        under_review: 'status-under-revision',
+        endorsed: 'status-endorsed',
+        approved: 'status-published',
+        published: 'status-published',
+        rejected: 'status-under-revision',
+    };
+    return map[status] || 'status-draft';
+};
 
 const activeEicPublishedFilter = ref(null);
 const eicPublishedPage = ref(1);
@@ -1073,6 +1361,7 @@ const searchPlaceholder = computed(() => {
         case 'endorsements': return 'Search endorsements';
         case 'pressWorks':
         case 'press-works': return 'Search press works';
+        case 'my-articles': return 'Search my articles';
         case 'articles': return 'Search published articles';
         case 'contributors': return 'Search contributors';
         case 'archive': return 'Search archive folders';
@@ -1895,6 +2184,9 @@ watch(activeTab, () => {
     if (activeTab.value !== 'archive-year') {
         selectedArchiveFolder.value = null;
     }
+    if (activeTab.value === 'assignments') {
+        loadEicAssigned();
+    }
 });
 
 watch([eicContributorRole, eicContributorSection, eicContributorStatus, searchQuery], () => {
@@ -1910,6 +2202,7 @@ const closeAllEicFilters = () => {
     activeEicPublishedFilter.value = null;
     activeEicContributorFilter.value = null;
     activeAnalyticsDropdown.value = false;
+    eicMyArticlesStatusDropdownOpen.value = false;
 };
 
 const loadEicOverview = async () => {
@@ -2009,6 +2302,8 @@ const loadEicAnalytics = async () => {
 onMounted(() => {
     loadEicOverview();
     loadEicArticles();
+    loadEicMyArticles();
+    loadEicAssigned();
     loadEicPressWorks();
     loadEicUsers();
     loadEicAnalytics();
@@ -2043,10 +2338,359 @@ watch(eicContributorPageCount, (pageCount) => {
 watch(searchQuery, () => {
     eicEndorsementPage.value = 1;
     eicPublishedPage.value = 1;
+    eicMyArticlesPage.value = 1;
     eicContributorPage.value = 1;
     archivePage.value = 1;
     archiveYearPage.value = 1;
 });
+
+const parseNotesField = (notes, key) => {
+    if (!notes || typeof notes !== 'string') return '';
+    const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
+    return match ? match[1].trim() : '';
+};
+
+const formatDeadline = (dateStr, dueTimeStr) => {
+    if (!dateStr) return 'No deadline';
+    if (typeof dateStr === 'string' && dateStr.includes('•')) return dateStr;
+
+    let datePart = '';
+    const cleanDate = String(dateStr).split('T')[0].split(' ')[0];
+    const parts = cleanDate.split('-');
+    if (parts.length === 3) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const m = months[parseInt(parts[1], 10) - 1] || '';
+        const day = parseInt(parts[2], 10);
+        datePart = `${m} ${day}`;
+    } else {
+        const d = new Date(dateStr);
+        datePart = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : dateStr;
+    }
+
+    let timePart = '';
+    if (dueTimeStr) {
+        if (dueTimeStr.includes('AM') || dueTimeStr.includes('PM')) {
+            timePart = dueTimeStr;
+        } else if (dueTimeStr.includes(':')) {
+            const timeSegments = dueTimeStr.split(':').map(Number);
+            const h = timeSegments[0];
+            const m = timeSegments[1];
+            const period = h >= 12 ? 'PM' : 'AM';
+            const displayH = h % 12 || 12;
+            const displayM = m < 10 ? `0${m}` : m;
+            timePart = `${displayH}:${displayM} ${period}`;
+        }
+    } else if (typeof dateStr === 'string' && dateStr.includes(':') && (dateStr.includes('T') || dateStr.includes(' '))) {
+        const timeObj = new Date(dateStr);
+        if (!isNaN(timeObj.getTime())) {
+            const h = timeObj.getHours();
+            const m = timeObj.getMinutes();
+            if (h !== 0 || m !== 0) {
+                timePart = timeObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            }
+        }
+    }
+
+    return timePart ? `${datePart} • ${timePart}` : datePart;
+};
+
+const filteredEicMyArticles = computed(() => {
+    let list = eicMyArticles.value;
+    if (eicMyArticlesStatusFilter.value) {
+        list = list.filter(a => a.status === eicMyArticlesStatusFilter.value);
+    }
+    if (searchQuery.value && searchQuery.value.trim()) {
+        list = list.filter(a => matchesSearch(a.title, a.section?.name || a.section));
+    }
+    return list;
+});
+
+const eicMyArticlesPageCount = computed(() =>
+    Math.max(1, Math.ceil(filteredEicMyArticles.value.length / eicMyArticlesPerPage))
+);
+
+const paginatedEicMyArticles = computed(() => {
+    const start = (eicMyArticlesPage.value - 1) * eicMyArticlesPerPage;
+    return filteredEicMyArticles.value.slice(start, start + eicMyArticlesPerPage);
+});
+
+const loadEicMyArticles = async () => {
+    const token = localStorage.getItem('sparky_token');
+    if (!token || !eicUser.value?.id) return;
+    eicMyArticlesLoading.value = true;
+    try {
+        const [articlesRes, tasksRes] = await Promise.allSettled([
+            fetch(`/api/articles?author_id=${eicUser.value.id}`, {
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            }),
+            fetch(`/api/tasks?assignee_id=${eicUser.value.id}`, {
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            })
+        ]);
+
+        let articlesList = [];
+        let tasksList = [];
+
+        if (articlesRes.status === 'fulfilled' && articlesRes.value.ok) {
+            const data = await articlesRes.value.json();
+            articlesList = Array.isArray(data) ? data : [];
+        }
+
+        if (tasksRes.status === 'fulfilled' && tasksRes.value.ok) {
+            const data = await tasksRes.value.json();
+            tasksList = Array.isArray(data) ? data.filter(t => t.type === 'writing') : [];
+        }
+
+        const combined = articlesList.map(a => {
+            const matchedTask = tasksList.find(t => t.article_id === a.id);
+            const dueTime = matchedTask ? parseNotesField(matchedTask.notes, 'Due Time') : '';
+            return {
+                id: a.id,
+                article_id: a.id,
+                taskId: matchedTask?.id || null,
+                title: a.title,
+                author: a.author || eicUser.value,
+                section: a.section?.name || a.section || (matchedTask ? parseNotesField(matchedTask.notes, 'Section') : 'News'),
+                status: a.status || 'draft',
+                deadline: matchedTask ? formatDeadline(matchedTask.deadline, dueTime) : 'No deadline',
+                priority: matchedTask?.priority || 'medium',
+                updated_at: a.updated_at || a.created_at,
+                created_at: a.created_at,
+                isTask: false,
+                media_files: a.media_files || [],
+                cover_image: a.cover_image || '',
+                content: a.content || '',
+                // Always prefer the task description over article body (which contains HTML)
+                description: matchedTask?.description || '',
+                notes: matchedTask?.notes || a.editor_notes || '',
+                raw: a,
+                matchedTask: matchedTask || null
+            };
+        });
+
+        tasksList.forEach(t => {
+            const alreadyLinked = combined.some(item => item.article_id && item.article_id === t.article_id);
+            if (!alreadyLinked) {
+                const dueTime = parseNotesField(t.notes, 'Due Time');
+                combined.push({
+                    id: `task-${t.id}`,
+                    taskId: t.id,
+                    article_id: t.article_id || null,
+                    title: t.title,
+                    author: t.assignee || eicUser.value,
+                    section: t.section?.name || parseNotesField(t.notes, 'Section') || 'News',
+                    status: t.status === 'in_progress' ? 'draft' : (t.status || 'pending'),
+                    deadline: formatDeadline(t.deadline, dueTime),
+                    priority: t.priority || 'medium',
+                    updated_at: t.updated_at || t.created_at,
+                    created_at: t.created_at,
+                    isTask: true,
+                    media_files: [],
+                    cover_image: '',
+                    content: t.description || '',
+                    notes: t.notes || '',
+                    description: t.description || '',
+                    raw: t,
+                    matchedTask: t
+                });
+            }
+        });
+
+        combined.sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+        eicMyArticles.value = combined;
+    } catch (err) {
+        console.warn('Could not load EIC My Articles:', err);
+    } finally {
+        eicMyArticlesLoading.value = false;
+    }
+};
+
+// ── EIC Assigned Tasks State (Assignments Tab) ────────────────────────────────
+const eicAssignedTasks = ref([]);
+const eicAssignedLoading = ref(false);
+const eicAssignedPage = ref(1);
+const eicAssignedPerPage = 10;
+const isEditTaskModalOpen = ref(false);
+const editTaskTarget = ref(null);
+const deleteTaskTarget = ref(null);
+const deletingTask = ref(false);
+
+const loadEicAssigned = async () => {
+    const token = localStorage.getItem('sparky_token');
+    if (!token || !eicUser.value?.id) return;
+    eicAssignedLoading.value = true;
+    try {
+        const res = await fetch(`/api/tasks?assigned_by=${eicUser.value.id}&type=writing`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            eicAssignedTasks.value = (Array.isArray(data) ? data : []).map(t => {
+                const dueTime = parseNotesField(t.notes, 'Due Time');
+                return {
+                    id: t.id,
+                    title: t.title,
+                    assigneeName: t.assignee?.name || '—',
+                    assigneeAvatar: t.assignee?.profile_picture ? `/storage/${t.assignee.profile_picture}` : (t.assignee?.profile_picture_url || ''),
+                    deadlineLabel: formatDeadline(t.deadline, dueTime),
+                    deadline: t.deadline,
+                    priority: t.priority || 'medium',
+                    status: t.status || 'pending',
+                    description: t.description || '',
+                    raw: t
+                };
+            });
+        }
+    } catch (e) {
+        console.warn('Could not load EIC assigned tasks:', e);
+    } finally {
+        eicAssignedLoading.value = false;
+    }
+};
+
+const eicAssignedFiltered = computed(() => {
+    if (!searchQuery.value || !searchQuery.value.trim()) return eicAssignedTasks.value;
+    const q = searchQuery.value.toLowerCase().trim();
+    return eicAssignedTasks.value.filter(t =>
+        (t.title || '').toLowerCase().includes(q) ||
+        (t.assigneeName || '').toLowerCase().includes(q) ||
+        (t.priority || '').toLowerCase().includes(q) ||
+        (t.status || '').toLowerCase().includes(q)
+    );
+});
+
+const eicAssignedTotalPages = computed(() =>
+    Math.max(1, Math.ceil(eicAssignedFiltered.value.length / eicAssignedPerPage))
+);
+
+const eicAssignedPaged = computed(() => {
+    const start = (eicAssignedPage.value - 1) * eicAssignedPerPage;
+    return eicAssignedFiltered.value.slice(start, start + eicAssignedPerPage);
+});
+
+const openEditTask = (task) => {
+    editTaskTarget.value = task;
+    isEditTaskModalOpen.value = true;
+};
+
+const onTaskUpdated = () => {
+    isEditTaskModalOpen.value = false;
+    editTaskTarget.value = null;
+    loadEicAssigned();
+    loadEicOverview();
+};
+
+const confirmDeleteTask = (task) => {
+    deleteTaskTarget.value = task;
+};
+
+const doDeleteTask = async () => {
+    if (!deleteTaskTarget.value) return;
+    deletingTask.value = true;
+    try {
+        const token = localStorage.getItem('sparky_token');
+        const res = await fetch(`/api/tasks/${deleteTaskTarget.value.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (res.ok) {
+            deleteTaskTarget.value = null;
+            await loadEicAssigned();
+            loadEicOverview();
+        }
+    } catch (e) {
+        console.warn('Could not delete task:', e);
+    } finally {
+        deletingTask.value = false;
+    }
+};
+
+const formatPriorityLabel = (priority) => {
+    const map = {
+        low: 'Low',
+        medium: 'Moderate',
+        high: 'High',
+        urgent: 'Urgent'
+    };
+    return map[priority] || (priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Moderate');
+};
+
+const assignedStatusLabel = (status) => {
+    const map = {
+        pending: 'Pending',
+        in_progress: 'In Progress',
+        submitted: 'Submitted',
+        under_review: 'Under Review',
+        returned: 'Returned',
+        rejected: 'Rejected',
+        completed: 'Completed',
+        approved: 'Approved',
+        endorsed: 'Endorsed'
+    };
+    return map[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending');
+};
+const formatStatus = assignedStatusLabel;
+
+const assignedStatusClass = (status) => {
+    const map = {
+        pending: 'status-available',
+        in_progress: 'status-for-approval',
+        submitted: 'status-for-approval',
+        under_review: 'status-for-approval',
+        returned: 'status-returned',
+        rejected: 'status-returned',
+        completed: 'status-approved',
+        approved: 'status-approved',
+        endorsed: 'status-approved'
+    };
+    return map[status] || 'status-available';
+};
+const getStatusClass = assignedStatusClass;
+
+const openArticleOrTaskModal = (item) => {
+    const matchedTask = item.matchedTask || (item.isTask ? item.raw : null);
+    const notesStr = item.notes || matchedTask?.notes || '';
+    const dueTime = parseNotesField(notesStr, 'Due Time');
+    const mediaArtist = parseNotesField(notesStr, 'Media Artist');
+
+    selectedTask.value = {
+        id: item.taskId || item.id,
+        taskId: item.taskId || (item.isTask ? item.id : null),
+        article_id: item.article_id || (item.isTask ? null : item.id),
+        title: item.title || 'Untitled Task',
+        section: (item.section && typeof item.section === 'object') ? (item.section.name || 'News') : (item.section || parseNotesField(notesStr, 'Section') || 'News'),
+        coverage: parseNotesField(notesStr, 'Coverage') || '',
+        dueTime: dueTime,
+        deadline: item.deadline || formatDeadline(matchedTask?.deadline, dueTime),
+        priority: item.priority || matchedTask?.priority || 'Moderate',
+        status: item.status || 'pending',
+        // Prefer task description (set during assignment), never fall back to article body HTML
+        articleDesc: item.description || matchedTask?.description || item.raw?.description || item.raw?.tasks?.[0]?.description || 'Article saved. Open the workspace to view and edit full content.',
+        thumbnailDesc: item.cover_image || item.raw?.cover_image || parseNotesField(notesStr, 'Thumbnail') || '',
+        mediaUploads: Array.isArray(item.media_files) ? item.media_files : (item.raw?.media_files || []),
+        mediaArtist: mediaArtist || '',
+        notes: notesStr,
+        assignees: item.author ? [{
+            name: item.author.name || eicUser.value.name,
+            secondary_role: item.author.secondary_role || 'Editor-in-Chief',
+            role: item.author.role || 'eic',
+            avatar: item.author.profile_picture ? `/storage/${item.author.profile_picture}` : (item.author.profile_picture_url || '')
+        }] : [{
+            name: eicUser.value.name,
+            secondary_role: 'Editor-in-Chief',
+            role: 'eic',
+            avatar: eicUser.value.profile_picture ? `/storage/${eicUser.value.profile_picture}` : (eicUser.value.profile_picture_url || '')
+        }],
+        raw: item.raw || item
+    };
+    isAssignedTaskModalOpen.value = true;
+};
 
 const openTaskModal = (task = {}) => {
     selectedTask.value = {
@@ -2224,5 +2868,58 @@ const openMonitoringSheet = (sheet) => {
 .delete-year-btn:hover {
     background: #fee2e2;
     color: #dc2626;
+}
+
+.tbl-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.tbl-action-btn.edit {
+    color: #2563eb;
+}
+.tbl-action-btn.edit:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+.tbl-action-btn.delete {
+    color: #ef4444;
+}
+.tbl-action-btn.delete:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.priority-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.priority-low {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+.priority-medium, .priority-moderate {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+.priority-high, .priority-urgent {
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+
+.status-rejected, .status-returned {
+    background-color: #fee2e2 !important;
+    color: #ef4444 !important;
 }
 </style>

@@ -83,4 +83,36 @@ class AdminController extends Controller
         ]);
     }
 
+    public function sectionEditorOverview(Request $request)
+    {
+        abort_unless($request->user()->isEIC() || $request->user()->isSectionEditor() || $request->user()->isAdmin(), 403);
+
+        $recentActivities = Activity::with('actor:id,name,email,role,profile_picture')
+            ->latest('created_at')
+            ->limit(10)
+            ->get()
+            ->map(fn (Activity $activity) => [
+                'id' => $activity->id,
+                'action' => $activity->action,
+                'subject' => $activity->subject_label,
+                'user' => $activity->actor?->name ?? 'System',
+                'role' => $activity->actor?->role ?? 'system',
+                'created_at' => $activity->created_at,
+            ]);
+
+        return response()->json([
+            'summary' => [
+                'articles' => Article::count(),
+                'pending_review' => Article::whereIn('status', [
+                    Article::STATUS_SUBMITTED,
+                    Article::STATUS_UNDER_REVIEW,
+                ])->count(),
+                'ready_for_eic' => Article::where('status', Article::STATUS_ENDORSED)->count(),
+                'published' => Article::where('status', Article::STATUS_PUBLISHED)->count(),
+            ],
+            'activities' => $recentActivities,
+            'updated_at' => now(),
+        ]);
+    }
+
 }

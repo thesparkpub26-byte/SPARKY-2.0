@@ -18,7 +18,7 @@
 
             <!-- Article Information -->
             <div class="article-meta-hdr">
-                <span class="section-pill-badge">{{ typeof task.section === 'object' ? (task.section.name || 'News') : (task.section || 'News') }}</span>
+                <span class="section-pill-badge">{{ (task.section && typeof task.section === 'object') ? (task.section.name || 'News') : (task.section || 'News') }}</span>
                 <h1 class="article-main-title">{{ task.title || 'Untitled Assignment' }}</h1>
             </div>
 
@@ -149,13 +149,17 @@
                             <div class="thumbnail-preview-box">
                                 <img :src="thumbnailPreview" alt="Thumbnail Preview" class="thumbnail-img" />
                                 <div class="preview-actions-overlay">
-                                    <button type="button" class="preview-action-btn" @click="triggerThumbnailInput" title="Replace">Replace</button>
                                     <button type="button" class="preview-action-btn danger" @click="removeThumbnail" title="Remove">Remove</button>
                                 </div>
                             </div>
                         </div>
+                        <!-- Thumbnail uploading spinner -->
+                        <div v-if="isUploadingThumbnail" class="media-uploading-overlay">
+                            <span class="upload-spinner"></span>
+                            <span>Uploading thumbnail...</span>
+                        </div>
                         <div 
-                            v-else 
+                            v-else-if="!thumbnailPreview"
                             class="dashed-dropzone" 
                             @dragover.prevent 
                             @drop.prevent="handleThumbnailDrop"
@@ -174,6 +178,7 @@
                             </button>
                             <p class="dropzone-text"><strong>Drag your file here or browse</strong><br><span class="sub">Max file size up to 10 MB (JPEG, PNG, WEBP)</span></p>
                         </div>
+
                     </div>
 
                     <div class="divider-line"></div>
@@ -211,9 +216,15 @@
                             </div>
                         </div>
 
+                        <!-- Uploading Spinner -->
+                        <div v-if="isUploadingMedia" class="media-uploading-overlay">
+                            <span class="upload-spinner"></span>
+                            <span>Uploading...</span>
+                        </div>
+
                         <!-- Media Dropzone (if < 3) -->
                         <div 
-                            v-if="mediaPreviews.length < 3"
+                            v-if="mediaPreviews.length < 3 && !isUploadingMedia"
                             class="dashed-dropzone" 
                             :class="{ 'compact-dropzone': mediaPreviews.length > 0 }"
                             @dragover.prevent 
@@ -261,7 +272,8 @@
             <div class="tab-content-body" v-if="currentTab === 'details'">
                 <div class="details-container-card">
                     
-                    <div class="workflow-badge-row">
+                    <!-- Workflow Steps Header -->
+                    <div class="workflow-badge-row" v-if="!isSectionEditor">
                         <span class="workflow-step-pill">1. Writer Draft</span>
                         <span class="workflow-arrow">&rarr;</span>
                         <span class="workflow-step-pill active">2. Section Editor</span>
@@ -270,9 +282,16 @@
                         <span class="workflow-arrow">&rarr;</span>
                         <span class="workflow-step-pill">4. EIC Approval</span>
                     </div>
+                    <div class="workflow-badge-row" v-else>
+                        <span class="workflow-step-pill">1. Section Editor Draft</span>
+                        <span class="workflow-arrow">&rarr;</span>
+                        <span class="workflow-step-pill active">2. Copyreader</span>
+                        <span class="workflow-arrow">&rarr;</span>
+                        <span class="workflow-step-pill">3. EIC Approval</span>
+                    </div>
 
-                    <!-- 1. Section Editor Notes -->
-                    <div class="notes-card-box">
+                    <!-- 1. Section Editor Notes (Only shown if NOT section editor) -->
+                    <div class="notes-card-box" v-if="!isSectionEditor">
                         <div class="notes-hdr-row">
                             <h4 class="notes-hdr">
                                 <span class="role-icon-circle blue">SE</span>
@@ -353,8 +372,11 @@
                     </svg>
                 </div>
 
-                <h3 class="submodal-title">Submit this article for Section Editor review?</h3>
-                <p class="submodal-desc">
+                <h3 class="submodal-title">{{ isSectionEditor ? 'Submit this article for Copyreader review?' : 'Submit this article for Section Editor review?' }}</h3>
+                <p class="submodal-desc" v-if="isSectionEditor">
+                    Your article <strong>"{{ articleHeadline || task.title }}"</strong> along with thumbnail and media assets will be sent directly to the <strong>Copyreader</strong> for review.
+                </p>
+                <p class="submodal-desc" v-else>
                     Your article <strong>"{{ articleHeadline || task.title }}"</strong> along with thumbnail and media assets will be sent to the <strong>{{ sectionEditorTitle }}</strong> for review.
                 </p>
 
@@ -377,7 +399,8 @@
                 </div>
 
                 <h3 class="submodal-title">Your submission is successful!</h3>
-                <p class="submodal-desc">The {{ sectionEditorTitle }} will review your draft and notify you if any revisions are needed before passing it to the Copyreader.</p>
+                <p class="submodal-desc" v-if="isSectionEditor">Your article has been submitted and will be reviewed directly by the Copyreader.</p>
+                <p class="submodal-desc" v-else>The {{ sectionEditorTitle }} will review your draft and notify you if any revisions are needed before passing it to the Copyreader.</p>
 
                 <div class="submodal-actions">
                     <button type="button" class="btn-grey-pill" @click="closeAllModals('done')">Done</button>
@@ -421,6 +444,8 @@ const thumbnailInputRef = ref(null);
 const mediaInputRef = ref(null);
 const thumbnailPreview = ref('');
 const mediaPreviews = ref([]);
+const isUploadingMedia = ref(false);
+const isUploadingThumbnail = ref(false);
 
 const task = computed(() => props.taskData || {});
 
@@ -452,14 +477,24 @@ const collaboratorArtist = computed(() => {
     if (task.value?.mediaArtist) return task.value.mediaArtist;
     if (task.value?.artist_assigned) return task.value.artist_assigned;
     if (task.value?.raw?.artist_assigned) return task.value.raw.artist_assigned;
-    if (task.value?.notes && task.value.notes.includes('Media Artist:')) {
-        const match = task.value.notes.match(/Media Artist:\s*([^|]+)/i);
-        if (match && match[1]?.trim()) return match[1].trim();
+
+    // Check notes field for "Media Artist:" pattern
+    const notesToCheck = task.value?.raw?.notes || task.value?.notes;
+    if (notesToCheck && typeof notesToCheck === 'string') {
+        const patterns = [
+            /Media Artist:\s*([^|\n]+)/i,
+            /Artist:\s*([^|\n]+)/i,
+            /Photojournalist:\s*([^|\n]+)/i
+        ];
+
+        for (const pattern of patterns) {
+            const match = notesToCheck.match(pattern);
+            if (match && match[1]?.trim()) {
+                return match[1].trim();
+            }
+        }
     }
-    if (task.value?.raw?.notes && task.value.raw.notes.includes('Media Artist:')) {
-        const match = task.value.raw.notes.match(/Media Artist:\s*([^|]+)/i);
-        if (match && match[1]?.trim()) return match[1].trim();
-    }
+
     return null;
 });
 
@@ -494,6 +529,12 @@ const sectionEditorTitle = computed(() => {
     if (sec.includes('opinion') || sec.includes('devcomm')) return 'Section Editor';
     if (sec.includes('sports')) return 'Sports Section Editor';
     return `${sectionName.value} Section Editor`;
+});
+
+const isSectionEditor = computed(() => {
+    const role = (currentUser.value?.role || '').toLowerCase();
+    const secRole = (currentUser.value?.secondary_role || '').toLowerCase();
+    return role === 'section_editor' || role === 'eic' || secRole.includes('editor');
 });
 
 // Editorial Notes
@@ -542,15 +583,38 @@ const fetchUsers = async () => {
 };
 
 // Watch task data to initialize workspace
-watch(() => props.isOpen, (newVal) => {
+watch(() => props.isOpen, async (newVal) => {
     if (newVal) {
         currentTab.value = 'content';
         saveFeedback.value = '';
         articleHeadline.value = task.value?.title || '';
-        
-        // Load initial content from task or article
-        const initialBody = task.value?.content || task.value?.article?.content || task.value?.articleDesc || task.value?.description || '';
-        articleContent.value = initialBody;
+
+        // Load article content from backend if article exists
+        const articleId = task.value?.article_id || task.value?.raw?.article_id || task.value?.article?.id;
+        let articleData = null;
+        if (articleId) {
+            try {
+                const token = localStorage.getItem('sparky_token');
+                const response = await fetch(`/api/articles/${articleId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    articleData = await response.json();
+                    articleHeadline.value = articleData.title || task.value?.title || '';
+                    articleContent.value = articleData.content || '';
+                    thumbnailPreview.value = articleData.cover_image || '';
+                }
+            } catch (e) {
+                console.warn('Could not load article:', e);
+            }
+        } else {
+            // Load initial content from task
+            const initialBody = task.value?.content || task.value?.article?.content || task.value?.articleDesc || task.value?.description || '';
+            articleContent.value = initialBody;
+        }
 
         nextTick(() => {
             if (editorRef.value) {
@@ -558,18 +622,42 @@ watch(() => props.isOpen, (newVal) => {
             }
         });
 
-        // Initialize assets if available
-        thumbnailPreview.value = task.value?.cover_image || task.value?.thumbnail || '';
-        mediaPreviews.value = Array.isArray(task.value?.media) ? [...task.value.media] : [];
+        // Initialize assets if available (fallback for media)
+        if (!thumbnailPreview.value) {
+            thumbnailPreview.value = task.value?.cover_image || task.value?.thumbnail || '';
+        }
+        // Load persisted media files from article backend data (storage URLs)
+        const persistedMedia = articleData?.media_files || task.value?.media_files || task.value?.media;
+        if (Array.isArray(persistedMedia) && persistedMedia.length > 0) {
+            mediaPreviews.value = persistedMedia.map(item =>
+                typeof item === 'string' ? { url: item, name: item.split('/').pop(), size: null } : item
+            );
+        } else {
+            mediaPreviews.value = [];
+        }
+
 
         // Debug: log task data to see what we're working with
         console.log('Task data in AssignmentWorkspaceModal:', task.value);
+        console.log('Task notes:', task.value?.notes);
+        console.log('Task raw notes:', task.value?.raw?.notes);
         console.log('Collaborator artist extracted:', collaboratorArtist.value);
 
         // Fetch users for artist profile picture
         fetchUsers();
     }
 }, { immediate: true });
+
+// Watch for tab changes to restore editor content
+watch(currentTab, (newTab) => {
+    if (newTab === 'content') {
+        nextTick(() => {
+            if (editorRef.value && articleContent.value) {
+                editorRef.value.innerHTML = articleContent.value;
+            }
+        });
+    }
+});
 
 const handleEditorInput = () => {
     if (editorRef.value) {
@@ -601,26 +689,45 @@ const triggerThumbnailInput = () => {
     if (thumbnailInputRef.value) thumbnailInputRef.value.click();
 };
 
+const uploadThumbnailFile = async (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    isUploadingThumbnail.value = true;
+    try {
+        const token = localStorage.getItem('sparky_token');
+        const formData = new FormData();
+        formData.append('files[]', file);
+        const response = await fetch('/api/articles/upload-media', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+        if (response.ok) {
+            const data = await response.json();
+            thumbnailPreview.value = data.urls[0] || '';
+        } else {
+            const err = await response.json().catch(() => ({}));
+            alert('Failed to upload thumbnail: ' + (err.message || 'Please try again.'));
+        }
+    } catch (e) {
+        console.error('Thumbnail upload error:', e);
+        alert('Failed to upload thumbnail. Please check your connection and try again.');
+    } finally {
+        isUploadingThumbnail.value = false;
+        if (thumbnailInputRef.value) thumbnailInputRef.value.value = '';
+    }
+};
+
 const onThumbnailSelected = (e) => {
     const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (re) => {
-            thumbnailPreview.value = re.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
+    if (file) uploadThumbnailFile(file);
 };
 
 const handleThumbnailDrop = (e) => {
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (re) => {
-            thumbnailPreview.value = re.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
+    if (file) uploadThumbnailFile(file);
 };
 
 const removeThumbnail = () => {
@@ -643,25 +750,51 @@ const handleMediaDrop = (e) => {
     addMediaFiles(files);
 };
 
-const addMediaFiles = (files) => {
+const addMediaFiles = async (files) => {
     const remainingSlots = 3 - mediaPreviews.value.length;
     if (remainingSlots <= 0) return;
 
-    files.slice(0, remainingSlots).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (re) => {
-            if (mediaPreviews.value.length < 3) {
-                mediaPreviews.value.push({
-                    name: file.name,
-                    size: file.size,
-                    url: re.target.result
-                });
-            }
-        };
-        reader.readAsDataURL(file);
-    });
+    const filesToUpload = files.slice(0, remainingSlots);
+    if (filesToUpload.length === 0) return;
 
-    if (mediaInputRef.value) mediaInputRef.value.value = '';
+    isUploadingMedia.value = true;
+    try {
+        const token = localStorage.getItem('sparky_token');
+        const formData = new FormData();
+        filesToUpload.forEach(file => formData.append('files[]', file));
+
+        const response = await fetch('/api/articles/upload-media', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+                // No Content-Type header — browser sets it automatically with boundary for FormData
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            data.urls.forEach((url, i) => {
+                if (mediaPreviews.value.length < 3) {
+                    mediaPreviews.value.push({
+                        name: filesToUpload[i]?.name || url.split('/').pop(),
+                        size: filesToUpload[i]?.size || null,
+                        url
+                    });
+                }
+            });
+        } else {
+            const err = await response.json().catch(() => ({}));
+            alert('Failed to upload image(s): ' + (err.message || 'Please try again.'));
+        }
+    } catch (e) {
+        console.error('Media upload error:', e);
+        alert('Failed to upload image(s). Please check your connection and try again.');
+    } finally {
+        isUploadingMedia.value = false;
+        if (mediaInputRef.value) mediaInputRef.value.value = '';
+    }
 };
 
 const removeMedia = (index) => {
@@ -669,26 +802,196 @@ const removeMedia = (index) => {
 };
 
 // Save handlers
-const saveProgress = () => {
-    saveFeedback.value = '✓ Progress saved';
-    setTimeout(() => {
-        saveFeedback.value = '';
-    }, 3000);
+const saveProgress = async () => {
+    try {
+        const token = localStorage.getItem('sparky_token');
+        if (!token) {
+            console.error('No authentication token found');
+            return;
+        }
+
+        // Prepare article data
+        const articleData = {
+            title: articleHeadline.value || task.value.title,
+            content: articleContent.value,
+            word_count: wordCount.value,
+            cover_image: thumbnailPreview.value,
+            media_files: mediaPreviews.value.map(m => m.url),
+            section_id: task.value.section?.id || task.value.raw?.section_id || null,
+            type: 'article'
+        };
+
+        let articleId = task.value.article_id || task.value.raw?.article_id || task.value.article?.id;
+
+        // Create or update the article
+        if (articleId) {
+            // Update existing article
+            const updateRes = await fetch(`/api/articles/${articleId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(articleData)
+            });
+            if (!updateRes.ok) {
+                const errBody = await updateRes.json().catch(() => ({}));
+                throw new Error(errBody.message || `Server error ${updateRes.status}`);
+            }
+        } else {
+            // Create new article
+            const articleResponse = await fetch('/api/articles', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(articleData)
+            });
+            if (!articleResponse.ok) {
+                const errBody = await articleResponse.json().catch(() => ({}));
+                throw new Error(errBody.message || `Server error ${articleResponse.status}`);
+            }
+            const newArticle = await articleResponse.json();
+            articleId = newArticle.id;
+
+            // Link the article to the task
+            if (task.value.id) {
+                await fetch(`/api/tasks/${task.value.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ article_id: articleId })
+                });
+            }
+            // Update local task with article_id
+            if (task.value) {
+                task.value.article_id = articleId;
+            }
+        }
+
+        saveFeedback.value = '✓ Progress saved';
+        setTimeout(() => {
+            saveFeedback.value = '';
+        }, 3000);
+    } catch (err) {
+        console.error('Error saving progress:', err);
+        saveFeedback.value = `✗ Save failed: ${err.message}`;
+        setTimeout(() => {
+            saveFeedback.value = '';
+        }, 4000);
+    }
 };
 
-const saveAsDraft = () => {
-    const payload = {
-        ...task.value,
-        title: articleHeadline.value || task.value.title,
-        content: articleContent.value,
-        word_count: wordCount.value,
-        thumbnail: thumbnailPreview.value,
-        media: mediaPreviews.value,
-        status: 'ongoing'
-    };
+const saveAsDraft = async () => {
+    try {
+        const token = localStorage.getItem('sparky_token');
+        if (!token) {
+            console.error('No authentication token found');
+            return;
+        }
 
-    emit('task-saved-as-draft', payload);
-    closeModal();
+        // Prepare article data
+        const articleData = {
+            title: articleHeadline.value || task.value.title,
+            content: articleContent.value,
+            word_count: wordCount.value,
+            cover_image: thumbnailPreview.value,
+            media_files: mediaPreviews.value.map(m => m.url),
+            section_id: task.value.section?.id || task.value.raw?.section_id || null,
+            type: 'article'
+        };
+
+        let articleId = task.value.article_id || task.value.raw?.article_id || task.value.article?.id;
+
+        // Create or update the article
+        if (articleId) {
+            // Update existing article
+            const articleResponse = await fetch(`/api/articles/${articleId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(articleData)
+            });
+            if (!articleResponse.ok) {
+                const errBody = await articleResponse.json().catch(() => ({}));
+                throw new Error(errBody.message || `Server error ${articleResponse.status}`);
+            }
+        } else {
+            // Create new article
+            const articleResponse = await fetch('/api/articles', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(articleData)
+            });
+            if (!articleResponse.ok) {
+                const errBody = await articleResponse.json().catch(() => ({}));
+                throw new Error(errBody.message || `Server error ${articleResponse.status}`);
+            }
+            const newArticle = await articleResponse.json();
+            articleId = newArticle.id;
+
+            // Link the article to the task
+            if (task.value.id) {
+                await fetch(`/api/tasks/${task.value.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        article_id: articleId,
+                        status: 'in_progress'
+                    })
+                });
+            }
+        }
+
+        // Update task status to in_progress
+        if (task.value.id) {
+            await fetch(`/api/tasks/${task.value.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: 'in_progress'
+                })
+            });
+        }
+
+        const payload = {
+            ...task.value,
+            title: articleHeadline.value || task.value.title,
+            content: articleContent.value,
+            word_count: wordCount.value,
+            thumbnail: thumbnailPreview.value,
+            media: mediaPreviews.value,
+            status: 'in_progress',
+            article_id: articleId
+        };
+
+        emit('task-saved-as-draft', payload);
+        closeModal();
+    } catch (err) {
+        console.error('Error saving draft:', err);
+        alert('Failed to save draft. Please try again.');
+    }
 };
 
 const closeModal = () => {
@@ -699,6 +1002,14 @@ const confirmSubmit = async () => {
     isSubmitting.value = true;
     try {
         const token = localStorage.getItem('sparky_token');
+        
+        // Ensure article content is saved to database first
+        try {
+            await saveProgress();
+        } catch (saveErr) {
+            console.warn('Could not auto-save progress before submit:', saveErr);
+        }
+
         if (token && task.value && task.value.id) {
             await fetch(`/api/tasks/${task.value.id}/submit`, {
                 method: 'POST',
@@ -711,6 +1022,18 @@ const confirmSubmit = async () => {
                     notes: `Submitted by ${authorName.value}. Headline: ${articleHeadline.value || task.value.title}`,
                     word_count: wordCount.value
                 })
+            }).catch(e => console.error(e));
+        }
+
+        const artId = task.value?.article_id || task.value?.raw?.article_id;
+        if (token && artId) {
+            await fetch(`/api/articles/${artId}/submit`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
             }).catch(e => console.error(e));
         }
     } catch (err) {
@@ -1150,6 +1473,36 @@ const closeAllModals = (action) => {
 .btn-blue-pill-action:hover {
     background-color: #1557b0;
     box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
+}
+
+/* Upload spinner overlay */
+.media-uploading-overlay {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: #f0f6ff;
+    border: 1.5px dashed #93c5fd;
+    border-radius: 12px;
+    color: #1d6bf3;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.upload-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid #bfdbfe;
+    border-top-color: #1d6bf3;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Visual Assets Styling */

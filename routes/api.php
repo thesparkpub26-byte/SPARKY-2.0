@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/admin/overview', [AdminController::class, 'overview']);
     Route::get('/eic/overview', [AdminController::class, 'eicOverview']);
+    Route::get('/section-editor/overview', [AdminController::class, 'sectionEditorOverview']);
     Route::get('/admin/analytics', [AnalyticsController::class, 'adminReport']);
     Route::get('/press-works', [PressWorkController::class, 'index']);
     Route::post('/press-works', [PressWorkController::class, 'store']);
@@ -56,11 +57,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('sections', SectionController::class);
 
     // Articles
+    Route::post('/articles/upload-media',  [ArticleController::class, 'uploadMedia']);
     Route::apiResource('articles', ArticleController::class);
     Route::post('/articles/{article}/submit',  [ArticleController::class, 'submit']);
     Route::post('/articles/{article}/endorse', [ArticleController::class, 'endorse']);
     Route::post('/articles/{article}/approve', [ArticleController::class, 'approve']);
     Route::post('/articles/{article}/reject',  [ArticleController::class, 'reject']);
+
 
     // Tasks
     Route::apiResource('tasks', TaskController::class);
