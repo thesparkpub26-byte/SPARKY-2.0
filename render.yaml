@@ -1,8 +1,8 @@
 # Render Blueprint for TheSPARK. In Render: New > Blueprint > pick this repository.
-# Render then creates the services below and asks for the values marked "sync: false" (the secrets).
+# Render then creates the service below and asks for the values marked "sync: false" (the secrets).
 # The database is Supabase (not created here); see DEPLOYMENT.md, section 10, for the steps.
 
-# Settings that are not secret. Both services below use them, so they cannot drift apart.
+# Settings that are not secret.
 envVarGroups:
   - name: sparky-shared
     envVars:
@@ -19,7 +19,7 @@ envVarGroups:
       - key: DB_CONNECTION
         value: pgsql                # the Supabase connection string is DB_URL (a secret, below)
       - key: CACHE_STORE
-        value: database             # shared, so the scheduler service can refresh what the site caches
+        value: database             # shared cache for the public lists (see DEPLOYMENT.md, section 8)
       - key: CACHE_LIMITER_STORE
         value: file                 # request-limit counters stay off the database (see DEPLOYMENT.md, section 3)
       - key: SESSION_DRIVER
@@ -77,31 +77,8 @@ services:
         sync: false
       - key: MAIL_FROM_ADDRESS
         sync: false
-
-  # ── The scheduler: publishes scheduled articles, sends the weekly newsletter, cleans old data ──────────
-  # Render has no cron inside a web service, so this runs the same image with a different command. It is a paid
-  # service type (workers cannot be free). Delete this block to go without it: scheduled articles then only
-  # go live when someone loads a page, and the weekly newsletter is not sent.
-  - type: worker
-    name: sparky-scheduler
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    region: singapore
-    plan: 0.5c-512mb
-    dockerCommand: php /var/www/html/artisan schedule:work
-    autoDeployTrigger: commit
-    envVars:
-      - fromGroup: sparky-shared
-      # Same values as the website (the newsletter's links and the database)
-      - key: APP_KEY
-        sync: false
-      - key: APP_URL
-        sync: false
-      - key: DB_URL
-        sync: false
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
-        sync: false
-      - key: MAIL_FROM_ADDRESS
+      # The free outside timer (cron-job.org) calls /api/cron/run once a minute with this key: it runs the scheduled
+      # jobs (publish scheduled articles, weekly newsletter, clean-up), since Render has no cron. 24+ random
+      # characters, for example: php -r "echo bin2hex(random_bytes(24));"
+      - key: CRON_SECRET
         sync: false

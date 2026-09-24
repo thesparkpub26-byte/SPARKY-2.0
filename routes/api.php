@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CronController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\NewsletterController;
@@ -28,6 +29,8 @@ use App\Http\Controllers\ReaderSearchController;
 
 // Public routes (no auth required)
 // The reader lists below are the same for everyone, so they may be cached briefly (see PublicCache)
+// Called once a minute by a free outside timer on hosts without cron (needs CRON_SECRET; see DEPLOYMENT.md)
+Route::match(['get', 'post'], '/cron/run', [CronController::class, 'run'])->middleware('throttle:30,1,cron');
 Route::post('/login',          [AuthController::class,  'login'])->middleware('throttle:30,1,login');
 Route::post('/register/send-otp',   [RegisterController::class, 'sendOtp'])->middleware('throttle:20,1,signup-send');
 Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp'])->middleware('throttle:30,1,signup-verify');

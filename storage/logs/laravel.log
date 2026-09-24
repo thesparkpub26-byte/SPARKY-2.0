@@ -6933,3 +6933,14 @@ CONTEXT:  unnamed portal parameter $1 = '...' at C:/Users/emher/Desktop/Sparky/v
 #18 C:/Users/emher/Desktop/Sparky/artisan(20): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
 #19 {main}
 "} 
+[2026-09-24 21:55:08] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
+[2026-09-24 21:55:08] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
+[2026-09-24 21:55:08] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
+[2026-09-24 21:55:50] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
+[2026-09-24 21:55:50] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
+[2026-09-24 21:55:50] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
+[2026-09-24 21:57:00] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 21:57:00] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 21:57:04] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
+[2026-09-24 21:57:04] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
+[2026-09-24 21:57:04] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 

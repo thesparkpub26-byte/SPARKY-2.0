@@ -8,4 +8,10 @@ return [
     |   off     - no policy
     */
     'csp_mode' => env('CSP_MODE', env('APP_ENV') === 'production' ? 'enforce' : 'report'),
+
+    /*
+    | Secret for /api/cron/run, the address an outside timer calls every minute to run the scheduled jobs on a host
+    | without cron (see App\Http\Controllers\CronController). At least 24 characters; empty switches the address off.
+    */
+    'cron_secret' => env('CRON_SECRET'),
 ];

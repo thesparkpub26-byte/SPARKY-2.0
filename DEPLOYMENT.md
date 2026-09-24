@@ -60,6 +60,8 @@ It runs:
 
 Without cron, scheduled articles only go live when someone happens to load a page.
 
+No cron on your host (Render, for example)? An outside timer can do the same job through `/api/cron/run`: see section 10, part C.
+
 ## 5. HTTPS and browser protections
 
 Serve the site over HTTPS only. The app then sends `Strict-Transport-Security` on its own, and builds every link with `https`. Uploaded files and sign-in tokens should never travel over plain HTTP.
@@ -166,15 +168,31 @@ The repository contains everything Render needs: a `Dockerfile` (Render has no P
    - `APP_URL`: the site's address with `https://` (the `onrender.com` address Render gives it, or your own domain).
    - `DB_URL`: the Supabase Session pooler string from step A.
    - `MAIL_USERNAME`, `MAIL_PASSWORD` (an app password), `MAIL_FROM_ADDRESS`.
+   - `CRON_SECRET`: 24 or more random characters, for the scheduler timer in part C. Make one with `php -r "echo bin2hex(random_bytes(24));"` and keep a copy: you will paste the same value into the timer.
 3. Before applying, edit `region` in `render.yaml` to the one nearest your Supabase project (it cannot be changed afterwards). The web service starts on the `free` plan: change `plan` to a paid size when the site should stay awake.
 4. On every start the container creates or updates the database tables (`AUTORUN_ENABLED`), caches the configuration and routes, and serves the site on port 8080. Watch the first deploy in the *Logs* tab.
 5. Upload limits: the image accepts 100 MB by default, above the 35 MB PDF limit, so nothing to set. Render has no 4.5 MB request cap.
 
 The image is built and configured to these documents: [image variables](https://serversideup.net/open-source/docker-php/docs/reference/environment-variable-specification) and [Render's Blueprint spec](https://render.com/docs/blueprint-spec). The build steps were rehearsed outside Docker (clean `npm ci` and build, `composer install --no-dev`, `artisan optimize`, a production boot), but the image itself has not been built yet, so the first deploy is the real test.
 
-**C. The scheduler**
+**C. The scheduler (free timer)**
 
-Render has no cron daemon inside a web service, so `render.yaml` adds a second service, `sparky-scheduler`: the same image running `php artisan schedule:work`. It is a paid service type (workers cannot be free), and it asks for the same secrets again. Delete that block from `render.yaml` to go without it: scheduled articles then only go live when someone loads a page, and the weekly newsletter is not sent.
+Render has no cron daemon, and a background worker that could run one is a paid service type. Instead, a free outside timer visits a private address on the site once a minute, and the site runs whatever is due at that moment (publish scheduled articles, the Monday 08:00 newsletter, clean-up), exactly as `php artisan schedule:run` does in a cron entry.
+
+1. The address is `https://YOUR-SITE/api/cron/run`. It only exists when `CRON_SECRET` is set (24 or more characters), and it only answers to the header `Authorization: Bearer YOUR-SECRET`. Anything else gets a 404 or 403.
+2. Create a free account at [cron-job.org](https://cron-job.org) and add a cron job:
+   - **URL:** `https://YOUR-SITE/api/cron/run`
+   - **Schedule:** every minute
+   - **Request headers** (in the job's advanced settings): `Authorization` with the value `Bearer ` followed by your `CRON_SECRET`
+   - Request method: GET (POST works too)
+3. Check it: after a few minutes the job's history should show status 200 with `{"ok":true,...}`. To test by hand: `curl -H "Authorization: Bearer YOUR-SECRET" https://YOUR-SITE/api/cron/run`.
+
+Good to know:
+- The timer gives up on a call after about 30 seconds, but the site keeps going until the job is done, and a job that is still running is never started twice.
+- The newsletter only goes out if a call lands in the Monday 08:00 minute. The schedule uses the server's time zone (UTC unless configured), so that is 4 PM in the Philippines. If the timer or the site is down at that exact minute, that week's newsletter is skipped.
+- Because the timer visits every minute, it also keeps a free Render web service from falling asleep. Check Render's free-plan hours limit before relying on that.
+- Someone with the secret can trigger the jobs early, which is harmless (they only do what is already due), but change `CRON_SECRET` in Render and in the timer if it leaks.
+- You can add a paid background worker later (`php artisan schedule:work` on the same image) and switch the timer off; nothing else changes.
 
 **D. Things to know**
 
