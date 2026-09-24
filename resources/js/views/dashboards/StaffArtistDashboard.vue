@@ -109,7 +109,7 @@
                         <div class="kanban-column">
                             <h3 class="column-header">Pending ({{ pendingTasks.length }})</h3>
                             <div class="cards-container">
-                                <div v-for="task in pendingTasks" :key="task.id" :class="['task-card', 'card-' + (task.priority || 'medium')]" @click="openTaskModal(task)" style="cursor: pointer;">
+                                <div v-for="task in pendingTasks" :key="task.id" :class="['task-card', cardThemeClass(task.priority)]" @click="openTaskModal(task)" style="cursor: pointer;">
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                                         {{ formatPriorityLabel(task.priority) }}
@@ -138,7 +138,7 @@
                         <div class="kanban-column">
                             <h3 class="column-header">Ongoing ({{ ongoingTasks.length }})</h3>
                             <div class="cards-container">
-                                <div v-for="task in ongoingTasks" :key="task.id" :class="['task-card', 'card-' + (task.priority || 'medium')]" @click="openTaskModal(task)" style="cursor: pointer;">
+                                <div v-for="task in ongoingTasks" :key="task.id" :class="['task-card', cardThemeClass(task.priority)]" @click="openTaskModal(task)" style="cursor: pointer;">
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                                         {{ formatPriorityLabel(task.priority) }}
@@ -167,7 +167,7 @@
                         <div class="kanban-column">
                             <h3 class="column-header">Submitted ({{ submittedTasks.length }})</h3>
                             <div class="cards-container">
-                                <div v-for="task in submittedTasks" :key="task.id" :class="['task-card', 'card-' + (task.priority || 'medium')]" @click="openTaskModal(task)" style="cursor: pointer;">
+                                <div v-for="task in submittedTasks" :key="task.id" :class="['task-card', cardThemeClass(task.priority)]" @click="openTaskModal(task)" style="cursor: pointer;">
                                     <span class="priority-badge">
                                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                                         {{ formatPriorityLabel(task.priority) }}
@@ -530,6 +530,10 @@ const formatPriorityLabel = (priority) => {
     const labels = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent', critical: 'Critical' };
     return labels[(priority || '').toLowerCase()] || priority || 'Medium';
 };
+
+// A task's priority picks the card colour. "medium" is styled as .card-moderate; a priority with no theme falls back to it
+const CARD_THEMES = { low: 'card-low', medium: 'card-moderate', high: 'card-high', urgent: 'card-urgent', critical: 'card-urgent' };
+const cardThemeClass = (priority) => CARD_THEMES[String(priority || '').toLowerCase()] || 'card-moderate';
 
 const getPriorityClass = (priority) => {
     const classes = { low: 'priority-low', medium: 'priority-medium', high: 'priority-high', urgent: 'priority-critical', critical: 'priority-critical' };

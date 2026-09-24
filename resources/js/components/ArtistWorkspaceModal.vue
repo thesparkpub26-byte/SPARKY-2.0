@@ -1415,6 +1415,13 @@ const closeAllModals = () => {
     gap: 10px;
 }
 
+/* A dialog with a single button (e.g. "Done") spans the whole row instead of the narrow first column */
+.submodal-actions > :only-child {
+    grid-column: 1 / -1;
+    width: 100%;
+    text-align: center;
+}
+
 .btn-grey-pill {
     background: #f1f5f9;
     color: #475569;
