@@ -456,6 +456,15 @@ const formatTime = (dateString) => {
     }
 };
 
+// Read/delete requests still in flight. A refetch must wait for them, otherwise it returns
+// the old state and the notification the user just read reappears as unread.
+const pendingWrites = new Set();
+const trackWrite = (promise) => {
+    pendingWrites.add(promise);
+    promise.finally(() => pendingWrites.delete(promise));
+    return promise;
+};
+
 // API calls
 const fetchNotifications = async () => {
     const token = localStorage.getItem('sparky_token');
@@ -466,6 +475,7 @@ const fetchNotifications = async () => {
 
     try {
         loading.value = true;
+        await Promise.allSettled([...pendingWrites]);
         const res = await fetch('/api/notifications?per_page=100', {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -497,14 +507,14 @@ const markAllAsRead = async () => {
 
     try {
         loadingAction.value = true;
-        await fetch('/api/notifications/read-all', {
+        await trackWrite(fetch('/api/notifications/read-all', {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${token}`,
                 Accept: 'application/json',
                 'Content-Type': 'application/json'
             }
-        });
+        }));
     } catch (err) {
         console.error('Failed to mark all notifications as read:', err);
     } finally {
@@ -524,13 +534,13 @@ const deleteNotification = async (item, event) => {
     const token = localStorage.getItem('sparky_token');
     if (token && typeof item.id === 'number') {
         try {
-            await fetch(`/api/notifications/${item.id}`, {
+            await trackWrite(fetch(`/api/notifications/${item.id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json'
                 }
-            });
+            }));
         } catch (err) {
             console.error('Failed to delete notification:', err);
         }
@@ -542,13 +552,13 @@ const clearAllNotifications = async () => {
     const token = localStorage.getItem('sparky_token');
     if (token) {
         try {
-            await fetch('/api/notifications', {
+            await trackWrite(fetch('/api/notifications', {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json'
                 }
-            });
+            }));
         } catch (err) {
             console.error('Failed to clear notifications:', err);
         }
@@ -561,14 +571,17 @@ const handleItemClick = async (item) => {
         const token = localStorage.getItem('sparky_token');
         if (token && typeof item.id === 'number') {
             try {
-                await fetch(`/api/notifications/${item.id}/read`, {
+                const res = await trackWrite(fetch(`/api/notifications/${item.id}/read`, {
                     method: 'PATCH',
                     headers: {
                         Authorization: `Bearer ${token}`,
                         Accept: 'application/json'
                     }
-                });
+                }));
+                // Server refused: show it as unread again instead of pretending it was saved
+                if (!res.ok) item.read_at = null;
             } catch (err) {
+                item.read_at = null;
                 console.error('Failed to mark notification as read:', err);
             }
         }

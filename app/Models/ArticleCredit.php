@@ -20,6 +20,16 @@ class ArticleCredit extends Model
         self::ROLE_VIDEO_EDITOR => 'Video Editor',
     ];
 
+    // The crew member's title is remembered as of when they were credited
+    protected static function booted(): void
+    {
+        static::creating(function (ArticleCredit $credit) {
+            if (blank($credit->user_role) && $credit->user_id) {
+                $credit->user_role = User::find($credit->user_id)?->displayRole();
+            }
+        });
+    }
+
     public function article()
     {
         return $this->belongsTo(Article::class);

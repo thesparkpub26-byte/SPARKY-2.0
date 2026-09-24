@@ -10,6 +10,8 @@ class NotificationController extends Controller
     /** List notifications for the authenticated user */
     public function index(Request $request)
     {
+        Notification::purgeOrphansFor($request->user()->id);
+
         $query = Notification::where('user_id', $request->user()->id)
             ->orderByDesc('created_at');
 
@@ -36,7 +38,7 @@ class NotificationController extends Controller
     /** Mark a single notification as read */
     public function markRead(Request $request, Notification $notification)
     {
-        if ($notification->user_id !== $request->user()->id) {
+        if ((int) $notification->user_id !== (int) $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -57,7 +59,7 @@ class NotificationController extends Controller
     /** Delete a notification */
     public function destroy(Request $request, Notification $notification)
     {
-        if ($notification->user_id !== $request->user()->id) {
+        if ((int) $notification->user_id !== (int) $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

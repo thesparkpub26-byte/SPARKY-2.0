@@ -14,6 +14,35 @@ class PublishedIssueController extends Controller
         return response()->json(PublishedIssue::with('uploader')->latest()->get());
     }
 
+    /** Public: published issues for the reader site, newest first. Optional ?limit= (home page uses 3). */
+    public function latest(Request $request)
+    {
+        $query = PublishedIssue::latest();
+        if ($request->filled('limit')) {
+            $query->limit(max(1, min(50, $request->integer('limit'))));
+        }
+
+        return response()->json(
+            $query->get(['id', 'title', 'pdf_path', 'created_at'])
+                ->map(fn (PublishedIssue $i) => [
+                    'id'         => $i->id,
+                    'title'      => $i->title,
+                    'pdf_url'    => $i->pdf_path ? '/storage/' . $i->pdf_path : null,
+                    'created_at' => $i->created_at?->toIso8601String(),
+                ])
+        );
+    }
+
+    /** Public: a single issue (no uploader details) so readers can open the booklet. */
+    public function publicShow(PublishedIssue $issue)
+    {
+        return response()->json([
+            'id'      => $issue->id,
+            'title'   => $issue->title,
+            'pdf_url' => $issue->pdf_path ? '/storage/' . $issue->pdf_path : null,
+        ]);
+    }
+
     public function store(Request $request)
     {
         if (!in_array($request->user()->role, ['eic', 'admin'])) {

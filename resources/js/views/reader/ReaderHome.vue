@@ -10,19 +10,27 @@
 
         <!-- Full-Width Responsive Hero Carousel -->
         <div class="hero-carousel-container" @mouseenter="stopAutoPlay" @mouseleave="startAutoPlay">
-          <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-            <div v-for="(slide, idx) in slides" :key="idx" class="carousel-slide">
-              <img :src="slide.image" :alt="slide.title">
-            </div>
+          <div v-if="!slides.length" class="carousel-empty">No published articles yet.</div>
+          <div v-else class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+            <router-link v-for="slide in slides" :key="slide.id" :to="`/article/${slide.id}`" class="carousel-slide">
+              <img :src="slide.image || fallbackImage" :alt="slide.title" draggable="false">
+              <div class="carousel-caption">
+                <h3 class="carousel-caption-title">{{ slide.title }}</h3>
+                <div class="carousel-caption-meta">
+                  <span v-if="slide.author">By {{ slide.author }}</span>
+                  <span>{{ formatDate(slide.published_at) }}</span>
+                </div>
+              </div>
+            </router-link>
           </div>
 
           <!-- Navigation Arrow Overlay Buttons -->
-          <button class="carousel-arrow carousel-arrow-prev" @click="prevSlide" title="Previous Slide">
+          <button v-if="slides.length > 1" class="carousel-arrow carousel-arrow-prev" @click="prevSlide" title="Previous Slide">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="m15 18-6-6 6-6" />
             </svg>
           </button>
-          <button class="carousel-arrow carousel-arrow-next" @click="nextSlide" title="Next Slide">
+          <button v-if="slides.length > 1" class="carousel-arrow carousel-arrow-next" @click="nextSlide" title="Next Slide">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="m9 18 6-6-6-6" />
             </svg>
@@ -45,22 +53,45 @@
         <h2 class="section-headline">Popular now</h2>
         <p class="section-subtext">The most read from TheSPARK</p>
 
-        <div class="articles-grid">
-          <ArticleCard v-for="(art, idx) in popularArticles" :key="idx" :article="art" />
+        <p v-if="!popularArticles.length" class="section-empty">No published articles yet.</p>
+        <div v-else class="articles-grid">
+          <ArticleCard v-for="art in popularArticles" :key="art.id" :article="art" />
+        </div>
+
+        <!-- Load More Link (opens the Categories page showing the latest articles) -->
+        <div v-if="popularArticles.length" class="load-more-wrapper">
+          <router-link to="/categories" class="btn-load-more">Load More</router-link>
+        </div>
+      </section>
+
+      <!-- Videos Section -->
+      <section class="videos-section">
+        <h2 class="section-headline">Check out our Videos</h2>
+        <p class="section-subtext">Watch what our broadcasting team made</p>
+
+        <p v-if="!homeVideos.length" class="section-empty">No videos published yet.</p>
+        <div v-else class="articles-grid">
+          <ArticleCard v-for="video in homeVideos" :key="video.id" :article="video" />
+        </div>
+
+        <!-- Load More Link -->
+        <div v-if="homeVideos.length" class="load-more-wrapper">
+          <router-link to="/videos" class="btn-load-more">Load More</router-link>
         </div>
       </section>
 
       <!-- Published Issues Section -->
       <section class="published-issues-section">
         <h2 class="section-headline">Published Issues</h2>
-        <p class="section-subtext">The most read from TheSPARK</p>
+        <p class="section-subtext">The latest issues from TheSPARK</p>
 
-        <div class="issues-grid">
-          <IssueCard v-for="(item, idx) in homeIssues" :key="idx" :issue="item" />
+        <p v-if="!homeIssues.length" class="section-empty">No published issues yet.</p>
+        <div v-else class="issues-grid">
+          <IssueCard v-for="item in homeIssues" :key="item.id" :issue="item" @explore="openIssue" />
         </div>
 
         <!-- Load More Link -->
-        <div class="load-more-wrapper">
+        <div v-if="homeIssues.length" class="load-more-wrapper">
           <router-link to="/issues" class="btn-load-more">Load More</router-link>
         </div>
       </section>
@@ -70,19 +101,22 @@
         <h2 class="section-headline">Artists Gallery</h2>
         <p class="section-subtext">Check out what our artists made!</p>
 
-        <div class="gallery-carousel-wrapper">
-          <div class="gallery-cards-row">
-            <div class="gallery-card" @click="openModal('/images/dress_code.jpg')">
-              <img src="/images/dress_code.jpg" alt="Artist Work 1">
-            </div>
-            <div class="gallery-card" @click="openModal('/images/student_portal.jpg')">
-              <img src="/images/student_portal.jpg" alt="Artist Work 2">
-            </div>
-            <div class="gallery-card" @click="openModal('/images/fountain.jpg')">
-              <img src="/images/fountain.jpg" alt="Artist Work 3">
+        <p v-if="!galleryPhotos.length" class="section-empty">No photos uploaded yet.</p>
+        <template v-else>
+          <div class="gallery-carousel-wrapper">
+            <div class="gallery-cards-row">
+              <div v-for="photo in galleryPhotos" :key="photo.id" class="gallery-card" @click="openModal(photo)">
+                <img :src="photo.image" :alt="photo.title">
+                <div class="photo-hover-title"><span>{{ photo.title }}</span></div>
+              </div>
             </div>
           </div>
-        </div>
+
+          <!-- Load More Link -->
+          <div class="load-more-wrapper">
+            <router-link to="/gallery" class="btn-load-more">Load More</router-link>
+          </div>
+        </template>
       </section>
 
       <!-- Subscribe To Our Newsletter Section -->
@@ -92,7 +126,14 @@
       <Footer />
     </main>
 
-    <LightboxModal :isOpen="isModalOpen" :imageSrc="selectedImage" @close="isModalOpen = false" />
+    <LightboxModal
+      :isOpen="isModalOpen"
+      :imageSrc="selectedPhoto.image"
+      :title="selectedPhoto.title"
+      :artist="selectedPhoto.artist"
+      :date="selectedPhoto.date"
+      @close="isModalOpen = false"
+    />
   </div>
 </template>
 
@@ -104,115 +145,87 @@ import NewsletterCard from '../../components/NewsletterCard.vue';
 import ArticleCard from '../../components/ArticleCard.vue';
 import IssueCard from '../../components/IssueCard.vue';
 import LightboxModal from '../../components/LightboxModal.vue';
+import { renderPdfCover } from '../../utils/pdfThumbnail';
 
 const currentSlide = ref(0);
 let timer = null;
 
-const slides = [
-  { image: '/images/hero_banner.jpg', title: 'TheSpark 39 Truth Knows No Limits' },
-  { image: '/images/student_portal.jpg', title: 'CSPC Launches New Student Portal' },
-  { image: '/images/graduation.jpg', title: 'Beyond the Classroom: Celebrating Graduates' },
-  { image: '/images/basketball.jpg', title: 'CSPC Athletes Bring Home Championships' }
-];
+const fallbackImage = '/images/hero_banner.jpg';
+const slides = ref([]);
 
-const popularArticles = [
-  {
-    badge: 'News',
-    title: 'Prescribed Dress Code',
-    excerpt: 'As the new school year begins, CSPC Officially announced advisory regarding the prescribed...',
-    image: '/images/dress_code.jpg',
-    date: 'Aug 24, 2026',
-    readTime: '3 mins read',
-    views: '1.4k',
-    likes: '512'
-  },
-  {
-    badge: 'DevCom',
-    title: 'CSPC Advances Smart Campus Solutions',
-    excerpt: 'Initiatives for digitalization and tech integrations across departments take full throttle...',
-    image: '/images/student_portal.jpg',
-    date: 'Aug 22, 2026',
-    readTime: '4 mins read',
-    views: '980',
-    likes: '340'
-  },
-  {
-    badge: 'Feature',
-    title: 'Voice of the Students: Campus Stories',
-    excerpt: 'An inspiring feature highlighting student leaders driving change in community development...',
-    image: '/images/fountain.jpg',
-    date: 'Aug 20, 2026',
-    readTime: '5 mins read',
-    views: '2.1k',
-    likes: '890'
-  },
-  {
-    badge: 'Sports',
-    title: 'CSPC Athletes Bring Home Regional...',
-    excerpt: 'The college athletes showcased determination and teamwork after achieving outstanding...',
-    image: '/images/basketball.jpg',
-    date: 'January 17, 2026',
-    readTime: '4 mins read',
-    views: '1.8k',
-    likes: '620'
-  },
-  {
-    badge: 'Literary',
-    title: 'Whispers Between the Pages',
-    excerpt: 'A collection of poems and short literary pieces reflecting the emotions, experiences, and...',
-    image: '/images/fountain.jpg',
-    date: 'January 14, 2026',
-    readTime: '3 mins read',
-    views: '1.1k',
-    likes: '410'
-  },
-  {
-    badge: 'DevComm',
-    title: 'Student Lead Community Outreach...',
-    excerpt: 'Student volunteers conducted an outreach program promoting education, environmental...',
-    image: '/images/dress_code.jpg',
-    date: 'February 28, 2026',
-    readTime: '4 mins read',
-    views: '1.5k',
-    likes: '530'
-  }
-];
+const formatDate = (iso) => iso
+  ? new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  : '';
 
-const homeIssues = [
-  {
-    image: '/images/blind_idolatry.jpg',
-    title: 'NEWSLETTER | Volume XLI | No. 1',
-    desc: 'The Official Student Community Publication of CSPC | August - December 2021',
-    date: 'January 9, 2022'
-  },
-  {
-    image: '/images/blind_idolatry.jpg',
-    title: 'NEWSLETTER | Volume XLI | No. 1',
-    desc: 'The Official Student Community Publication of CSPC | August - December 2021',
-    date: 'January 9, 2022'
-  },
-  {
-    image: '/images/blind_idolatry.jpg',
-    title: 'NEWSLETTER | Volume XLI | No. 1',
-    desc: 'The Official Student Community Publication of CSPC | August - December 2021',
-    date: 'January 9, 2022'
+const loadSlides = async () => {
+  try {
+    const res = await fetch('/api/reader/carousel', { headers: { Accept: 'application/json' } });
+    if (res.ok) slides.value = await res.json();
+  } catch {
+    // The carousel just stays empty if the request fails.
   }
-];
+};
+
+const popularArticles = ref([]);
+const homeVideos = ref([]);
+const homeIssues = ref([]);
+const galleryPhotos = ref([]);
+
+const getJson = async (url) => {
+  try {
+    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    return res.ok ? await res.json() : [];
+  } catch {
+    return [];
+  }
+};
+
+const loadArticles = async () => {
+  popularArticles.value = await getJson('/api/reader/articles');
+};
+
+const loadVideos = async () => {
+  homeVideos.value = await getJson('/api/reader/videos?limit=3');
+};
+
+const loadGallery = async () => {
+  galleryPhotos.value = await getJson('/api/reader/gallery?limit=3');
+};
+
+const loadIssues = async () => {
+  const issues = await getJson('/api/reader/issues?limit=3');
+  homeIssues.value = issues.map((i) => ({ ...i, image: null, date: formatDate(i.created_at) }));
+  // Issues are PDFs, so the cover is the rendered first page (fills in as each one finishes).
+  homeIssues.value.forEach(async (issue) => {
+    if (!issue.pdf_url) return;
+    try {
+      issue.image = await renderPdfCover(issue.pdf_url);
+    } catch (e) {
+      console.warn('Could not render issue cover:', e);
+    }
+  });
+};
+
+const openIssue = (issue) => {
+  window.open(`/booklet/${issue.id}`, '_blank');
+};
 
 const isModalOpen = ref(false);
-const selectedImage = ref('');
+const selectedPhoto = ref({});
 
-const openModal = (src) => {
-  selectedImage.value = src;
+const openModal = (photo) => {
+  selectedPhoto.value = photo;
   isModalOpen.value = true;
 };
 
 const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % slides.length;
+  if (!slides.value.length) return;
+  currentSlide.value = (currentSlide.value + 1) % slides.value.length;
 };
 
 const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + slides.length) % slides.length;
+  if (!slides.value.length) return;
+  currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length;
 };
 
 const goToSlide = (idx) => {
@@ -229,6 +242,11 @@ const stopAutoPlay = () => {
 };
 
 onMounted(() => {
+  loadSlides();
+  loadArticles();
+  loadVideos();
+  loadIssues();
+  loadGallery();
   startAutoPlay();
 });
 

@@ -142,6 +142,11 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span>Assign Task</span>
                     </button>
+                    <!-- Opens the live reader site in a new tab; the EIC stays signed in there -->
+                    <a href="/" target="_blank" rel="noopener" class="view-site-btn" title="View the live reader site (you stay signed in)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        <span>View Site</span>
+                    </a>
                     <NotificationsPopover />
                 </div>
             </header>
@@ -390,7 +395,7 @@
                                 </div>
                                 <div class="gallery-card-body">
                                     <span class="gallery-card-title">{{ photo.title }}</span>
-                                    <span class="gallery-card-meta">{{ photo.uploader?.name || 'Unknown' }} &bull; {{ formatDate(photo.created_at) }}</span>
+                                    <span class="gallery-card-meta">{{ photo.artist?.name || photo.uploader?.name || 'Unknown' }} &bull; {{ formatDate(photo.created_at) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -660,7 +665,7 @@
                 </div>
 
                 <!-- CONTRIBUTORS TAB -->
-                <div v-show="activeTab === 'contributors'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+                <div v-show="activeTab === 'contributors'" class="pinned-pagination-tab" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
                     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <h1 class="page-title" style="margin-bottom: 0;">Contributors</h1>
                         <div class="filter-pills-group eic-endorsement-filters">
@@ -988,24 +993,8 @@
                                 </div>
                             </div>
 
-                            <!-- Workflow Efficiency -->
-                            <div class="card">
-                                <h3 class="card-header">Workflow Efficiency</h3>
-                                <div class="workflow-grid">
-                                    <div class="workflow-box">
-                                        <div class="workflow-label">Avg. Time to Publish</div>
-                                        <div class="workflow-value-large">{{ eicAveragePublishDays }}<span style="font-size: 16px;">d</span></div>
-                                    </div>
-                                    <div class="workflow-box">
-                                        <div class="workflow-label">Articles to Review</div>
-                                        <div class="workflow-value-large">{{ formatCount((eicArticleStatusCounts.submitted || 0) + (eicArticleStatusCounts.under_review || 0) + (eicArticleStatusCounts.endorsed || 0)) }}</div>
-                                    </div>
-                                    <div class="workflow-box">
-                                        <div class="workflow-label">Revision Rate</div>
-                                        <div class="workflow-value-large">{{ eicRevisionRate }}<span style="font-size: 16px;">%</span></div>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Peak Viewing Time: what time of day readers open articles -->
+                            <PeakTimeCard :hourly="analytics.hourly" />
 
                             <!-- Article Status Overview -->
                             <div class="card">
@@ -1188,6 +1177,10 @@
                     <input v-model="galleryUploadForm.title" class="form-control" placeholder="Photo title" required>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Author</label>
+                    <AuthorSelect v-model="galleryUploadForm.artist_id" :options="galleryArtists" />
+                </div>
+                <div class="form-group">
                     <label class="form-label">Photo</label>
                     <div class="upload-box">
                         <div class="upload-circle" :class="{ 'has-preview': galleryUploadPreview }">
@@ -1223,7 +1216,9 @@
             <!-- View mode -->
             <div v-if="!isEditingGalleryPhoto" class="new-user-step">
                 <img :src="viewingPhoto?.image_url" :alt="viewingPhoto?.title" class="gallery-view-img">
-                <p class="gallery-card-meta" style="margin-top: 10px;">{{ viewingPhoto?.uploader?.name || 'Unknown' }} &bull; {{ formatDate(viewingPhoto?.created_at) }}</p>
+                <p class="gallery-card-meta" style="margin-top: 10px;">
+                    <template v-if="viewingPhoto?.artist">Artist: {{ viewingPhoto.artist.name }} &bull; </template>Uploaded by {{ viewingPhoto?.uploader?.name || 'Unknown' }} &bull; {{ formatDate(viewingPhoto?.created_at) }}
+                </p>
                 <div class="modal-footer">
                     <button class="btn-back" type="button" style="color: #dc2626;" @click="deletePhotoFromViewModal">Delete</button>
                     <button class="btn-next" type="button" @click="startEditGalleryPhoto">Edit</button>
@@ -1235,6 +1230,10 @@
                 <div class="form-group">
                     <label class="form-label">Title</label>
                     <input v-model="editGalleryForm.title" class="form-control" placeholder="Photo title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Author</label>
+                    <AuthorSelect v-model="editGalleryForm.artist_id" :options="galleryArtists" />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Photo</label>
@@ -1647,6 +1646,8 @@ import DirectPublishModal from '../../components/DirectPublishModal.vue';
 import { VIDEO_CATEGORIES, youtubeThumbnail, fetchCreditedVideos, buildVideoPreviewData } from '../../utils/video';
 import EditTaskModal from '../../components/EditTaskModal.vue';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
+import AuthorSelect from '../../components/AuthorSelect.vue';
+import PeakTimeCard from '../../components/PeakTimeCard.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
@@ -1762,7 +1763,8 @@ const deleteYearError = ref('');
 const galleryPhotos = ref([]);
 const galleryLoading = ref(false);
 const isGalleryUploadModalOpen = ref(false);
-const galleryUploadForm = ref({ title: '' });
+const galleryUploadForm = ref({ title: '', artist_id: '' });
+const galleryArtists = ref([]);
 const galleryUploadFile = ref(null);
 const galleryUploadPreview = ref('');
 const galleryFileInput = ref(null);
@@ -1774,7 +1776,7 @@ const deletePhotoSaving = ref(false);
 const isGalleryViewModalOpen = ref(false);
 const viewingPhoto = ref(null);
 const isEditingGalleryPhoto = ref(false);
-const editGalleryForm = ref({ title: '' });
+const editGalleryForm = ref({ title: '', artist_id: '' });
 const editGalleryFile = ref(null);
 const editGalleryPreview = ref('');
 const editGalleryFileInput = ref(null);
@@ -1982,8 +1984,24 @@ const loadGalleryPhotos = async () => {
     }
 };
 
+// Authors that can be credited on a photo: the staff artists and the Art Editor
+const loadGalleryArtists = async () => {
+    try {
+        const response = await fetch('/api/gallery/artists', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) galleryArtists.value = await response.json();
+    } catch {
+        galleryArtists.value = [];
+    }
+};
+
 const openGalleryUploadModal = () => {
-    galleryUploadForm.value = { title: '' };
+    loadGalleryArtists();
+    galleryUploadForm.value = { title: '', artist_id: '' };
     galleryUploadFile.value = null;
     galleryUploadPreview.value = '';
     galleryUploadError.value = '';
@@ -2006,6 +2024,10 @@ const submitGalleryUpload = async () => {
         galleryUploadError.value = 'Please provide a title.';
         return;
     }
+    if (!galleryUploadForm.value.artist_id) {
+        galleryUploadError.value = 'Please select the author of the photo.';
+        return;
+    }
     if (!galleryUploadFile.value) {
         galleryUploadError.value = 'Please choose a photo to upload.';
         return;
@@ -2014,6 +2036,7 @@ const submitGalleryUpload = async () => {
     galleryUploadSaving.value = true;
     const payload = new FormData();
     payload.append('title', galleryUploadForm.value.title);
+    payload.append('artist_id', galleryUploadForm.value.artist_id);
     payload.append('photo', galleryUploadFile.value);
 
     try {
@@ -2081,7 +2104,8 @@ const closeGalleryViewModal = () => {
 };
 
 const startEditGalleryPhoto = () => {
-    editGalleryForm.value = { title: viewingPhoto.value?.title || '' };
+    loadGalleryArtists();
+    editGalleryForm.value = { title: viewingPhoto.value?.title || '', artist_id: viewingPhoto.value?.artist_id || '' };
     editGalleryFile.value = null;
     editGalleryPreview.value = viewingPhoto.value?.image_url || '';
     editGalleryError.value = '';
@@ -2105,10 +2129,15 @@ const submitEditGalleryPhoto = async () => {
         editGalleryError.value = 'Please provide a title.';
         return;
     }
+    if (!editGalleryForm.value.artist_id) {
+        editGalleryError.value = 'Please select the author of the photo.';
+        return;
+    }
 
     editGallerySaving.value = true;
     const payload = new FormData();
     payload.append('title', editGalleryForm.value.title);
+    payload.append('artist_id', editGalleryForm.value.artist_id);
     if (editGalleryFile.value) {
         payload.append('photo', editGalleryFile.value);
     }
@@ -3147,6 +3176,7 @@ const analytics = ref({
     configured: false,
     metrics: { page_views: 0, active_users: 0, sessions: 0, average_session_duration: 0 },
     top_pages: [],
+    hourly: { views: [], visitors: [] },
     start_date: null,
     end_date: null,
 });
@@ -3171,20 +3201,6 @@ const eicArticleStatusCounts = computed(() => eicArticles.value.reduce((counts, 
     counts[article.status] = (counts[article.status] || 0) + 1;
     return counts;
 }, {}));
-
-const eicAveragePublishDays = computed(() => {
-    const durations = eicArticles.value
-        .filter(article => article.status === 'published' && article.created_at && article.approved_at)
-        .map(article => (new Date(article.approved_at) - new Date(article.created_at)) / 86400000)
-        .filter(duration => Number.isFinite(duration) && duration >= 0);
-
-    return durations.length ? (durations.reduce((total, duration) => total + duration, 0) / durations.length).toFixed(1) : '0.0';
-});
-
-const eicRevisionRate = computed(() => {
-    if (!eicArticles.value.length) return 0;
-    return Math.round(((eicArticleStatusCounts.value.rejected || 0) / eicArticles.value.length) * 100);
-});
 
 watch(activeTab, () => {
     isNewContributorModalOpen.value = false;

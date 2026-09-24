@@ -1,8 +1,8 @@
 <template>
   <article class="article-card" @click="navigateToArticle">
     <div class="article-thumb-wrapper">
-      <span class="article-badge">{{ article.badge }}</span>
-      <img :src="article.image" :alt="article.title">
+      <span v-if="article.badge" class="article-badge">{{ article.badge }}</span>
+      <img :src="article.image || '/images/hero_banner.jpg'" :alt="article.title">
     </div>
     <div class="article-body">
       <h3 class="article-title">{{ article.title }}</h3>
@@ -16,22 +16,25 @@
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
           <span>{{ article.date }}</span>
-          <span class="meta-dot">&bull;</span>
-          <span>{{ article.readTime || '3 mins read' }}</span>
+          <template v-if="article.readTime">
+            <span class="meta-dot">&bull;</span>
+            <span>{{ article.readTime }}</span>
+          </template>
         </div>
-        <div class="article-meta-right">
-          <span class="meta-item">
+        <!-- Real articles don't track views/likes yet, so only show them when provided -->
+        <div v-if="article.views || article.likes" class="article-meta-right">
+          <span v-if="article.views" class="meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            {{ article.views || '1.2k' }}
+            {{ article.views }}
           </span>
-          <span class="meta-item">
+          <span v-if="article.likes" class="meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
-            {{ article.likes || '450' }}
+            {{ article.likes }}
           </span>
         </div>
       </div>
@@ -51,7 +54,12 @@ const props = defineProps({
 
 const router = useRouter();
 
+// Videos open on their own link; articles go to the article page
 const navigateToArticle = () => {
-  router.push('/article');
+  if (props.article.video_url) {
+    window.open(props.article.video_url, '_blank', 'noopener');
+    return;
+  }
+  router.push(`/article/${props.article.id}`);
 };
 </script>

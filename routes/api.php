@@ -14,6 +14,7 @@ use App\Http\Controllers\MonitoringSheetController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\PublishedIssueController;
+use App\Http\Controllers\ReaderArticleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,17 @@ Route::post('/register/send-otp',   [RegisterController::class, 'sendOtp']);
 Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp']);
 Route::post('/register/resend-otp', [RegisterController::class, 'resendOtp']);
 Route::post('/analytics/page-view', [AnalyticsController::class, 'recordPageView']);
+Route::get('/reader/carousel',      [ArticleController::class, 'carousel']);
+Route::get('/reader/articles',      [ArticleController::class, 'latest']);
+Route::get('/reader/category-articles', [ArticleController::class, 'categoryArticles']);
+Route::get('/reader/articles/{article}',          [ReaderArticleController::class, 'show']);
+Route::post('/reader/articles/{article}/read',    [ReaderArticleController::class, 'read']);
+Route::post('/reader/articles/{article}/share',   [ReaderArticleController::class, 'share']);
+Route::get('/reader/articles/{article}/comments', [ReaderArticleController::class, 'comments']);
+Route::get('/reader/videos',        [ArticleController::class, 'videos']);
+Route::get('/reader/issues',        [PublishedIssueController::class, 'latest']);
+Route::get('/reader/issues/{issue}', [PublishedIssueController::class, 'publicShow']);
+Route::get('/reader/gallery',       [GalleryController::class, 'latest']);
 
 // Protected routes (require Sanctum token)
 Route::middleware('auth:sanctum')->group(function () {
@@ -50,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Gallery
     Route::get('/gallery',            [GalleryController::class, 'index']);
+    Route::get('/gallery/artists',    [GalleryController::class, 'artists']);
     Route::post('/gallery',           [GalleryController::class, 'store']);
     Route::post('/gallery/{photo}',   [GalleryController::class, 'update']);   // multipart/form-data
     Route::delete('/gallery/{photo}', [GalleryController::class, 'destroy']);
@@ -60,6 +73,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/published-issues',           [PublishedIssueController::class, 'store']);
     Route::post('/published-issues/{issue}',   [PublishedIssueController::class, 'update']);  // multipart/form-data
     Route::delete('/published-issues/{issue}', [PublishedIssueController::class, 'destroy']);
+
+    // Reader comments (signed-in users only)
+    Route::post('/reader/articles/{article}/comments', [ReaderArticleController::class, 'storeComment'])->middleware('throttle:30,1');
+    Route::patch('/reader/comments/{comment}', [ReaderArticleController::class, 'updateComment']);
+    Route::delete('/reader/comments/{comment}', [ReaderArticleController::class, 'destroyComment']);
 
     // Self-service profile
     Route::post('/profile',         [UserController::class, 'updateProfile']);   // multipart/form-data

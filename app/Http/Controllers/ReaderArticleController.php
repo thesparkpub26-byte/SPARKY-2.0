@@ -1,0 +1,174 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Activity;
+use App\Models\Article;
+use App\Models\ArticleComment;
+use App\Models\Task;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+/** Public, reader-facing endpoints for a single published article and its engagement numbers. */
+class ReaderArticleController extends Controller
+{
+    /** Only published, non-video articles are readable on the reader site. */
+    private function readable(Article $article): Article
+    {
+        abort_unless($article->status === Article::STATUS_PUBLISHED && $article->type !== Article::TYPE_VIDEO, 404);
+
+        return $article;
+    }
+
+    /** $role is the title held at the time; without one, the person's current title is used. */
+    private function person(?User $user, ?string $role = null): ?array
+    {
+        if (!$user) return null;
+
+        return [
+            'id'     => $user->id,
+            'name'   => $user->name,
+            'role'   => $role ?: ($user->secondary_role ?: ucwords(str_replace('_', ' ', (string) $user->role))),
+            'avatar' => $user->profile_picture ? '/storage/' . $user->profile_picture : null,
+        ];
+    }
+
+    public function show(Article $article)
+    {
+        $this->readable($article)->loadCount('comments');
+        $article->load(['author', 'section']);
+
+        // The photojournalist / artist assigned to the article
+        $contributors = Task::with('assignee')
+            ->where('article_id', $article->id)
+            ->whereIn('type', [Task::TYPE_ILLUSTRATION, Task::TYPE_PHOTOGRAPHY])
+            ->whereNotNull('assignee_id')
+            ->get()
+            ->filter(fn (Task $t) => $t->assignee)
+            ->unique('assignee_id')
+            // Show the title they held when they were assigned to this article
+            ->map(fn (Task $t) => $this->person($t->assignee, $t->assignee_role))
+            ->values();
+
+        $related = Article::with('section:id,name')
+            ->where('status', Article::STATUS_PUBLISHED)
+            ->where('type', '!=', Article::TYPE_VIDEO)
+            ->where('id', '!=', $article->id)
+            ->where('section_id', $article->section_id)
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit(3)
+            ->get()
+            ->map(fn (Article $a) => app(ArticleController::class)->toCard($a));
+
+        return response()->json([
+            'id'             => $article->id,
+            'title'          => $article->title,
+            'category'       => $article->section?->name,
+            'published_at'   => ($article->published_at ?? $article->created_at)?->toIso8601String(),
+            'content'        => $article->content,
+            // The 1-3 media uploads (not the thumbnail); the thumbnail only stands in when there are none
+            'media'          => array_values(array_filter($article->media_files ?: [$article->cover_image])),
+            // The author's title when the article was written, not what it is today
+            'author'         => $this->person($article->author, $article->author_role),
+            'contributors'   => $contributors,
+            'reads'          => $article->reads_count,
+            'shares'         => $article->shares_count,
+            'comments_count' => $article->comments_count,
+            'related'        => $related,
+        ]);
+    }
+
+    /** Counts one open of the article page. */
+    public function read(Article $article)
+    {
+        $this->readable($article)->increment('reads_count');
+
+        return response()->json(['reads' => $article->reads_count]);
+    }
+
+    /** Counts one share (the page copies the link to the clipboard first). */
+    public function share(Article $article)
+    {
+        $this->readable($article)->increment('shares_count');
+
+        return response()->json(['shares' => $article->shares_count]);
+    }
+
+    /** Comments, newest first, three at a time: ?offset= is how many the page has already loaded. */
+    public function comments(Request $request, Article $article)
+    {
+        $this->readable($article);
+        $perPage = 3;
+
+        // One extra row tells us whether there is another page
+        $rows = $article->comments()->with('user')->latest()->latest('id')
+            ->offset(max(0, $request->integer('offset')))
+            ->limit($perPage + 1)
+            ->get();
+
+        return response()->json([
+            'data'     => $rows->take($perPage)->map(fn (ArticleComment $c) => $this->comment($c))->values(),
+            'has_more' => $rows->count() > $perPage,
+        ]);
+    }
+
+    /** Signed-in readers only (the route sits behind auth). */
+    public function storeComment(Request $request, Article $article)
+    {
+        $this->readable($article);
+        $validated = $request->validate(['body' => 'required|string|max:1000']);
+
+        $comment = $article->comments()->create([
+            'user_id' => $request->user()->id,
+            'body'    => trim($validated['body']),
+        ])->load('user');
+
+        return response()->json([
+            'comment'        => $this->comment($comment),
+            'comments_count' => $article->comments()->count(),
+        ], 201);
+    }
+
+    /** Only the person who wrote a comment can edit it. */
+    public function updateComment(Request $request, ArticleComment $comment)
+    {
+        if ($comment->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'You can only edit your own comments.'], 403);
+        }
+
+        $validated = $request->validate(['body' => 'required|string|max:1000']);
+        $comment->update(['body' => trim($validated['body'])]);
+
+        return response()->json(['comment' => $this->comment($comment->load('user'))]);
+    }
+
+    /** A comment can be deleted by its author, or by the Editor-in-Chief (or an admin) as moderation. */
+    public function destroyComment(Request $request, ArticleComment $comment)
+    {
+        $user = $request->user();
+        $isOwner = $comment->user_id === $user->id;
+        if (!$isOwner && !in_array($user->role, ['eic', 'admin'])) {
+            return response()->json(['message' => 'You can only delete your own comments.'], 403);
+        }
+
+        $article = $comment->article;
+        if (!$isOwner) {
+            Activity::record($user, 'Deleted a reader comment', $article);
+        }
+        $comment->delete();
+
+        return response()->json(['comments_count' => $article->comments()->count()]);
+    }
+
+    private function comment(ArticleComment $c): array
+    {
+        return [
+            'id'         => $c->id,
+            'body'       => $c->body,
+            'created_at' => $c->created_at?->toIso8601String(),
+            'edited'     => $c->updated_at && $c->created_at && $c->updated_at->gt($c->created_at),
+            'user'       => $this->person($c->user, $c->user?->role === 'reader' ? 'Reader' : null),
+        ];
+    }
+}

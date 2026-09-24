@@ -21,7 +21,7 @@
                 
                 <!-- Content Dropdown -->
                 <div>
-                    <a href="#" class="nav-item has-dropdown" @click.prevent="openDropdown = openDropdown === 'content' ? null : 'content'" :class="{ active: activeTab === 'articles' || activeTab === 'press-works' }">
+                    <a href="#" class="nav-item has-dropdown" @click.prevent="openDropdown = openDropdown === 'content' ? null : 'content'" :class="{ active: activeTab === 'articles' || activeTab === 'press-works' || activeTab === 'gallery' }">
                         <div class="nav-item-left">
                             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                             Content
@@ -36,6 +36,10 @@
                         <a href="#" class="sub-item" @click.prevent="activeTab = 'press-works'; openDropdown = 'content'" :class="{ active: activeTab === 'press-works' }">
                             Press Works
                             <svg v-if="activeTab === 'press-works'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a v-if="isArtEditorUser" href="#" class="sub-item" @click.prevent="activeTab = 'gallery'; openDropdown = 'content'" :class="{ active: activeTab === 'gallery' }">
+                            Gallery
+                            <svg v-if="activeTab === 'gallery'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                         </a>
                     </div>
                 </div>
@@ -506,8 +510,11 @@
         </div>
     </div>
 
-    <div v-show="activeTab === 'contributors'">
-        <div style="display: flex; flex-direction: column; gap: 12px;">
+    <!-- Gallery (Art Editor only) -->
+    <GalleryManager v-if="isArtEditorUser" v-show="activeTab === 'gallery'" />
+
+    <div v-show="activeTab === 'contributors'" class="pinned-pagination-tab">
+        <div class="pinned-fill" style="display: flex; flex-direction: column; gap: 12px;">
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h1 class="page-title">Contributors</h1>
                 <div class="filter-pills-group eic-endorsement-filters">
@@ -537,7 +544,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card pinned-fill">
                 <div class="table-wrapper">
                     <table class="activities-table articles-table">
                         <thead>
@@ -757,6 +764,7 @@ import DirectPublishModal from '../../components/DirectPublishModal.vue';
 import DirectVideoPublishModal from '../../components/DirectVideoPublishModal.vue';
 import { isBroadcastHead, isVideoTask, fetchCreditedVideos, buildVideoPreviewData } from '../../utils/video';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
+import GalleryManager from '../../components/GalleryManager.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
@@ -1009,6 +1017,9 @@ const seUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 
 // The Head / Assistant Head Broadcaster runs the video workflow instead of print articles
 const isBroadcastHeadUser = computed(() => isBroadcastHead(seUser.value));
+// The Art Editor manages the gallery (upload / edit photos)
+const isArtEditorUser = computed(() =>
+    `${seUser.value?.secondary_role || ''} ${seUser.value?.tertiary_role || ''}`.toLowerCase().includes('art editor'));
 const isVideoWorkspaceOpen = ref(false);
 const isVideoReviewOpen = ref(false);
 

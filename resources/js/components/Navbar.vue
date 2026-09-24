@@ -20,14 +20,15 @@
           </svg>
         </router-link>
         <div class="nav-dropdown-menu">
-          <router-link to="/categories" class="dropdown-item">News</router-link>
-          <router-link to="/categories" class="dropdown-item">Opinion/Editorial</router-link>
-          <router-link to="/categories" class="dropdown-item">Feature</router-link>
-          <router-link to="/categories" class="dropdown-item">DevCom</router-link>
-          <router-link to="/categories" class="dropdown-item">Sports</router-link>
-          <router-link to="/categories" class="dropdown-item">Literary</router-link>
+          <router-link
+            v-for="name in CATEGORIES"
+            :key="name"
+            :to="{ path: '/categories', query: { category: name } }"
+            class="dropdown-item"
+          >{{ name }}</router-link>
         </div>
       </div>
+      <router-link to="/videos" class="nav-capsule-link" :class="{ active: currentRoute === '/videos' }">Videos</router-link>
       <router-link to="/gallery" class="nav-capsule-link" :class="{ active: currentRoute === '/gallery' }">Gallery</router-link>
       <router-link to="/issues" class="nav-capsule-link" :class="{ active: currentRoute === '/issues' }">Published Issues</router-link>
     </nav>
@@ -128,6 +129,8 @@ import { signOut as performSignOut } from '../utils/auth';
 const route  = useRoute();
 const router = useRouter();
 const currentRoute = computed(() => route.path);
+
+const CATEGORIES = ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary'];
 
 const isMenuOpen = ref(false);
 

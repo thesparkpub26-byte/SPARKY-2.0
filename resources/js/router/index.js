@@ -4,8 +4,11 @@ import { createRouter, createWebHistory } from 'vue-router';
 import ReaderHome from '../views/reader/ReaderHome.vue';
 import ArticleView from '../views/reader/ArticleView.vue';
 import CategoryView from '../views/reader/CategoryView.vue';
+import VideosView from '../views/reader/VideosView.vue';
 import GalleryView from '../views/reader/GalleryView.vue';
 import PublishedIssuesView from '../views/reader/PublishedIssuesView.vue';
+import PrivacyPolicyView from '../views/reader/PrivacyPolicyView.vue';
+import TermsView from '../views/reader/TermsView.vue';
 
 // Auth Views
 import LoginView from '../views/auth/LoginView.vue';
@@ -32,10 +35,14 @@ const STAFF_ROLES = ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_ar
 const routes = [
   // Reader Portal (accessible to everyone)
   { path: '/', name: 'ReaderHome', component: ReaderHome },
-  { path: '/article', name: 'ArticleView', component: ArticleView },
+  { path: '/article/:id', name: 'ArticleView', component: ArticleView },
+  { path: '/article', redirect: '/' },
   { path: '/categories', name: 'CategoryView', component: CategoryView },
+  { path: '/videos', name: 'VideosView', component: VideosView },
   { path: '/gallery', name: 'GalleryView', component: GalleryView },
   { path: '/issues', name: 'PublishedIssuesView', component: PublishedIssuesView },
+  { path: '/privacy-policy', name: 'PrivacyPolicyView', component: PrivacyPolicyView },
+  { path: '/terms', name: 'TermsView', component: TermsView },
 
   // Authentication
   { path: '/login', name: 'LoginView', component: LoginView },
@@ -59,8 +66,8 @@ const routes = [
   // Profile (any logged-in user)
   { path: '/profile', name: 'ProfileView', component: ProfileView, meta: { requiresAuth: true } },
 
-  // Booklet viewer (any logged-in user; will open to readers too once that flow is wired up)
-  { path: '/booklet/:id', name: 'BookletViewer', component: BookletViewer, meta: { requiresAuth: true } },
+  // Booklet viewer (public — readers open published issues from the Published Issues pages)
+  { path: '/booklet/:id', name: 'BookletViewer', component: BookletViewer },
 ];
 
 const router = createRouter({

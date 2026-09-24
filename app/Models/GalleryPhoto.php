@@ -10,13 +10,18 @@ class GalleryPhoto extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'image_path', 'uploaded_by'];
+    protected $fillable = ['title', 'image_path', 'uploaded_by', 'artist_id'];
 
     protected $appends = ['image_url'];
 
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function artist()
+    {
+        return $this->belongsTo(User::class, 'artist_id');
     }
 
     public function getImageUrlAttribute(): ?string

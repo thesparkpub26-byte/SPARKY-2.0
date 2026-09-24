@@ -57,6 +57,22 @@ class Task extends Model
     const TYPE_VIDEOGRAPHY = 'videography';
     const TYPE_VIDEO_EDITING = 'video_editing';
 
+    // The assignee's title is remembered as of when the task was assigned (or reassigned)
+    protected static function booted(): void
+    {
+        static::creating(function (Task $task) {
+            if (blank($task->assignee_role) && $task->assignee_id) {
+                $task->assignee_role = User::find($task->assignee_id)?->displayRole();
+            }
+        });
+
+        static::updating(function (Task $task) {
+            if ($task->isDirty('assignee_id') && !$task->isDirty('assignee_role')) {
+                $task->assignee_role = User::find($task->assignee_id)?->displayRole();
+            }
+        });
+    }
+
     // Relationships
     public function article()
     {

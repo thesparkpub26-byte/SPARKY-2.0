@@ -198,40 +198,6 @@ class DatabaseSeeder extends Seeder
             'word_count_target' => 600,
         ]);
 
-        // ── Notifications ─────────────────────────────────────────
-        Notification::create([
-            'user_id' => $writer1->id,
-            'title'   => 'New Task Assigned',
-            'message' => "You have been assigned a new task: 'Write article on tuition fee increase'.",
-            'type'    => Notification::TYPE_TASK_ASSIGNED,
-            'data'    => ['task_id' => $task1->id],
-        ]);
-
-        Notification::create([
-            'user_id' => $eic->id,
-            'title'   => 'Article Endorsed',
-            'message' => "'SPARK Alumni: Where Are They Now?' has been endorsed and is awaiting your approval.",
-            'type'    => Notification::TYPE_ARTICLE_ENDORSED,
-            'data'    => ['article_id' => $article2->id],
-        ]);
-
-        Notification::create([
-            'user_id' => $writer1->id,
-            'title'   => 'Article Approved',
-            'message' => "Your article 'UAAP Season Preview: Key Players to Watch' has been approved by the Editor-in-Chief!",
-            'type'    => Notification::TYPE_ARTICLE_APPROVED,
-            'data'    => ['article_id' => $article3->id],
-            'read_at' => now()->subHours(2),
-        ]);
-
-        Notification::create([
-            'user_id' => $sectionEditorSports->id,
-            'title'   => 'Task Submitted',
-            'message' => "Sofia Villanueva has submitted the task: 'Photograph the University Foundation Day event'.",
-            'type'    => Notification::TYPE_TASK_SUBMITTED,
-            'data'    => ['task_id' => $task3->id],
-        ]);
-
         $this->command->info('✅ Database seeded successfully!');
         $this->command->table(
             ['Resource', 'Count'],
@@ -240,7 +206,6 @@ class DatabaseSeeder extends Seeder
                 ['Users',         User::count()],
                 ['Articles',      Article::count()],
                 ['Tasks',         Task::count()],
-                ['Notifications', Notification::count()],
             ]
         );
         $this->command->newLine();

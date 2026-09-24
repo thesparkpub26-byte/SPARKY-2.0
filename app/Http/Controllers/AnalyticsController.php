@@ -42,6 +42,7 @@ class AnalyticsController extends Controller
         $topPages = (clone $views)
             ->selectRaw('page_title as title, COUNT(*) as views, COUNT(DISTINCT visitor_hash) as users')
             ->whereNotNull('page_title')
+            ->whereNotNull('article_id')
             ->groupBy('page_title')
             ->orderByDesc('views')
             ->limit(5)
@@ -52,6 +53,15 @@ class AnalyticsController extends Controller
                 'users' => (int) $page->users,
             ])
             ->values();
+
+        // When during the day articles are opened: views and distinct visitors for each hour (app timezone)
+        $hourlyViews = array_fill(0, 24, 0);
+        $hourlyVisitors = array_fill(0, 24, []);
+        (clone $views)->whereNotNull('article_id')->get(['created_at', 'visitor_hash'])->each(function (PageView $view) use (&$hourlyViews, &$hourlyVisitors) {
+            $hour = $view->created_at->hour;
+            $hourlyViews[$hour]++;
+            $hourlyVisitors[$hour][$view->visitor_hash] = true;
+        });
 
         $published = Article::where('status', Article::STATUS_PUBLISHED)->count();
 
@@ -68,6 +78,10 @@ class AnalyticsController extends Controller
                 'average_session_duration' => 0,
             ],
             'top_pages' => $topPages,
+            'hourly' => [
+                'views'    => $hourlyViews,
+                'visitors' => array_map('count', $hourlyVisitors),
+            ],
             'content' => [
                 'published_articles' => $published,
                 'total_articles' => Article::count(),

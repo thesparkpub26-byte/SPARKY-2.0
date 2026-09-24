@@ -1034,6 +1034,38 @@ td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
     color: #b91c1c;
 }
 
+/* Contributors lists: the pagination bar stays pinned to the bottom of the page, even with only a few rows */
+.content-container:has(> .pinned-pagination-tab) {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.pinned-pagination-tab {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.pinned-fill {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.pinned-pagination-tab .pagination-container {
+    margin-top: auto;
+    position: sticky;
+    bottom: 8px;
+    z-index: 2;
+}
+
+.pinned-fill > .pagination-container {
+    background: #ffffff;
+    bottom: 0;
+}
+
 .floating-pagination {
     background-color: white;
     border-radius: 40px;

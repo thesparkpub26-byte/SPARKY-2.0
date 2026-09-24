@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ArticleController extends Controller
 {
@@ -41,6 +42,114 @@ class ArticleController extends Controller
         }
 
         return response()->json($query->orderByDesc('created_at')->get());
+    }
+
+    /**
+     * Public: the 4 most recently published articles for the reader home carousel.
+     * Videos are excluded (gallery photos and issues live in their own tables).
+     */
+    public function carousel()
+    {
+        $slides = $this->publishedArticles()->limit(4)->get()
+            ->map(fn (Article $a) => [
+                'id'           => $a->id,
+                'title'        => $a->title,
+                'author'       => $a->author?->name,
+                'published_at' => ($a->published_at ?? $a->created_at)?->toIso8601String(),
+                'image'        => $a->cover_image ?: ($a->media_files[0] ?? null),
+            ]);
+
+        return response()->json($slides);
+    }
+
+    /** Public: the latest published articles for the reader "Popular now" lists (default 6, max 12). */
+    public function latest(Request $request)
+    {
+        $limit = max(1, min(12, $request->integer('limit', 6)));
+
+        return response()->json($this->publishedArticles()->limit($limit)->get()->map(fn (Article $a) => $this->toCard($a)));
+    }
+
+    /**
+     * Public: published articles, 5 per page, newest first. Pass ?category=News (etc.) to
+     * only show that section; without one it lists the latest across every category.
+     */
+    public function categoryArticles(Request $request)
+    {
+        $category = strtolower(trim((string) $request->query('category', '')));
+
+        $query = $this->publishedArticles();
+        if ($category !== '') {
+            // The "Feature" category also covers the older plural "Features" section
+            $names = $category === 'feature' ? ['feature', 'features'] : [$category];
+            $query->whereHas('section', fn ($q) => $q->whereRaw(
+                'LOWER(name) IN (' . implode(',', array_fill(0, count($names), '?')) . ')',
+                $names
+            ));
+        }
+
+        $page = $query->paginate(5);
+
+        return response()->json([
+            'data'         => $page->getCollection()->map(fn (Article $a) => $this->toCard($a))->values(),
+            'current_page' => $page->currentPage(),
+            'last_page'    => $page->lastPage(),
+            'total'        => $page->total(),
+        ]);
+    }
+
+    /** Public: published videos (the broadcasting team's work), newest first. Optional ?limit=. */
+    public function videos(Request $request)
+    {
+        $this->publishDueSchedules();
+
+        $query = Article::where('status', Article::STATUS_PUBLISHED)
+            ->where('type', Article::TYPE_VIDEO)
+            ->orderByDesc('published_at')
+            ->orderByDesc('id');
+        if ($request->filled('limit')) {
+            $query->limit(max(1, min(50, $request->integer('limit'))));
+        }
+
+        return response()->json($query->get()->map(function (Article $a) {
+            $youtubeId = preg_match('~(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/|live/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})~i', (string) $a->video_url, $m) ? $m[1] : null;
+
+            return array_merge($this->toCard($a), [
+                'badge'     => $a->video_category ?: 'Video',
+                'image'     => $a->cover_image ?: ($youtubeId ? "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg" : null),
+                'readTime'  => 'Watch video',
+                'video_url' => $a->video_url,
+            ]);
+        }));
+    }
+
+    /** Card shape shared by the reader's article grids and lists. */
+    public function toCard(Article $a): array
+    {
+        $plain = trim(preg_replace('/\s+/', ' ', strip_tags(str_replace(['</p>', '<br>', '<br/>', '</div>'], ' ', $a->content ?? ''))));
+        $words = $a->word_count ?: ($plain === '' ? 0 : count(preg_split('/\s+/', $plain)));
+
+        return [
+            'id'       => $a->id,
+            'badge'    => $a->section?->name,
+            'title'    => $a->title,
+            'excerpt'  => Str::limit($a->excerpt ?: $plain, 110),
+            'image'    => $a->cover_image ?: ($a->media_files[0] ?? null),
+            'date'     => ($a->published_at ?? $a->created_at)?->format('M j, Y'),
+            'readTime' => max(1, (int) ceil($words / 200)) . ' min' . ($words > 200 ? 's' : '') . ' read',
+        ];
+    }
+
+    /** Newest published, non-video articles first. */
+    private function publishedArticles()
+    {
+        $this->publishDueSchedules();
+
+        return Article::with(['author:id,name', 'section:id,name'])
+            ->where('status', Article::STATUS_PUBLISHED)
+            ->where('type', '!=', Article::TYPE_VIDEO)
+            ->orderByDesc('published_at')
+            ->orderByDesc('id');
     }
 
     /** Get a single article */

@@ -229,7 +229,7 @@ onMounted(async () => {
 
     const issueId = route.params.id;
     try {
-        const response = await fetch(`/api/published-issues/${issueId}`, {
+        const response = await fetch(`/api/reader/issues/${issueId}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
                 Accept: 'application/json',

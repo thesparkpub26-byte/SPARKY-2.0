@@ -68,6 +68,22 @@ class Article extends Model
     // Video categories (EIC picks one when reviewing / editing a video)
     const VIDEO_CATEGORIES = ['Documentary', 'Reel', 'Telesiklab'];
 
+    // The author's title is remembered as of when the article was written (or when its author changed)
+    protected static function booted(): void
+    {
+        static::creating(function (Article $article) {
+            if (blank($article->author_role) && $article->author_id) {
+                $article->author_role = User::find($article->author_id)?->displayRole();
+            }
+        });
+
+        static::updating(function (Article $article) {
+            if ($article->isDirty('author_id') && !$article->isDirty('author_role')) {
+                $article->author_role = User::find($article->author_id)?->displayRole();
+            }
+        });
+    }
+
     // Relationships
     public function author()
     {
@@ -82,6 +98,11 @@ class Article extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(ArticleComment::class);
     }
 
     public function credits()

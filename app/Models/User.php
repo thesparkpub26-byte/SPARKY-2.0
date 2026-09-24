@@ -103,6 +103,17 @@ class User extends Authenticatable
     }
 
     /**
+     * The title shown for this person right now (e.g. "News Writer", "News Editor", "Photojournalist").
+     * Work records copy this when they are created, so later promotions don't rewrite history.
+     */
+    public function displayRole(): string
+    {
+        return trim((string) $this->secondary_role) !== ''
+            ? $this->secondary_role
+            : ucwords(str_replace('_', ' ', (string) $this->role));
+    }
+
+    /**
      * Full public URL for the profile picture.
      * Returns null if no picture has been set.
      */

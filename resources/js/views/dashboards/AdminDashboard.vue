@@ -1107,24 +1107,8 @@
                         </div>
                     </div>
 
-                    <!-- Workflow Efficiency -->
-                    <div class="card">
-                        <h3 class="card-header">Workflow Efficiency</h3>
-                        <div class="workflow-grid">
-                            <div class="workflow-box">
-                                <div class="workflow-label">Avg. Time to Publish</div>
-                                <div class="workflow-value-large">{{ averagePublishDays }}<span style="font-size: 16px;">d</span></div>
-                            </div>
-                            <div class="workflow-box">
-                                <div class="workflow-label">Articles to Review</div>
-                                <div class="workflow-value-large">{{ formatCount((articleStatusCounts.submitted || 0) + (articleStatusCounts.under_review || 0) + (articleStatusCounts.endorsed || 0)) }}</div>
-                            </div>
-                            <div class="workflow-box">
-                                <div class="workflow-label">Revision Rate</div>
-                                <div class="workflow-value-large">{{ revisionRate }}<span style="font-size: 16px;">%</span></div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Peak Viewing Time: what time of day readers open articles -->
+                    <PeakTimeCard :hourly="analytics.hourly" />
 
                     <!-- Article Status Overview -->
                     <div class="card">
@@ -1420,6 +1404,7 @@ import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
 import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
+import PeakTimeCard from '../../components/PeakTimeCard.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
@@ -1510,6 +1495,7 @@ const analytics = ref({
     configured: false,
     metrics: { page_views: 0, active_users: 0, sessions: 0, average_session_duration: 0 },
     top_pages: [],
+    hourly: { views: [], visitors: [] },
     start_date: null,
     end_date: null,
 });
@@ -1885,19 +1871,6 @@ const articleStatusCounts = computed(() => articles.value.reduce((counts, articl
     counts[article.status] = (counts[article.status] || 0) + 1;
     return counts;
 }, {}));
-const averagePublishDays = computed(() => {
-    const durations = articles.value
-        .filter(article => article.status === 'published' && article.created_at && article.approved_at)
-        .map(article => (new Date(article.approved_at) - new Date(article.created_at)) / 86400000)
-        .filter(duration => Number.isFinite(duration) && duration >= 0);
-
-    return durations.length ? (durations.reduce((total, duration) => total + duration, 0) / durations.length).toFixed(1) : '0.0';
-});
-const revisionRate = computed(() => {
-    if (!articles.value.length) return 0;
-    return Math.round(((articleStatusCounts.value.rejected || 0) / articles.value.length) * 100);
-});
-
 const pressworkSheets = computed(() => {
     const allSheets = [];
     academicYears.value.forEach(yearGroup => {
