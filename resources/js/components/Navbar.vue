@@ -156,7 +156,7 @@ const dashMap = {
   section_editor:    '/editor',
   staff_writer:      '/writer',
   staff_artist:      '/artist',
-  staff_broadcaster: '/writer',
+  staff_broadcaster: '/broadcaster',
 };
 const staffDashboardPath = computed(() => dashMap[currentUser.value?.role] || '/');
 

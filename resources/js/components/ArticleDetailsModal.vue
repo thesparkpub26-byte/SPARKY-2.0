@@ -1,12 +1,12 @@
 <template>
     <div>
         <!-- MAIN ARTICLE DETAILS MODAL -->
-        <div class="article-details-overlay" v-if="isOpen && !isReturnModalOpen && !isReturnSuccessOpen && !isApprovedSuccessOpen && !isPublishedSuccessOpen" @click.self="closeModal">
+        <div class="article-details-overlay" v-if="isOpen && !isReturnModalOpen && !isReturnSuccessOpen" @click.self="closeModal">
             <div class="article-details-card">
                 
                 <!-- Header -->
                 <div class="modal-hdr">
-                    <h2 class="modal-blue-title">Article Details</h2>
+                    <h2 class="modal-blue-title">{{ isVideo ? 'Video Details' : 'Article Details' }}</h2>
                     <button class="modal-x-btn" @click="closeModal" title="Close" aria-label="Close">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -21,18 +21,10 @@
                     <h1 class="article-main-heading">{{ displayTitle }}</h1>
                 </div>
 
-                <!-- Top Row: Grid Details & Section Editor Remarks -->
+                <!-- Top Row: Grid Details & Assigned Team -->
                 <div class="top-info-row">
                     <!-- Left: Metadata Grid -->
                     <div class="meta-details-grid">
-                        <div class="meta-item">
-                            <span class="meta-label">Coverage</span>
-                            <span class="meta-value">{{ displayCoverage }}</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Writer</span>
-                            <span class="meta-value">{{ displayWriter }}</span>
-                        </div>
                         <div class="meta-item">
                             <span class="meta-label">Date Endorsed</span>
                             <span class="meta-value">{{ displayDateEndorsed }}</span>
@@ -45,25 +37,41 @@
                             <span class="meta-label">Status</span>
                             <span class="status-badge" :class="statusBadgeClass">{{ displayStatus }}</span>
                         </div>
-                        <div class="meta-item">
+                        <div class="meta-item" v-if="!isVideo">
                             <span class="meta-label">Word Count</span>
                             <span class="word-count-chip">{{ displayWordCount }}</span>
                         </div>
+                        <div class="meta-item" v-else>
+                            <span class="meta-label">Video Section</span>
+                            <span class="word-count-chip">{{ article.video_category || 'Not set yet' }}</span>
+                        </div>
                     </div>
 
-                    <!-- Right: Section Editor Remarks Card -->
+                    <!-- Right: Assigned Team Card -->
                     <div class="editor-remarks-card">
-                        <h4 class="remarks-title">Section Editor Remarks</h4>
-                        <div class="quote-icon">“</div>
-                        <p class="remarks-text">
-                            {{ displayRemarks }}
-                        </p>
-                        <div class="editor-profile-bar">
-                            <img :src="editorAvatarUrl" :alt="displayEditorName" class="editor-avatar" />
+                        <h4 class="remarks-title">Assigned Team</h4>
+                        <div class="editor-profile-bar" style="margin-top: 10px;">
+                            <img :src="writerAvatarUrl" :alt="displayWriter" class="editor-avatar" />
                             <div class="editor-info">
-                                <div class="role-pill-badge">{{ displayEditorRole }}</div>
-                                <div class="editor-name">{{ displayEditorName }}</div>
-                                <div class="editor-email">{{ displayEditorEmail }}</div>
+                                <div class="role-pill-badge">{{ displayWriterRole }}</div>
+                                <div class="editor-name">{{ displayWriter }}</div>
+                                <div v-if="displayWriterEmail" class="editor-email">{{ displayWriterEmail }}</div>
+                            </div>
+                        </div>
+                        <div v-if="isVideo" v-for="member in crewMembers" :key="member.role + member.name" class="editor-profile-bar artist-profile-row">
+                            <img :src="member.avatar" :alt="member.name" class="editor-avatar" />
+                            <div class="editor-info">
+                                <div class="role-pill-badge">{{ member.role }}</div>
+                                <div class="editor-name">{{ member.name }}</div>
+                                <div v-if="member.email" class="editor-email">{{ member.email }}</div>
+                            </div>
+                        </div>
+                        <div v-if="!isVideo" class="editor-profile-bar artist-profile-row">
+                            <img v-if="hasArtist" :src="artistAvatarUrl" :alt="displayArtistName" class="editor-avatar" />
+                            <div class="editor-info">
+                                <div v-if="hasArtist" class="role-pill-badge">{{ displayArtistRole }}</div>
+                                <div class="editor-name">{{ displayArtistName }}</div>
+                                <div v-if="displayArtistEmail" class="editor-email">{{ displayArtistEmail }}</div>
                             </div>
                         </div>
                     </div>
@@ -73,7 +81,10 @@
                 <div class="middle-content-row">
                     <!-- Left: Article Preview Card -->
                     <div class="preview-box-card">
-                        <h4 class="card-box-title">Article Preview</h4>
+                        <h4 class="card-box-title">{{ isVideo ? 'Video Preview' : 'Article Preview' }}</h4>
+                        <div v-if="isVideo && embedUrl" class="video-embed">
+                            <iframe :src="embedUrl" title="Video preview" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
                         <div class="preview-text-wrapper">
                             <p class="preview-text" v-if="displayPreviewParagraphs.length > 0" v-for="(para, idx) in displayPreviewParagraphs" :key="idx" :style="idx > 0 ? 'margin-top: 10px;' : ''">
                                 {{ para }}
@@ -83,7 +94,7 @@
                             </p>
                         </div>
                         <button class="view-full-article-link" @click="handleViewFullArticle">
-                            View Full Article 
+                            {{ isVideo ? 'Watch on YouTube' : 'View Full Article' }} 
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -97,63 +108,53 @@
                         <h4 class="card-box-title">Attached Files</h4>
                         <div class="files-list">
                             <div class="file-item" v-for="(file, fIdx) in displayAttachedFiles" :key="fIdx">
-                                <div class="file-thumb-icon">
-                                    <svg v-if="file.type === 'image'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <img v-if="file.url" :src="file.url" :alt="file.name" class="file-thumb-img" />
+                                <div v-else class="file-thumb-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                         <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                         <polyline points="21 15 16 10 5 21"></polyline>
                                     </svg>
-                                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                        <polyline points="14 2 14 8 20 8"></polyline>
-                                    </svg>
                                 </div>
                                 <div class="file-info">
                                     <span class="file-name">{{ file.name }}</span>
-                                    <span class="file-size">{{ file.size }}</span>
                                 </div>
                             </div>
+                            <p v-if="displayAttachedFiles.length === 0" class="preview-text">No files attached.</p>
                         </div>
                         <div class="attachments-count-footer" v-if="displayAttachedFiles.length > 0">
-                            <span class="attachments-pill">+ {{ displayAttachedFiles.length }} attachments</span>
+                            <span class="attachments-pill">{{ displayAttachedFiles.length }} file{{ displayAttachedFiles.length === 1 ? '' : 's' }} attached</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer Action Bar -->
                 <div class="modal-footer-actions">
-                    <button class="btn-grey-pill" @click="isReturnModalOpen = true" :disabled="isSubmitting">
+                    <button class="btn-grey-pill" @click="openReturnModal" :disabled="isSubmitting">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 14 4 9 9 4"></polyline>
                             <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
                         </svg>
-                        Return to Editor
-                    </button>
-                    
-                    <button class="btn-green-light-pill" @click="handleApprove" :disabled="isSubmitting">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        {{ isSubmitting ? 'Approving...' : 'Approve' }}
+                        Return to Writer
                     </button>
 
-                    <button class="btn-blue-primary-pill" @click="handlePublish" :disabled="isSubmitting">
+                    <button class="btn-blue-primary-pill" @click="requestPublishPreview" :disabled="isSubmitting">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m3 11 18-5v12L3 14v-3z"></path>
                             <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
                         </svg>
-                        {{ isSubmitting ? 'Publishing...' : 'Publish Article' }}
+                        {{ isVideo ? 'Publish Video' : 'Publish Article' }}
                     </button>
                 </div>
 
             </div>
         </div>
 
-        <!-- SUB-MODAL 1: RETURN TO SECTION EDITOR -->
+        <!-- SUB-MODAL 1: RETURN TO WRITER -->
         <div class="article-details-overlay" v-if="isOpen && isReturnModalOpen && !isReturnSuccessOpen" @click.self="isReturnModalOpen = false">
             <div class="dialog-card-medium">
                 <div class="modal-hdr">
-                    <h2 class="modal-blue-title">Return to Section Editor</h2>
+                    <h2 class="modal-blue-title">Return to Writer</h2>
                     <button class="modal-x-btn" @click="isReturnModalOpen = false" aria-label="Close">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -165,24 +166,26 @@
                 <div class="notes-form-group">
                     <label class="notes-label">Notes / Revision Instructions</label>
                     <div class="textarea-relative-wrapper">
-                        <textarea 
-                            v-model="returnNotes" 
-                            maxlength="500" 
-                            placeholder="Specify requested revisions and editorial guidance..." 
+                        <textarea
+                            v-model="returnNotes"
+                            maxlength="500"
+                            placeholder="Specify requested revisions and editorial guidance..."
                             class="notes-textarea"
                         ></textarea>
                         <span class="char-count-badge">{{ returnNotes.length }}/500</span>
                     </div>
-                    <p class="notes-subtext">This note will be visible to both the writer and section editor.</p>
+                    <p class="notes-subtext">This note will be visible to the writer. They'll need to revise and resubmit the article through the full review process.</p>
                 </div>
+
+                <p v-if="returnError" class="notes-subtext" style="color: #dc2626;">{{ returnError }}</p>
 
                 <div class="dialog-actions-row">
                     <button class="btn-grey-pill" @click="isReturnModalOpen = false" :disabled="isSubmitting">Cancel</button>
-                    <button class="btn-blue-pill" @click="submitReturnToEditor" :disabled="isSubmitting">
+                    <button class="btn-blue-pill" @click="submitReturnToWriter" :disabled="isSubmitting">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 9L9 20L4 15"></path>
                         </svg>
-                        {{ isSubmitting ? 'Returning...' : 'Return to Editor' }}
+                        {{ isSubmitting ? 'Returning...' : 'Return to Writer' }}
                     </button>
                 </div>
             </div>
@@ -196,46 +199,9 @@
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
-                <h3 class="dialog-success-title">Article Returned to Section Editor</h3>
-                <p class="dialog-success-subtext">The Section Editor has been notified and can now review your notes and coordinate necessary revisions.</p>
+                <h3 class="dialog-success-title">Article Returned to Writer</h3>
+                <p class="dialog-success-subtext">The writer has been notified and can now revise the article and resubmit it for review.</p>
                 <button class="btn-blue-full" @click="finishAll">Done</button>
-            </div>
-        </div>
-
-        <!-- SUB-MODAL 3: APPROVED SUCCESSFUL -->
-        <div class="article-details-overlay" v-if="isOpen && isApprovedSuccessOpen" @click.self="finishAll">
-            <div class="dialog-card-small">
-                <div class="circle-icon-wrap green">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </div>
-                <h3 class="dialog-success-title">Article Approved</h3>
-                <p class="dialog-success-subtext">The article has been marked as approved and is ready for the publication queue.</p>
-                <button class="btn-blue-full" @click="finishAll">Done</button>
-            </div>
-        </div>
-
-        <!-- SUB-MODAL 4: PUBLISHED SUCCESSFUL -->
-        <div class="article-details-overlay" v-if="isOpen && isPublishedSuccessOpen" @click.self="finishAll">
-            <div class="dialog-card-small">
-                <div class="circle-icon-wrap green">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </div>
-                <h3 class="dialog-success-title">Article Published Successfully</h3>
-                <p class="dialog-success-subtext">This article is now live on the publication site and accessible to readers.</p>
-                <div class="dialog-actions-row" style="margin-top: 20px;">
-                    <button class="btn-grey-pill" @click="finishAll">Done</button>
-                    <button class="btn-blue-pill" @click="visitArticle">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="7" y1="17" x2="17" y2="7"></line>
-                            <polyline points="7 7 17 7 17 17"></polyline>
-                        </svg>
-                        Visit Article
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -244,6 +210,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { youtubeEmbedUrl } from '../utils/video';
 
 const props = defineProps({
     isOpen: {
@@ -256,35 +223,38 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['close', 'view-full-article', 'action-complete']);
+const emit = defineEmits(['close', 'view-full-article', 'action-complete', 'request-publish-preview']);
 
 const article = computed(() => props.articleData || {});
 
+// Videos share this review modal; they show a player and the video crew instead of article text
+const isVideo = computed(() => article.value.type === 'video');
+const embedUrl = computed(() => youtubeEmbedUrl(article.value.video_url));
+const crewMembers = computed(() => Array.isArray(article.value.video_crew) ? article.value.video_crew : []);
+
 const isReturnModalOpen = ref(false);
 const returnNotes = ref('');
+const returnError = ref('');
 const isReturnSuccessOpen = ref(false);
-const isApprovedSuccessOpen = ref(false);
-const isPublishedSuccessOpen = ref(false);
 const isSubmitting = ref(false);
+
+const openReturnModal = () => {
+    returnNotes.value = '';
+    returnError.value = '';
+    isReturnModalOpen.value = true;
+};
 
 // Extract clean section name
 const displaySection = computed(() => {
     const sec = article.value.section;
-    if (!sec) return 'News';
+    if (!sec) return 'Unassigned';
     if (typeof sec === 'string') return sec;
     if (typeof sec === 'object' && sec.name) return sec.name;
-    return 'News';
+    return 'Unassigned';
 });
 
 const displayTitle = computed(() => {
     return article.value.title || 'Untitled Article';
-});
-
-const displayCoverage = computed(() => {
-    if (article.value.coverage && typeof article.value.coverage === 'string') {
-        return article.value.coverage;
-    }
-    return `${displaySection.value} Coverage`;
 });
 
 const displayWriter = computed(() => {
@@ -294,11 +264,24 @@ const displayWriter = computed(() => {
     if (article.value.writer && typeof article.value.writer === 'string') {
         return article.value.writer;
     }
-    return 'Samantha Ciscon';
+    return 'Unknown Writer';
+});
+
+const displayWriterRole = computed(() => {
+    return article.value.author?.secondary_role || 'Staff Writer';
+});
+
+const displayWriterEmail = computed(() => {
+    return article.value.author?.email || '';
+});
+
+const writerAvatarUrl = computed(() => {
+    if (article.value.author?.profile_picture_url) return article.value.author.profile_picture_url;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayWriter.value)}&background=dbeafe&color=1e40af&size=100`;
 });
 
 const formatDateTime = (dateVal) => {
-    if (!dateVal) return 'Sep 15, 2026, 2:12 AM';
+    if (!dateVal) return '—';
     try {
         const d = new Date(dateVal);
         if (isNaN(d.getTime())) return String(dateVal);
@@ -351,148 +334,112 @@ const displayWordCount = computed(() => {
     if (article.value.content && typeof article.value.content === 'string') {
         return article.value.content.trim().split(/\s+/).filter(Boolean).length;
     }
-    return 850;
+    return 0;
 });
 
-const displayRemarks = computed(() => {
-    return article.value.editor_notes || article.value.remarks || 'This article has been reviewed and revised on the initial feedback.';
+const hasArtist = computed(() => Boolean(article.value.artist_name));
+
+const displayArtistRole = computed(() => {
+    return article.value.artist_role || 'Staff Artist';
 });
 
-const displayEditorRole = computed(() => {
-    return `${displaySection.value} Editor`;
+const displayArtistName = computed(() => {
+    return article.value.artist_name || 'Not yet assigned';
 });
 
-const displayEditorName = computed(() => {
-    return article.value.editor_name || 'Johan Abinal';
+const displayArtistEmail = computed(() => {
+    return article.value.artist_email || '';
 });
 
-const displayEditorEmail = computed(() => {
-    return article.value.editor_email || 'sec.editor@thesparkpub.com';
+const artistAvatarUrl = computed(() => {
+    if (article.value.artist_avatar) return article.value.artist_avatar;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayArtistName.value)}&background=ffd5dc&color=9f1239&size=100`;
 });
 
-const editorAvatarUrl = computed(() => {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayEditorName.value)}&background=ffd5dc&color=9f1239&size=100`;
-});
-
-const defaultPreviewText = 'Campus creatives continue to shape a more expressive student community as more students explore their talents beyond academics. From writing, graphic design, photography, and video editing, students find new ways to share ideas and support campus organizations. Student publications and multimedia groups help young creatives showcase their skills and contribute meaningful work to the institution.\n\nTheir work also strengthens school identity and student engagement through events, awareness...';
+// Strip HTML tags from rich-text content so the preview shows plain, readable text
+const stripHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
+    const withBreaks = html
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/(p|div|li|h[1-6])>/gi, '\n\n')
+        .replace(/<[^>]+>/g, '');
+    const entities = { '&nbsp;': ' ', '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'" };
+    return withBreaks
+        .replace(/&nbsp;|&amp;|&lt;|&gt;|&quot;|&#39;/g, (match) => entities[match])
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+};
 
 const displayPreviewParagraphs = computed(() => {
-    const text = article.value.excerpt || article.value.content || defaultPreviewText;
+    const text = stripHtml(article.value.excerpt || article.value.content || '');
     return text.split('\n\n').filter(Boolean);
 });
 
+const defaultPreviewText = computed(() => isVideo.value ? 'No video description has been submitted yet.' : 'No article content has been submitted yet.');
+
 const displayAttachedFiles = computed(() => {
-    if (Array.isArray(article.value.attached_files) && article.value.attached_files.length > 0) {
+    if (Array.isArray(article.value.attached_files)) {
         return article.value.attached_files;
     }
-    return [
-        { name: 'imageThumbnail.png', size: '2.3 MB', type: 'image' },
-        { name: 'imageOne.jpeg', size: '2.9 MB', type: 'image' },
-        { name: 'imageTwo.jpeg', size: '2.3 MB', type: 'image' }
-    ];
+    return [];
 });
 
 const closeModal = () => {
     isReturnModalOpen.value = false;
     isReturnSuccessOpen.value = false;
-    isApprovedSuccessOpen.value = false;
-    isPublishedSuccessOpen.value = false;
     emit('close');
 };
 
 const handleViewFullArticle = () => {
+    if (isVideo.value) {
+        if (article.value.video_url) window.open(article.value.video_url, '_blank', 'noopener');
+        return;
+    }
     emit('view-full-article', article.value);
 };
 
-const handleApprove = async () => {
-    const token = localStorage.getItem('sparky_token');
-    const articleId = article.value.id;
-    if (token && articleId) {
-        try {
-            isSubmitting.value = true;
-            await fetch(`/api/articles/${articleId}/approve`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ eic_notes: 'Approved by EIC' })
-            });
-        } catch (e) {
-            console.error(e);
-        } finally {
-            isSubmitting.value = false;
-        }
-    }
-    isApprovedSuccessOpen.value = true;
+const requestPublishPreview = () => {
+    emit('request-publish-preview', article.value);
 };
 
-const handlePublish = async () => {
+const submitReturnToWriter = async () => {
     const token = localStorage.getItem('sparky_token');
     const articleId = article.value.id;
-    if (token && articleId) {
-        try {
-            isSubmitting.value = true;
-            await fetch(`/api/articles/${articleId}`, {
-                method: 'PATCH',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: 'published' })
-            });
-        } catch (e) {
-            console.error(e);
-        } finally {
-            isSubmitting.value = false;
-        }
+    if (!token || !articleId) {
+        returnError.value = 'Missing article or session — please reopen this article and try again.';
+        return;
     }
-    isPublishedSuccessOpen.value = true;
-};
 
-const submitReturnToEditor = async () => {
-    const token = localStorage.getItem('sparky_token');
-    const articleId = article.value.id;
-    if (token && articleId) {
-        try {
-            isSubmitting.value = true;
-            await fetch(`/api/articles/${articleId}/reject`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ rejection_reason: returnNotes.value || 'Please revise based on EIC feedback.' })
-            });
-        } catch (e) {
-            console.error(e);
-        } finally {
-            isSubmitting.value = false;
+    try {
+        isSubmitting.value = true;
+        returnError.value = '';
+        const res = await fetch(`/api/articles/${articleId}/reject`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ rejection_reason: returnNotes.value || 'Please revise based on EIC feedback.' })
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || 'Failed to return the article to the writer.');
         }
+        isReturnModalOpen.value = false;
+        isReturnSuccessOpen.value = true;
+    } catch (e) {
+        returnError.value = e.message || 'Failed to return the article to the writer.';
+    } finally {
+        isSubmitting.value = false;
     }
-    isReturnModalOpen.value = false;
-    isReturnSuccessOpen.value = true;
 };
 
 const finishAll = () => {
     isReturnModalOpen.value = false;
     isReturnSuccessOpen.value = false;
-    isApprovedSuccessOpen.value = false;
-    isPublishedSuccessOpen.value = false;
     emit('action-complete');
     emit('close');
-};
-
-const visitArticle = () => {
-    if (article.value.id) {
-        window.open(`/article/${article.value.id}`, '_blank');
-    } else {
-        window.open('/article-details', '_blank');
-    }
-    finishAll();
 };
 </script>
 
@@ -587,7 +534,7 @@ const visitArticle = () => {
     display: grid;
     grid-template-columns: 1.1fr 1fr;
     gap: 20px;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
 }
 
 .meta-details-grid {
@@ -653,17 +600,18 @@ const visitArticle = () => {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 20px;
-    padding: 18px;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     position: relative;
 }
 
 .remarks-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
     color: #0f172a;
-    margin: 0 0 4px 0;
+    margin: 0 0 2px 0;
 }
 
 .quote-icon {
@@ -684,43 +632,57 @@ const visitArticle = () => {
 .editor-profile-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-top: auto;
 }
 
+.artist-profile-row {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}
+
 .editor-avatar {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
     border: 1px solid #e2e8f0;
+    flex-shrink: 0;
 }
 
 .editor-info {
     display: flex;
     flex-direction: column;
     gap: 1px;
+    min-width: 0;
 }
 
 .role-pill-badge {
     background: #dbeafe;
     color: #1e40af;
-    padding: 1px 8px;
+    padding: 1px 7px;
     border-radius: 8px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     width: fit-content;
 }
 
 .editor-name {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
     color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .editor-email {
-    font-size: 11px;
+    font-size: 10px;
     color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* MIDDLE CONTENT ROW */
@@ -729,6 +691,24 @@ const visitArticle = () => {
     grid-template-columns: 1.1fr 1fr;
     gap: 20px;
     margin-bottom: 28px;
+}
+
+.video-embed {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0f172a;
+    margin-bottom: 12px;
+}
+
+.video-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
 }
 
 .preview-box-card, .attached-files-card {
@@ -780,19 +760,27 @@ const visitArticle = () => {
 }
 
 .file-item {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 8px 12px;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 16px;
+    padding: 10px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+}
+
+.file-thumb-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .file-thumb-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
     background: #eff6ff;
     color: #1d6bf3;
     display: flex;
@@ -808,9 +796,10 @@ const visitArticle = () => {
 }
 
 .file-name {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 700;
     color: #0f172a;
+    word-break: break-all;
 }
 
 .file-size {
@@ -836,7 +825,7 @@ const visitArticle = () => {
 /* FOOTER ACTIONS */
 .modal-footer-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr 1.3fr;
+    grid-template-columns: 1fr 1.4fr;
     gap: 12px;
 }
 

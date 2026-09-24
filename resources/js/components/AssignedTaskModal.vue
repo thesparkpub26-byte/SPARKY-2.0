@@ -38,7 +38,7 @@
                         {{ formatPriority(task.priority) }}
                     </span>
                 </div>
-                <div class="meta-item full-width-meta" v-if="(writerPill && writerPill.name) || (artistPill && artistPill.name)">
+                <div class="meta-item full-width-meta" v-if="(writerPill && writerPill.name) || (artistPill && artistPill.name) || crewPills.length">
                     <span class="meta-label">Collaborators / Assignees</span>
                     <div class="collab-pills-row">
                         <!-- Writer pill -->
@@ -50,11 +50,19 @@
                             </div>
                         </div>
                         <!-- Artist / PJ pill -->
-                        <div class="collab-person-pill artist" v-if="artistPill && artistPill.name" :title="artistPill.name">
+                        <div class="collab-person-pill artist" v-if="artistPill && artistPill.name && !isVideoTask" :title="artistPill.name">
                             <img :src="artistPill.avatar" :alt="artistPill.name" class="collab-person-avatar" />
                             <div class="collab-person-info">
                                 <span class="collab-person-name">{{ artistPill.name }}</span>
                                 <span class="collab-person-role">{{ artistPill.role }}</span>
+                            </div>
+                        </div>
+                        <!-- Video crew (Videographer / Video Editor) -->
+                        <div class="collab-person-pill artist" v-for="member in crewPills" :key="member.role + member.name" :title="member.name">
+                            <img :src="member.avatar" :alt="member.name" class="collab-person-avatar" />
+                            <div class="collab-person-info">
+                                <span class="collab-person-name">{{ member.name }}</span>
+                                <span class="collab-person-role">{{ member.role }}</span>
                             </div>
                         </div>
                     </div>
@@ -78,7 +86,7 @@
             <!-- Actions Footer -->
             <div class="modal-actions-footer">
                 <button class="btn-grey-pill" @click="closeModal">Close</button>
-                <button class="btn-blue-pill" @click="handleOpenWorkspace">
+                <button v-if="task.canOpenWorkspace !== false" class="btn-blue-pill" @click="handleOpenWorkspace">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="7" y1="17" x2="17" y2="7"></line>
                         <polyline points="7 7 17 7 17 17"></polyline>
@@ -213,6 +221,34 @@ const getUserAvatar = (userObj) => {
     if (userObj.avatar) return userObj.avatar;
     return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userObj.name || 'User')}&backgroundColor=ffd5dc`;
 };
+
+// ── Video workflow ───────────────────────────────────────────────────────────
+// Radio Broadcasting tasks list their crew in the notes ("Videographer: X | Video Editor: Y").
+const isVideoTask = computed(() => {
+    const t = props.taskData || {};
+    if (['videography', 'video_editing'].includes(t.type)) return true;
+    const section = (t.section && typeof t.section === 'object') ? t.section.name : t.section;
+    return String(section || '').toLowerCase() === 'radio broadcasting';
+});
+
+const crewPills = computed(() => {
+    if (!isVideoTask.value) return [];
+    const notes = props.taskData?.notes || '';
+    const pick = (key) => {
+        const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
+        return match ? match[1].trim() : '';
+    };
+    return [['Videographer', pick('Videographer')], ['Video Editor', pick('Video Editor')]]
+        .filter(([, name]) => name)
+        .map(([role, name]) => {
+            const found = allUsers.value.find(u => u.name && u.name.trim().toLowerCase() === name.toLowerCase());
+            return {
+                role,
+                name,
+                avatar: found ? getUserAvatar(found) : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=fdf4ff`
+            };
+        });
+});
 
 // Build writer pill from assignees or paired writer
 const writerPill = computed(() => {

@@ -30,7 +30,7 @@
                     </a>
                     <div class="sub-menu" v-show="openDropdown === 'content'" :class="{ open: openDropdown === 'content' }">
                         <a href="#" class="sub-item" @click.prevent="activeTab = 'articles'; openDropdown = 'content'" :class="{ active: activeTab === 'articles' }">
-                            Articles
+                            {{ isBroadcastHeadUser ? 'My Videos' : 'Articles' }}
                             <svg v-if="activeTab === 'articles'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                         </a>
                         <a href="#" class="sub-item" @click.prevent="activeTab = 'press-works'; openDropdown = 'content'" :class="{ active: activeTab === 'press-works' }">
@@ -74,6 +74,7 @@
                 <img :src="seUser.profile_picture ? ('/storage/' + seUser.profile_picture) : (seUser.profile_picture_url || 'https://picsum.photos/200?random=15')" alt="Profile">
                 <div class="user-info">
                     <span class="role-badge" style="background-color: #1a73e8; color: white;">{{ seUser.secondary_role || 'Section Editor' }}</span>
+                    <span v-if="seUser.tertiary_role" class="role-badge" style="background-color: #5b21b6; color: white; margin-left: 4px;">{{ seUser.tertiary_role }}</span>
                     <h4>{{ seUser.name || 'Section Editor' }}</h4>
                     <p>{{ seUser.email || 'sec.editor@thesparkpub.com' }}</p>
                 </div>
@@ -222,7 +223,7 @@
     <div v-show="activeTab === 'articles'">
         <div style="display: flex; flex-direction: column; gap: 12px;">
     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <h1 class="page-title">My Articles</h1>
+        <h1 class="page-title">{{ isBroadcastHeadUser ? 'My Videos' : 'My Articles' }}</h1>
         <div class="filter-pills-group eic-endorsement-filters">
             <!-- Status Dropdown (EIC style) -->
             <div class="eic-custom-filter" @click.stop>
@@ -260,10 +261,10 @@
                 </thead>
                 <tbody>
                     <tr v-if="seArticlesLoading">
-                        <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">Loading articles…</td>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">Loading {{ isBroadcastHeadUser ? 'videos' : 'articles' }}…</td>
                     </tr>
                     <tr v-else-if="seArticlesPaged.length === 0">
-                        <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">No articles found.</td>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">No {{ isBroadcastHeadUser ? 'videos' : 'articles' }} found.</td>
                     </tr>
                     <template v-else>
                         <tr
@@ -308,7 +309,7 @@
             </button>
             
             <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
-                Showing <b>{{ seArticlesPaged.length }}</b> of <b>{{ seArticlesFiltered.length }}</b> articles
+                Showing <b>{{ seArticlesPaged.length }}</b> of <b>{{ seArticlesFiltered.length }}</b> {{ isBroadcastHeadUser ? 'videos' : 'articles' }}
             </div>
         </div>
     </div>
@@ -365,10 +366,16 @@
         <div style="display: flex; flex-direction: column; gap: 12px;">
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h1 class="page-title">Assignments</h1>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="assign-task-btn" type="button" @click="isDirectPublishOpen = true" style="margin: 0; background: #ffffff; color: #1d6bf3; border: 1.5px solid #1d6bf3; box-shadow: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
+                    {{ isBroadcastHeadUser ? 'Publish Automatic/Past Video' : 'Publish Automatic/Past Article' }}
+                </button>
                 <button class="assign-task-btn" type="button" @click="isAssignTaskModalOpen = true" style="margin: 0;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Assign Task
                 </button>
+                </div>
             </div>
 
             <div class="card">
@@ -467,7 +474,7 @@
                                 <td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">Loading submissions…</td>
                             </tr>
                             <tr v-else-if="seSubmissions.length === 0">
-                                <td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">No submitted articles awaiting review.</td>
+                                <td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">No submitted {{ isBroadcastHeadUser ? 'videos' : 'articles' }} awaiting review.</td>
                             </tr>
                             <template v-else>
                                 <tr v-for="(sub, idx) in seSubmissions" :key="sub.id">
@@ -503,8 +510,30 @@
         <div style="display: flex; flex-direction: column; gap: 12px;">
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h1 class="page-title">Contributors</h1>
-                <div class="filters" style="display: flex; gap: 12px;">
-                    <button class="filter-btn">Status <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+                <div class="filter-pills-group eic-endorsement-filters">
+                    <div class="eic-custom-filter" @click.stop>
+                        <button type="button" class="eic-filter-trigger" @click="contributorsStatusDropdownOpen = !contributorsStatusDropdownOpen">
+                            <span>{{ contributorsStatusFilter ? (contributorsStatusLabelMap[contributorsStatusFilter] || 'Status') : 'Status' }}</span>
+                            <svg :class="{ rotated: contributorsStatusDropdownOpen }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </button>
+                        <div v-if="contributorsStatusDropdownOpen" class="eic-filter-menu">
+                            <button
+                                v-for="opt in contributorsStatusOptions"
+                                :key="opt.value"
+                                type="button"
+                                :class="{ selected: contributorsStatusFilter === opt.value }"
+                                @click="contributorsStatusFilter = opt.value; contributorsStatusDropdownOpen = false; contributorsPage = 1"
+                            >
+                                {{ opt.label }}
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="page-nav" style="display:flex;align-items:center;gap:6px;border:1.5px solid #e2e8f0;border-radius:10px;padding:7px 14px;background:#f8fafc;cursor:pointer;font-size:13px;color:#64748b;font-weight:600;" @click="loadSEContributors" title="Refresh">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                        Refresh
+                    </button>
                 </div>
             </div>
 
@@ -520,91 +549,49 @@
                                 <th style="padding-right: 24px;">Status</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding-left: 24px;">Gabrielle Loquias</td>
-                                <td><span class="role-pill">News Writer</span></td>
-                                <td style="color: #64748b; font-weight: 500;">gabloquias@my.cspc.edu.ph</td>
-                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">3</span></td>
-                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 24px;">Vien Lacoste</td>
-                                <td><span class="role-pill">News Writer</span></td>
-                                <td style="color: #64748b; font-weight: 500;">vienlacoste@my.cspc.edu.ph</td>
-                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
-                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 24px;">Alaissa Nolasco</td>
-                                <td><span class="role-pill">News Writer</span></td>
-                                <td style="color: #64748b; font-weight: 500;">alnolasco@my.cspc.edu.ph</td>
-                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
-                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 24px;">Samantha Ciscon</td>
-                                <td><span class="role-pill">News Writer</span></td>
-                                <td style="color: #64748b; font-weight: 500;">samciscon@my.cspc.edu.ph</td>
-                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
-                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 24px;">Mark Marmol</td>
-                                <td><span class="role-pill">Copyreader</span></td>
-                                <td style="color: #64748b; font-weight: 500;">markmarmol@my.cspc.edu.ph</td>
-                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">1</span></td>
-                                <td style="padding-right: 24px;"><span class="status-badge status-draft">Available</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 24px;">Jell Reginaldo</td>
-                                <td><span class="role-pill">Copyreader</span></td>
-                                <td style="color: #64748b; font-weight: 500;">jellreginaldo@my.cspc.edu.ph</td>
-                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
-                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 24px;">Johnrey Frongoso</td>
-                                <td><span class="role-pill">Photojournalist</span></td>
-                                <td style="color: #64748b; font-weight: 500;">jofrongoso@my.cspc.edu.ph</td>
-                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span></td>
-                                <td style="padding-right: 24px;"><span class="status-badge" style="background: #dcfce7; color: #15803d;">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 24px;">Nicole Orcine</td>
-                                <td><span class="role-pill">Layout Artist</span></td>
-                                <td style="color: #64748b; font-weight: 500;">nicorcine@my.cspc.edu.ph</td>
-                                <td><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">1</span></td>
-                                <td style="padding-right: 24px;"><span class="status-badge status-draft">Available</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 24px; border-bottom: none;">Angelica Belano</td>
-                                <td style="border-bottom: none;"><span class="role-pill">Graphic Artist</span></td>
-                                <td style="border-bottom: none; color: #64748b; font-weight: 500;">angebelano@my.cspc.edu.ph</td>
-                                <td style="border-bottom: none;"><span style="background: #93c5fd; color: #1e3a8a; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">1</span></td>
-                                <td style="padding-right: 24px; border-bottom: none;"><span class="status-badge status-draft">Available</span></td>
+                        <tbody v-if="contributorsLoading">
+                            <tr><td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">Loading contributors…</td></tr>
+                        </tbody>
+                        <tbody v-else-if="paginatedContributors.length === 0">
+                            <tr><td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">No contributors found.</td></tr>
+                        </tbody>
+                        <tbody v-else>
+                            <tr v-for="(member, idx) in paginatedContributors" :key="member.id">
+                                <td :style="idx === paginatedContributors.length-1 ? 'padding-left:24px;border-bottom:none;' : 'padding-left:24px;'">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <img :src="member.profile_picture ? ('/storage/' + member.profile_picture) : (member.profile_picture_url || contributorAvatarFallback(member.name))" :alt="member.name" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid #e2e8f0;">
+                                        <span style="font-weight:600;">{{ member.name }}</span>
+                                    </div>
+                                </td>
+                                <td :style="idx === paginatedContributors.length-1 ? 'border-bottom:none;' : ''"><span class="role-pill">{{ member.secondary_role || member.tertiary_role || formatRoleSE(member.role) }}</span></td>
+                                <td :style="idx === paginatedContributors.length-1 ? 'border-bottom:none;color:#64748b;font-weight:500;' : 'color:#64748b;font-weight:500;'">{{ member.email }}</td>
+                                <td :style="idx === paginatedContributors.length-1 ? 'border-bottom:none;' : ''"><span style="background:#93c5fd;color:#1e3a8a;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">{{ member.assigned_tasks_count ?? 0 }}</span></td>
+                                <td :style="idx === paginatedContributors.length-1 ? 'padding-right:24px;border-bottom:none;' : 'padding-right:24px;'">
+                                    <span class="status-badge" :style="member.is_active !== false ? 'background:#dcfce7;color:#15803d;' : 'background:#f1f5f9;color:#64748b;'">{{ member.is_active !== false ? 'Active' : 'Inactive' }}</span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="pagination-pill" style="margin: 24px auto; align-self: center;">
-                    <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                <div class="pagination-container" style="display: flex; justify-content: center; align-items: center; padding: 20px 0; gap: 16px;">
+                    <button class="page-nav" :disabled="contributorsPage <= 1" @click="contributorsPage--" style="cursor: pointer;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
                     </button>
                     <div class="page-numbers" style="display: flex; gap: 8px;">
-                        <button class="page-num active" style="background: #1a73e8; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">1</button>
-                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">2</button>
-                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">3</button>
-                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">4</button>
-                        <button class="page-num" style="background: none; border: none; color: #64748b; font-weight: 500; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">5</button>
-                        <span class="page-ellipsis" style="color: #64748b; font-weight: 500; display: flex; align-items: center; justify-content: center;">...</span>
+                        <button
+                            v-for="p in contributorsTotalPages"
+                            :key="p"
+                            class="page-num"
+                            :class="{ active: p === contributorsPage }"
+                            @click="contributorsPage = p"
+                        >{{ p }}</button>
                     </div>
-                    <button class="page-nav" style="border: none; background: none; display: flex; align-items: center; gap: 4px; color: #64748b; font-weight: 500; cursor: pointer;">
+                    <button class="page-nav" :disabled="contributorsPage >= contributorsTotalPages" @click="contributorsPage++" style="cursor: pointer;">
                         Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </button>
                     <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
-                        Showing <b>9</b> results
+                        Showing <b>{{ filteredContributors.length }}</b> results
                     </div>
                 </div>
             </div>
@@ -638,6 +625,43 @@
         :submission="seReviewTarget"
         @close="isSEReviewModalOpen = false; seReviewTarget = null;"
         @reviewed="onSEReviewed"
+    />
+
+    <!-- Publish an urgent or past article without the review workflow -->
+    <DirectVideoPublishModal
+        :is-open="isDirectPublishOpen && isBroadcastHeadUser"
+        @close="isDirectPublishOpen = false"
+        @published="loadSEArticles(); loadSEOverview();"
+    />
+    <DirectPublishModal
+        :is-open="isDirectPublishOpen && !isBroadcastHeadUser"
+        @close="isDirectPublishOpen = false"
+        @published="loadSEArticles(); loadSEOverview();"
+    />
+
+    <!-- Read-only video preview (videos the user was credited on) -->
+    <ArticlePreviewModal
+        :is-open="isVideoPreviewOpen"
+        :article-data="videoPreviewData"
+        read-only
+        @close="isVideoPreviewOpen = false"
+    />
+
+    <!-- Video Review Modal (Head / Assistant Head Broadcaster) -->
+    <VideoReviewModal
+        :is-open="isVideoReviewOpen"
+        :submission="seReviewTarget"
+        @close="isVideoReviewOpen = false; seReviewTarget = null;"
+        @reviewed="onSEReviewed"
+    />
+
+    <!-- Video Workspace Modal (when the head presents a video themselves) -->
+    <VideoWorkspaceModal
+        :is-open="isVideoWorkspaceOpen"
+        :task-data="selectedTask"
+        @close="isVideoWorkspaceOpen = false; loadSEArticles();"
+        @task-submitted="loadSEArticles(); loadSEOverview();"
+        @task-saved-as-draft="loadSEArticles(); loadSEOverview();"
     />
 
     <!-- Assigned Task Quick Modal -->
@@ -726,6 +750,12 @@ import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
 import EditTaskModal from '../../components/EditTaskModal.vue';
 import SEReviewModal from '../../components/SEReviewModal.vue';
+import VideoReviewModal from '../../components/VideoReviewModal.vue';
+import VideoWorkspaceModal from '../../components/VideoWorkspaceModal.vue';
+import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
+import DirectPublishModal from '../../components/DirectPublishModal.vue';
+import DirectVideoPublishModal from '../../components/DirectVideoPublishModal.vue';
+import { isBroadcastHead, isVideoTask, fetchCreditedVideos, buildVideoPreviewData } from '../../utils/video';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
@@ -875,7 +905,7 @@ const loadSEArticles = async () => {
     seArticlesLoading.value = true;
     try {
         const [articlesRes, tasksRes] = await Promise.allSettled([
-            fetch(`/api/articles?author_id=${seUser.value.id}`, {
+            fetch(`/api/articles?author_id=${seUser.value.id}${isBroadcastHeadUser.value ? '&type=video' : ''}`, {
                 headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
             }),
             fetch(`/api/tasks?assignee_id=${seUser.value.id}`, {
@@ -891,9 +921,17 @@ const loadSEArticles = async () => {
             articlesList = Array.isArray(data) ? data : [];
         }
 
+        // Videos this user was credited on (reporter, scriptwriter, ...) also count as theirs
+        const credited = await fetchCreditedVideos(seUser.value.id);
+        credited.forEach(video => {
+            if (!articlesList.some(a => a.id === video.id)) articlesList.push(video);
+        });
+
         if (tasksRes.status === 'fulfilled' && tasksRes.value.ok) {
             const data = await tasksRes.value.json();
-            tasksList = Array.isArray(data) ? data.filter(t => t.type === 'writing') : [];
+            tasksList = Array.isArray(data)
+                ? data.filter(t => t.type === 'writing' && isVideoTask(t) === isBroadcastHeadUser.value)
+                : [];
         }
 
         // Map articles into standardized view objects
@@ -969,6 +1007,11 @@ const isWorkspaceModalOpen = ref(false);
 const selectedTask = ref({});
 const seUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 
+// The Head / Assistant Head Broadcaster runs the video workflow instead of print articles
+const isBroadcastHeadUser = computed(() => isBroadcastHead(seUser.value));
+const isVideoWorkspaceOpen = ref(false);
+const isVideoReviewOpen = ref(false);
+
 // ── Overview State ─────────────────────────────────────────────────────────────
 const seOverview = ref({
     totalArticles: 0,
@@ -996,6 +1039,71 @@ const formatRoleSE = (role) => {
     return map[role] || role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 };
 
+// ── Contributors Tab State ──────────────────────────────────────────────────
+const seContributors = ref([]);
+const contributorsLoading = ref(false);
+const contributorsStatusFilter = ref('');
+const contributorsStatusDropdownOpen = ref(false);
+const contributorsPage = ref(1);
+const contributorsPerPage = 8;
+
+const contributorsStatusOptions = [
+    { value: '', label: 'All Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+];
+const contributorsStatusLabelMap = { active: 'Active', inactive: 'Inactive' };
+
+const contributorAvatarFallback = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=dbeafe&color=1d4ed8`;
+
+const loadSEContributors = async () => {
+    if (!token) return;
+    contributorsLoading.value = true;
+    try {
+        const res = await fetch('/api/users', {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            const list = Array.isArray(data) ? data : (data.users || []);
+            seContributors.value = list.filter(u => ['staff_writer', 'staff_artist', 'staff_broadcaster'].includes(u.role));
+        }
+    } catch (e) {
+        console.warn('Could not load SE contributors:', e);
+    } finally {
+        contributorsLoading.value = false;
+    }
+};
+
+const filteredContributors = computed(() => {
+    return seContributors.value
+        .filter(m => {
+            if (contributorsStatusFilter.value === 'active') return m.is_active !== false;
+            if (contributorsStatusFilter.value === 'inactive') return m.is_active === false;
+            return true;
+        })
+        .filter(m => matchesSearch(
+            m.name,
+            m.email,
+            m.secondary_role,
+            m.tertiary_role,
+            formatRoleSE(m.role),
+        ));
+});
+
+const contributorsTotalPages = computed(() =>
+    Math.max(1, Math.ceil(filteredContributors.value.length / contributorsPerPage))
+);
+
+const paginatedContributors = computed(() => {
+    const start = (contributorsPage.value - 1) * contributorsPerPage;
+    return filteredContributors.value.slice(start, start + contributorsPerPage);
+});
+
+watch([searchQuery, contributorsStatusFilter], () => {
+    contributorsPage.value = 1;
+});
+
 const formatDateSE = (date) => date
     ? new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
     : '—';
@@ -1008,7 +1116,7 @@ const loadSEOverview = async () => {
 
         // Fetch articles, users, and SE overview in parallel
         const [articlesRes, usersRes, overviewRes] = await Promise.allSettled([
-            fetch('/api/articles', { headers }),
+            fetch(`/api/articles${isBroadcastHeadUser.value ? '?type=video' : ''}`, { headers }),
             fetch('/api/users', { headers }),
             fetch('/api/section-editor/overview', { headers }),
         ]);
@@ -1074,7 +1182,7 @@ const loadSEOverview = async () => {
 };
 
 const defaultSection = computed(() => {
-    const secRole = seUser.value?.secondary_role || '';
+    const secRole = `${seUser.value?.secondary_role || ''} ${seUser.value?.tertiary_role || ''}`;
     if (secRole.includes('News')) return 'News';
     if (secRole.includes('Opinion')) return 'Opinion';
     if (secRole.includes('Editorial')) return 'Editorial';
@@ -1087,8 +1195,21 @@ const defaultSection = computed(() => {
     return 'News';
 });
 
+const isVideoPreviewOpen = ref(false);
+const videoPreviewData = ref({});
+const isDirectPublishOpen = ref(false);
+
+
 const openArticleOrTaskModal = (item) => {
     const matchedTask = item.matchedTask || (item.isTask ? item.raw : null);
+
+    // A credited video (no task of their own) opens as a read-only preview
+    if (item.raw?.type === 'video' && !matchedTask) {
+        videoPreviewData.value = buildVideoPreviewData(item.raw);
+        isVideoPreviewOpen.value = true;
+        return;
+    }
+
     const notesStr = item.notes || matchedTask?.notes || '';
     const dueTime = parseNotesField(notesStr, 'Due Time');
     const mediaArtist = parseNotesField(notesStr, 'Media Artist');
@@ -1098,7 +1219,9 @@ const openArticleOrTaskModal = (item) => {
         taskId: item.taskId || (item.isTask ? item.id : null),
         article_id: item.article_id || (item.isTask ? null : item.id),
         title: item.title || 'Untitled Task',
-        section: (item.section && typeof item.section === 'object') ? (item.section.name || 'News') : (item.section || parseNotesField(notesStr, 'Section') || 'News'),
+        section: isBroadcastHeadUser.value
+            ? 'Radio Broadcasting'
+            : ((item.section && typeof item.section === 'object') ? (item.section.name || 'News') : (item.section || parseNotesField(notesStr, 'Section') || 'News')),
         coverage: parseNotesField(notesStr, 'Coverage') || '',
         dueTime: dueTime,
         deadline: item.deadline || formatDeadline(matchedTask?.deadline, dueTime),
@@ -1142,6 +1265,10 @@ const openTaskModal = (task = {}) => {
 const handleOpenWorkspace = (taskData) => {
     isAssignedTaskModalOpen.value = false;
     selectedTask.value = taskData || selectedTask.value;
+    if (isBroadcastHeadUser.value) {
+        isVideoWorkspaceOpen.value = true;
+        return;
+    }
     isWorkspaceModalOpen.value = true;
 };
 
@@ -1336,7 +1463,8 @@ const loadSEAssigned = async () => {
         });
         if (res.ok) {
             const data = await res.json();
-            seAssignedTasks.value = (Array.isArray(data) ? data : []).map(t => {
+            // Once the linked article is published, the assignment is done and drops off this list.
+            seAssignedTasks.value = (Array.isArray(data) ? data : []).filter(t => t.article?.status !== 'published').map(t => {
                 const dueTime = parseNotesField(t.notes, 'Due Time');
                 return {
                     id: t.id,
@@ -1455,10 +1583,10 @@ const loadSESubmissions = async () => {
     seSubmissionsLoading.value = true;
     try {
         const [articlesRes, tasksRes] = await Promise.allSettled([
-            fetch('/api/articles?status=submitted', {
+            fetch(`/api/articles?status=submitted${isBroadcastHeadUser.value ? '&type=video' : ''}`, {
                 headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
             }),
-            fetch(`/api/tasks?assigned_by=${seUser.value?.id}&status=submitted`, {
+            fetch(`/api/tasks?assigned_by=${seUser.value?.id}&status=submitted&type=writing`, {
                 headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
             })
         ]);
@@ -1472,12 +1600,14 @@ const loadSESubmissions = async () => {
         }
         if (tasksRes.status === 'fulfilled' && tasksRes.value.ok) {
             const data = await tasksRes.value.json();
-            tasksList = Array.isArray(data) ? data : [];
+            tasksList = Array.isArray(data) ? data.filter(t => isVideoTask(t) === isBroadcastHeadUser.value) : [];
         }
 
         const sec = (defaultSection.value || '').toLowerCase();
         const relevantArticles = articlesList.filter(a => {
-            const aSec = (typeof a.section === 'object' ? a.section?.name : a.section || '').toLowerCase();
+            // Every submitted video is the Head Broadcasters' to review, including their own
+            if (isBroadcastHeadUser.value) return true;
+            const aSec = (typeof a.section === 'object' ? (a.section?.name || '') : (a.section || '')).toLowerCase();
             return !sec || aSec.includes(sec) || sec.includes(aSec) || (a.author_id !== seUser.value?.id);
         });
 
@@ -1521,6 +1651,10 @@ const loadSESubmissions = async () => {
 
 const openSEReview = (sub) => {
     seReviewTarget.value = sub;
+    if (isBroadcastHeadUser.value) {
+        isVideoReviewOpen.value = true;
+        return;
+    }
     isSEReviewModalOpen.value = true;
 };
 
@@ -1536,6 +1670,8 @@ watch(activeTab, (tab) => {
         loadSEAssigned();
     } else if (tab === 'submissions') {
         loadSESubmissions();
+    } else if (tab === 'contributors') {
+        loadSEContributors();
     }
 });
 
@@ -1550,6 +1686,7 @@ const closeStatusDropdown = (e) => {
     // Close if click is outside a .eic-custom-filter
     if (!e.target.closest('.eic-custom-filter')) {
         articlesStatusDropdownOpen.value = false;
+        contributorsStatusDropdownOpen.value = false;
     }
 };
 
@@ -1576,6 +1713,7 @@ onMounted(async () => {
     await loadSEPressWorks();
     await loadSEAssigned();
     await loadSESubmissions();
+    await loadSEContributors();
     window.addEventListener('sparky:profile-updated', onProfileUpdated);
     document.addEventListener('click', closeStatusDropdown);
 });

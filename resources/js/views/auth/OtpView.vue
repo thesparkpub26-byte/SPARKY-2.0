@@ -89,7 +89,7 @@ const roleDashboard = {
   section_editor:    '/editor',
   staff_writer:      '/writer',
   staff_artist:      '/artist',
-  staff_broadcaster: '/writer',
+  staff_broadcaster: '/broadcaster',
   reader:            '/',   // Readers land on the public portal
 };
 

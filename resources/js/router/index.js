@@ -20,9 +20,11 @@ import EditorInChiefDashboard from '../views/dashboards/EditorInChiefDashboard.v
 import SectionEditorDashboard from '../views/dashboards/SectionEditorDashboard.vue';
 import StaffWriterDashboard from '../views/dashboards/StaffWriterDashboard.vue';
 import StaffArtistDashboard from '../views/dashboards/StaffArtistDashboard.vue';
+import StaffBroadcasterDashboard from '../views/dashboards/StaffBroadcasterDashboard.vue';
 import MonitoringSheetView from '../views/dashboards/MonitoringSheetView.vue';
 import FileStorageView from '../views/dashboards/FileStorageView.vue';
 import ProfileView from '../views/ProfileView.vue';
+import BookletViewer from '../views/BookletViewer.vue';
 
 // Staff roles that can access dashboards
 const STAFF_ROLES = ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'];
@@ -48,6 +50,7 @@ const routes = [
   { path: '/editor',  name: 'SectionEditorDashboard',  component: SectionEditorDashboard,  meta: { requiresStaff: true } },
   { path: '/writer',  name: 'StaffWriterDashboard',    component: StaffWriterDashboard,    meta: { requiresStaff: true } },
   { path: '/artist',  name: 'StaffArtistDashboard',    component: StaffArtistDashboard,    meta: { requiresStaff: true } },
+  { path: '/broadcaster', name: 'StaffBroadcasterDashboard', component: StaffBroadcasterDashboard, meta: { requiresStaff: true } },
   { path: '/monitoring-sheet', name: 'MonitoringSheetView', component: MonitoringSheetView, meta: { requiresStaff: true } },
   { path: '/monitoring-sheet/:monitoringSheet', name: 'MonitoringSheetDetailView', component: MonitoringSheetView, meta: { requiresStaff: true } },
   { path: '/monitoring_sheet_fullscreen.html', redirect: '/monitoring-sheet' },
@@ -55,6 +58,9 @@ const routes = [
 
   // Profile (any logged-in user)
   { path: '/profile', name: 'ProfileView', component: ProfileView, meta: { requiresAuth: true } },
+
+  // Booklet viewer (any logged-in user; will open to readers too once that flow is wired up)
+  { path: '/booklet/:id', name: 'BookletViewer', component: BookletViewer, meta: { requiresAuth: true } },
 ];
 
 const router = createRouter({
@@ -88,7 +94,7 @@ router.beforeEach((to) => {
       admin: 'AdminDashboard', eic: 'EditorInChiefDashboard',
       section_editor: 'SectionEditorDashboard',
       staff_writer: 'StaffWriterDashboard', staff_artist: 'StaffArtistDashboard',
-      staff_broadcaster: 'StaffWriterDashboard',
+      staff_broadcaster: 'StaffBroadcasterDashboard',
     };
     return { name: dashMap[role] };
   }

@@ -42,12 +42,17 @@ class UserController extends Controller
             'password'   => 'required|string|min:8',
             'role'       => 'required|in:admin,eic,section_editor,staff_writer,staff_artist,staff_broadcaster,reader',
             'secondary_role' => 'nullable|string|max:255',
+            'tertiary_role' => 'nullable|string|max:255|different:secondary_role',
             'program'    => 'nullable|string|max:255',
             'year_section' => 'nullable|string|max:255',
             'bio'        => 'nullable|string',
             'is_active'  => 'sometimes|boolean',
             'profile_picture' => 'sometimes|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
+
+        if (($validated['tertiary_role'] ?? null) && $validated['role'] !== 'section_editor') {
+            $validated['tertiary_role'] = null;
+        }
 
         $validated['password'] = Hash::make($validated['password']);
         if ($request->hasFile('profile_picture')) {
@@ -68,15 +73,29 @@ class UserController extends Controller
             'password'   => 'sometimes|string|min:8',
             'role'       => 'sometimes|in:admin,eic,section_editor,staff_writer,staff_artist,staff_broadcaster,reader',
             'secondary_role' => 'nullable|string|max:255',
+            'tertiary_role' => 'nullable|string|max:255|different:secondary_role',
             'program'    => 'nullable|string|max:255',
             'year_section' => 'nullable|string|max:255',
             'bio'        => 'nullable|string',
             'avatar'     => 'nullable|string',
             'is_active'  => 'sometimes|boolean',
+            'profile_picture' => 'sometimes|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
+        }
+
+        if ($request->hasFile('profile_picture')) {
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+            $validated['profile_picture'] = $request->file('profile_picture')->store('profile_pictures', 'public');
+        }
+
+        $resolvedRole = $validated['role'] ?? $user->role;
+        if (($validated['tertiary_role'] ?? null) && $resolvedRole !== 'section_editor') {
+            $validated['tertiary_role'] = null;
         }
 
         $user->update($validated);

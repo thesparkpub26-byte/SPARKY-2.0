@@ -11,11 +11,6 @@ class Section extends Model
 
     protected $fillable = ['name', 'description', 'color'];
 
-    public function users()
-    {
-        return $this->hasMany(User::class);
-    }
-
     public function articles()
     {
         return $this->hasMany(Article::class);

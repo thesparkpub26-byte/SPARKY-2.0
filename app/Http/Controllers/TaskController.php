@@ -30,6 +30,9 @@ class TaskController extends Controller
         if ($request->has('priority')) {
             $query->where('priority', $request->priority);
         }
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
 
         return response()->json($query->orderByDesc('created_at')->get());
     }
@@ -49,7 +52,7 @@ class TaskController extends Controller
             'article_id'           => 'nullable|exists:articles,id',
             'assignee_id'          => 'required|exists:users,id',
             'section_id'           => 'nullable|exists:sections,id',
-            'type'                 => 'nullable|in:writing,illustration,photography,layout,editing',
+            'type'                 => 'nullable|in:writing,illustration,photography,layout,editing,videography,video_editing',
             'priority'             => 'nullable|in:low,medium,high,urgent',
             'deadline'             => 'nullable|date',
             'notes'                => 'nullable|string',
@@ -82,7 +85,7 @@ class TaskController extends Controller
             'article_id'           => 'nullable|exists:articles,id',
             'assignee_id'          => 'sometimes|exists:users,id',
             'section_id'           => 'nullable|exists:sections,id',
-            'type'                 => 'nullable|in:writing,illustration,photography,layout,editing',
+            'type'                 => 'nullable|in:writing,illustration,photography,layout,editing,videography,video_editing',
             'priority'             => 'nullable|in:low,medium,high,urgent',
             'status'               => 'nullable|in:pending,in_progress,submitted,returned,completed',
             'deadline'             => 'nullable|date',
@@ -106,10 +109,20 @@ class TaskController extends Controller
         $title = $task->title;
         $assigneeId = $task->assignee_id;
 
+        $wasWritingTask = $task->type === Task::TYPE_WRITING;
         $task->delete();
 
         if ($articleId) {
             $article = Article::find($articleId);
+
+            // Deleting a video's presenter task cancels the whole video assignment:
+            // the submission and the crew's tasks go with it (unless it's already live).
+            if ($article && $wasWritingTask && $article->type === Article::TYPE_VIDEO && $article->status !== Article::STATUS_PUBLISHED) {
+                Task::where('article_id', $article->id)->delete();
+                $article->delete();
+                return response()->json(['message' => 'Task deleted successfully.']);
+            }
+
             if ($article) {
                 $otherTasksCount = Task::where('article_id', $article->id)->count();
                 if ($otherTasksCount === 0) {
@@ -162,8 +175,9 @@ class TaskController extends Controller
         $request->validate(['notes' => 'required|string']);
 
         $task->update([
-            'status' => Task::STATUS_RETURNED,
-            'notes'  => $request->notes,
+            'status'           => Task::STATUS_RETURNED,
+            'notes'            => $this->withRevisionNotes($task->notes, $request->notes),
+            'returned_by_role' => $this->returnerRoleLabel($request->user()),
         ]);
         Activity::record($request->user(), 'Returned a task', $task);
 
@@ -196,5 +210,32 @@ class TaskController extends Controller
         ]);
 
         return response()->json($task->load(['assignee', 'assignedBy', 'section', 'article']));
+    }
+
+    /**
+     * Merge a revision reason into a task's notes without losing the structured
+     * fields (Section, Coverage, Media Artist, etc.) other views parse out of it.
+     */
+    private function withRevisionNotes(?string $notes, string $reason): string
+    {
+        $base = trim(preg_replace('/\s*\|?\s*Revision Notes:\s*[^|]*/i', '', $notes ?? ''));
+        $segment = 'Revision Notes: ' . $reason;
+        return $base !== '' ? "{$base} | {$segment}" : $segment;
+    }
+
+    /**
+     * Which editorial-review stage sent a task back, so the writer's workspace
+     * can route the revision note into the matching Section Editor / Copyreader / EIC box.
+     */
+    private function returnerRoleLabel($user): string
+    {
+        if (!$user) return '';
+        if ($user->role === 'eic') return 'eic';
+        if ($user->role === 'section_editor') return 'section_editor';
+        if (in_array('Copyreader', [$user->secondary_role, $user->tertiary_role], true)
+            || in_array('Copy Editor', [$user->secondary_role, $user->tertiary_role], true)) {
+            return 'copyreader';
+        }
+        return $user->role ?? '';
     }
 }

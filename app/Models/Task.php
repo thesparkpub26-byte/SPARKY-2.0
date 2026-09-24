@@ -19,6 +19,7 @@ class Task extends Model
         'type',
         'priority',
         'status',
+        'returned_by_role',
         'deadline',
         'completed_at',
         'notes',
@@ -53,6 +54,8 @@ class Task extends Model
     const TYPE_PHOTOGRAPHY = 'photography';
     const TYPE_LAYOUT = 'layout';
     const TYPE_EDITING = 'editing';
+    const TYPE_VIDEOGRAPHY = 'videography';
+    const TYPE_VIDEO_EDITING = 'video_editing';
 
     // Relationships
     public function article()

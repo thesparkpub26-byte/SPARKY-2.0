@@ -17,57 +17,82 @@
                         Overview
                     </div>
                 </a>
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'endorsements' }" @click.prevent="activeTab = 'endorsements'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                        Endorsements
+
+                <!-- Content & Editorial Dropdown -->
+                <div>
+                    <a href="#" class="nav-item has-dropdown" :class="{ active: ['my-articles', 'articles', 'videos', 'assignments', 'pressWorks', 'press-works', 'gallery', 'published-issues'].includes(activeTab), open: openDropdown === 'content' }" @click.prevent="openDropdown = openDropdown === 'content' ? null : 'content'">
+                        <div class="nav-item-left">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                            </svg>
+                            Content &amp; Editorial
+                        </div>
+                        <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </a>
+                    <div class="sub-menu" v-show="openDropdown === 'content'" :class="{ open: openDropdown === 'content' }">
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'my-articles' }" @click.prevent="activeTab = 'my-articles'; openDropdown = 'content'">
+                            My Articles
+                            <svg v-if="activeTab === 'my-articles'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'articles' }" @click.prevent="activeTab = 'articles'; openDropdown = 'content'">
+                            Published Articles
+                            <svg v-if="activeTab === 'articles'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'videos' }" @click.prevent="activeTab = 'videos'; openDropdown = 'content'">
+                            Videos
+                            <svg v-if="activeTab === 'videos'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'assignments' }" @click.prevent="activeTab = 'assignments'; openDropdown = 'content'">
+                            Assignments
+                            <svg v-if="activeTab === 'assignments'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'pressWorks' || activeTab === 'press-works' }" @click.prevent="activeTab = 'pressWorks'; openDropdown = 'content'">
+                            Press Works
+                            <svg v-if="activeTab === 'pressWorks' || activeTab === 'press-works'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'gallery' }" @click.prevent="activeTab = 'gallery'; openDropdown = 'content'">
+                            Gallery
+                            <svg v-if="activeTab === 'gallery'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'published-issues' }" @click.prevent="activeTab = 'published-issues'; openDropdown = 'content'">
+                            Published Issues
+                            <svg v-if="activeTab === 'published-issues'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
                     </div>
-                </a>
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'pressWorks' || activeTab === 'press-works' }" @click.prevent="activeTab = 'pressWorks'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                        Press Works
+                </div>
+
+                <!-- Management & Workflow Dropdown -->
+                <div>
+                    <a href="#" class="nav-item has-dropdown" :class="{ active: ['contributors', 'endorsements'].includes(activeTab), open: openDropdown === 'management' }" @click.prevent="openDropdown = openDropdown === 'management' ? null : 'management'">
+                        <div class="nav-item-left">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            Management &amp; Workflow
+                        </div>
+                        <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </a>
+                    <div class="sub-menu" v-show="openDropdown === 'management'" :class="{ open: openDropdown === 'management' }">
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'contributors' }" @click.prevent="activeTab = 'contributors'; openDropdown = 'management'">
+                            Contributors
+                            <svg v-if="activeTab === 'contributors'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
+                        <a href="#" class="sub-item" :class="{ active: activeTab === 'endorsements' }" @click.prevent="activeTab = 'endorsements'; openDropdown = 'management'">
+                            Endorsements
+                            <svg v-if="activeTab === 'endorsements'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                        </a>
                     </div>
-                </a>
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'my-articles' }" @click.prevent="activeTab = 'my-articles'">
+                </div>
+
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'analytics' }" @click.prevent="activeTab = 'analytics'">
                     <div class="nav-item-left">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                            <polyline points="10 9 9 9 8 9" />
+                            <line x1="18" y1="20" x2="18" y2="10"/>
+                            <line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
                         </svg>
-                        My Articles
-                    </div>
-                </a>
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'assignments' }" @click.prevent="activeTab = 'assignments'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                        Assignments
-                    </div>
-                </a>
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'articles' }" @click.prevent="activeTab = 'articles'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <line x1="10" y1="9" x2="8" y2="9"/>
-                        </svg>
-                        Published Articles
-                    </div>
-                </a>
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'contributors' }" @click.prevent="activeTab = 'contributors'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                        Contributors
+                        Analytics
                     </div>
                 </a>
                 <a href="#" class="nav-item" :class="{ active: activeTab === 'archive' || activeTab === 'archive-year' }" @click.prevent="activeTab = 'archive'">
@@ -78,16 +103,6 @@
                             <line x1="10" y1="12" x2="14" y2="12"/>
                         </svg>
                         Archive
-                    </div>
-                </a>
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'analytics' }" @click.prevent="activeTab = 'analytics'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="20" x2="18" y2="10"/>
-                            <line x1="12" y1="20" x2="12" y2="4"/>
-                            <line x1="6" y1="20" x2="6" y2="14"/>
-                        </svg>
-                        Analytics
                     </div>
                 </a>
             </nav>
@@ -250,7 +265,7 @@
                             <tbody>
                                 <tr v-for="article in paginatedEicEndorsements" :key="article.id" @click="openArticleDetails(article)" style="cursor: pointer;">
                                     <td style="padding-left: 28px; font-weight: 600;">{{ article.title }}</td>
-                                    <td><span class="section-badge">{{ article.section?.name || 'Unassigned' }}</span></td>
+                                    <td><span class="section-badge">{{ resolveArticleSection(article) || 'Unassigned' }}</span></td>
                                     <td><span class="status-pill" :class="eicStatusClass(article.status)">{{ eicStatusLabel(article.status) }}</span></td>
                                     <td><span class="priority-pill priority-moderate">Moderate</span></td>
                                     <td style="padding-right: 28px; text-align: right; color: #64748b;">{{ formatDate(article.created_at) }}</td>
@@ -313,6 +328,102 @@
                             </div>
                         </div>
                         <div v-else class="empty-activity" style="text-align: center; padding: 40px;">No matching academic years found.</div>
+                    </div>
+                </div>
+
+                <!-- VIDEOS TAB -->
+                <div v-show="activeTab === 'videos'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <h1 class="page-title" style="margin-bottom: 0;">Videos</h1>
+                        <div class="filter-pills-group eic-endorsement-filters">
+                            <div class="eic-custom-filter" @click.stop>
+                                <button type="button" class="eic-filter-trigger" @click="toggleVideoCategoryFilter">
+                                    <span>{{ videoCategoryFilter === 'all' ? 'Section' : videoCategoryFilter }}</span>
+                                    <svg :class="{ rotated: activeVideoCategoryFilter }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                </button>
+                                <div v-if="activeVideoCategoryFilter" class="eic-filter-menu">
+                                    <button v-for="option in videoCategoryOptions" :key="option.value" type="button" :class="{ selected: videoCategoryFilter === option.value }" @click="selectVideoCategory(option.value)">{{ option.label }}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                        <div v-if="!filteredEicVideos.length" class="empty-activity" style="text-align: center; padding: 40px;">
+                            {{ eicPublishedVideos.length ? 'No videos match this section.' : 'No published videos yet. Videos appear here once you publish them from Endorsements.' }}
+                        </div>
+                        <div v-else class="gallery-grid">
+                            <div v-for="video in filteredEicVideos" :key="video.id" class="gallery-card" @click="openVideoManage(video)" style="cursor: pointer;">
+                                <div class="gallery-card-img-wrap video-card-thumb">
+                                    <img v-if="videoThumbnailFor(video)" :src="videoThumbnailFor(video)" :alt="video.title" class="gallery-card-img" />
+                                    <span class="video-card-play">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#ffffff"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                                    </span>
+                                    <span class="video-card-badge" :class="{ scheduled: video.status === 'scheduled' }">{{ video.status === 'scheduled' ? 'Scheduled' : (video.video_category || 'Uncategorized') }}</span>
+                                </div>
+                                <div class="gallery-card-body">
+                                    <span class="gallery-card-title">{{ video.title }}</span>
+                                    <span class="gallery-card-meta">{{ video.author?.name || 'Unknown' }} &bull; {{ formatDate(video.published_at || video.scheduled_at || video.created_at) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GALLERY TAB -->
+                <div v-show="activeTab === 'gallery'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <h1 class="page-title" style="margin-bottom: 0;">Gallery</h1>
+                        <button class="new-user-btn" type="button" @click="openGalleryUploadModal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                            Upload Photo
+                        </button>
+                    </div>
+
+                    <div class="card" style="padding: 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                        <div v-if="galleryLoading" class="empty-activity" style="text-align: center; padding: 40px;">Loading photos…</div>
+                        <div v-else-if="galleryPhotos.length === 0" class="empty-activity" style="text-align: center; padding: 40px;">No photos yet. Click "Upload Photo" to add one.</div>
+                        <div v-else class="gallery-grid">
+                            <div v-for="photo in galleryPhotos" :key="photo.id" class="gallery-card" @click="openGalleryViewModal(photo)" style="cursor: pointer;">
+                                <div class="gallery-card-img-wrap">
+                                    <img :src="photo.image_url" :alt="photo.title" class="gallery-card-img" />
+                                </div>
+                                <div class="gallery-card-body">
+                                    <span class="gallery-card-title">{{ photo.title }}</span>
+                                    <span class="gallery-card-meta">{{ photo.uploader?.name || 'Unknown' }} &bull; {{ formatDate(photo.created_at) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PUBLISHED ISSUES TAB -->
+                <div v-show="activeTab === 'published-issues'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <h1 class="page-title" style="margin-bottom: 0;">Published Issues</h1>
+                        <button class="new-user-btn" type="button" @click="openIssueUploadModal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            Upload Published Issue
+                        </button>
+                    </div>
+
+                    <div class="card" style="padding: 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                        <div v-if="issuesLoading" class="empty-activity" style="text-align: center; padding: 40px;">Loading issues…</div>
+                        <div v-else-if="publishedIssues.length === 0" class="empty-activity" style="text-align: center; padding: 40px;">No published issues yet. Click "Upload Published Issue" to add one.</div>
+                        <div v-else class="gallery-grid">
+                            <div v-for="issue in publishedIssues" :key="issue.id" class="gallery-card" @click="openIssueDetailModal(issue)" style="cursor: pointer;">
+                                <div class="gallery-card-img-wrap">
+                                    <img v-if="issueThumbnails[issue.id]" :src="issueThumbnails[issue.id]" :alt="issue.title" class="gallery-card-img" />
+                                    <div v-else class="issue-row-icon" style="margin: auto;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    </div>
+                                </div>
+                                <div class="gallery-card-body">
+                                    <span class="gallery-card-title">{{ issue.title }}</span>
+                                    <span class="gallery-card-meta">{{ issue.uploader?.name || 'Unknown' }} &bull; {{ formatDate(issue.created_at) }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -502,6 +613,10 @@
                     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <h1 class="page-title" style="margin-bottom: 0;">Published Articles</h1>
                         <div class="filter-pills-group eic-endorsement-filters">
+                            <button class="new-user-btn" type="button" @click="isDirectPublishOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
+                                Publish Automatic/Past Article
+                            </button>
                             <div v-for="filter in eicPublishedFilterDefinitions" :key="filter.key" class="eic-custom-filter" @click.stop>
                                 <button type="button" class="eic-filter-trigger" @click="toggleEicPublishedFilter(filter.key)">
                                     <span>{{ eicPublishedFilterLabel(filter.key) }}</span>
@@ -523,9 +638,9 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="article in paginatedEicPublishedArticles" :key="article.id" @click="openArticleDetails(article)" style="cursor: pointer;">
+                                <tr v-for="article in paginatedEicPublishedArticles" :key="article.id" @click="openArticlePreview(article)" style="cursor: pointer;">
                                     <td style="padding-left: 28px; font-weight: 600;">{{ article.title }}</td>
-                                    <td><span class="section-badge">{{ article.section?.name || 'General' }}</span></td>
+                                    <td><span class="section-badge">{{ resolveArticleSection(article) || 'General' }}</span></td>
                                     <td style="padding-right: 28px; text-align: right; color: #64748b;">{{ formatDate(article.published_at || article.updated_at || article.created_at) }}</td>
                                 </tr>
                                 <tr v-if="!filteredEicPublishedArticles.length">
@@ -611,9 +726,12 @@
                                         </div>
                                     </td>
                                     <td><span class="role-pill">{{ formatRole(user.role) }}</span></td>
-                                    <td>
-                                        <span v-if="user.secondary_role" class="section-badge">{{ user.secondary_role }}</span>
-                                        <span v-else style="color: #94a3b8;">—</span>
+                                    <td style="white-space: normal; overflow: visible; text-overflow: clip;">
+                                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                            <span v-if="user.secondary_role" class="section-badge">{{ user.secondary_role }}</span>
+                                            <span v-if="user.tertiary_role" class="section-badge">{{ user.tertiary_role }}</span>
+                                            <span v-if="!user.secondary_role && !user.tertiary_role" style="color: #94a3b8;">—</span>
+                                        </div>
                                     </td>
                                     <td style="color: #64748b;">{{ user.email }}</td>
                                     <td style="text-align: center;">
@@ -741,13 +859,13 @@
                                 <tbody>
                                     <tr v-for="article in paginatedArchiveArticles" :key="article.id">
                                         <td style="padding-left: 20px; font-weight: 600;">{{ article.title }}</td>
-                                        <td><span class="section-badge">{{ article.section?.name || 'Unassigned' }}</span></td>
+                                        <td><span class="section-badge">{{ resolveArticleSection(article) || 'Unassigned' }}</span></td>
                                         <td style="color: #64748b;">{{ article.author?.name || 'Unknown' }}</td>
                                         <td><span class="status-pill" :class="articleStatusClass(article.status)">{{ articleStatusLabel(article.status) }}</span></td>
                                         <td style="color: #64748b;">{{ formatDate(article.created_at) }}</td>
                                         <td style="text-align: center; padding-right: 20px;">
                                             <div class="action-icons" style="display: flex; gap: 8px; justify-content: center;">
-                                                <button class="action-btn edit" type="button" aria-label="View article" @click="openArticleDetails(article)">
+                                                <button class="action-btn edit" type="button" aria-label="View" @click="openArchiveItem(article)">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                                 </button>
                                             </div>
@@ -948,10 +1066,11 @@
     />
 
     <!-- Full Assignment Workspace Modal -->
-    <AssignmentWorkspaceModal 
-        :is-open="isWorkspaceModalOpen" 
+    <AssignmentWorkspaceModal
+        :is-open="isWorkspaceModalOpen"
         :task-data="selectedTask"
-        @close="isWorkspaceModalOpen = false; loadEicMyArticles();" 
+        :allow-section-edit="isEicEditingArticle"
+        @close="isWorkspaceModalOpen = false; isEicEditingArticle = false; loadEicMyArticles(); loadEicArticles();"
         @task-submitted="loadEicMyArticles(); loadEicOverview(); loadEicArticles();"
         @task-saved-as-draft="loadEicMyArticles(); loadEicOverview(); loadEicArticles();"
     />
@@ -963,6 +1082,52 @@
         @close="isArticleDetailsOpen = false"
         @action-complete="loadEicOverview(); loadEicArticles();"
         @view-full-article="handleOpenWorkspace"
+        @request-publish-preview="handleRequestPublishPreview"
+    />
+
+    <!-- Article Preview Modal (Publish / Schedule / Published state) -->
+    <ArticlePreviewModal
+        :is-open="isArticlePreviewOpen"
+        :article-data="selectedArticle"
+        @close="isArticlePreviewOpen = false"
+        @article-updated="handleArticleUpdated"
+        @action-complete="handleArticleDeleted"
+        @edit-article="handleEditArticleFromPreview"
+    />
+
+    <!-- Read-only preview for videos the EIC was credited on -->
+    <ArticlePreviewModal
+        :is-open="isCreditedVideoPreviewOpen"
+        :article-data="creditedVideoPreview"
+        read-only
+        @close="isCreditedVideoPreviewOpen = false"
+    />
+
+    <!-- Publish an urgent or past article without the review workflow -->
+    <DirectPublishModal
+        :is-open="isDirectPublishOpen"
+        @close="isDirectPublishOpen = false"
+        @published="loadEicArticles(); loadEicOverview();"
+    />
+
+    <!-- Video view / edit / delete (Videos tab) -->
+    <VideoManageModal
+        :is-open="isVideoManageOpen"
+        :video="manageVideo"
+        :start-in-edit="manageVideoStartInEdit"
+        @close="closeVideoManage"
+        @updated="handleVideoUpdated"
+        @deleted="handleVideoDeleted"
+    />
+
+    <!-- Archive Article Preview (read-only) -->
+    <ArticlePreviewModal
+        :is-open="isArchivePreviewOpen"
+        :article-data="selectedArticle"
+        archived
+        @close="isArchivePreviewOpen = false"
+        @action-complete="handleArticleDeleted"
+        @edit-article="handleEditArticleFromPreview"
     />
 
     <!-- Add Academic Year Modal -->
@@ -1008,6 +1173,221 @@
         </div>
     </div>
 
+    <!-- Upload Photo (Gallery) Modal -->
+    <div v-if="isGalleryUploadModalOpen" class="new-user-modal-overlay" @click.self="closeGalleryUploadModal">
+        <form class="new-user-modal" role="dialog" aria-modal="true" @submit.prevent="submitGalleryUpload">
+            <div class="new-user-modal-header">
+                <h2>Upload Photo</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="closeGalleryUploadModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="new-user-step">
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input v-model="galleryUploadForm.title" class="form-control" placeholder="Photo title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Photo</label>
+                    <div class="upload-box">
+                        <div class="upload-circle" :class="{ 'has-preview': galleryUploadPreview }">
+                            <img v-if="galleryUploadPreview" :src="galleryUploadPreview" alt="Photo preview">
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        </div>
+                        <div class="upload-info">
+                            <p>Choose a file or drag & drop it here.<br>jpeg, png, gif, webp - Up to 10MB</p>
+                            <input ref="galleryFileInput" type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden @change="handleGalleryPhotoChange">
+                            <button class="btn-upload" type="button" @click="galleryFileInput?.click()">Upload photo <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="7" y2="8"></line></svg></button>
+                        </div>
+                    </div>
+                </div>
+                <p v-if="galleryUploadError" class="new-user-error">{{ galleryUploadError }}</p>
+                <div class="modal-footer">
+                    <button class="btn-back" type="button" @click="closeGalleryUploadModal">Cancel</button>
+                    <button class="btn-next" type="submit" :disabled="galleryUploadSaving">{{ galleryUploadSaving ? 'Uploading...' : 'Upload Photo' }}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Gallery Photo View / Edit Modal -->
+    <div v-if="isGalleryViewModalOpen" class="new-user-modal-overlay" @click.self="closeGalleryViewModal">
+        <div class="new-user-modal gallery-view-modal" role="dialog" aria-modal="true">
+            <div class="new-user-modal-header">
+                <h2>{{ isEditingGalleryPhoto ? 'Edit Photo' : viewingPhoto?.title }}</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="closeGalleryViewModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <!-- View mode -->
+            <div v-if="!isEditingGalleryPhoto" class="new-user-step">
+                <img :src="viewingPhoto?.image_url" :alt="viewingPhoto?.title" class="gallery-view-img">
+                <p class="gallery-card-meta" style="margin-top: 10px;">{{ viewingPhoto?.uploader?.name || 'Unknown' }} &bull; {{ formatDate(viewingPhoto?.created_at) }}</p>
+                <div class="modal-footer">
+                    <button class="btn-back" type="button" style="color: #dc2626;" @click="deletePhotoFromViewModal">Delete</button>
+                    <button class="btn-next" type="button" @click="startEditGalleryPhoto">Edit</button>
+                </div>
+            </div>
+
+            <!-- Edit mode -->
+            <form v-else class="new-user-step" @submit.prevent="submitEditGalleryPhoto">
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input v-model="editGalleryForm.title" class="form-control" placeholder="Photo title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Photo</label>
+                    <div class="upload-box">
+                        <div class="upload-circle has-preview">
+                            <img :src="editGalleryPreview" alt="Photo preview">
+                        </div>
+                        <div class="upload-info">
+                            <p>Choose a file to replace the current photo.<br>jpeg, png, gif, webp - Up to 10MB</p>
+                            <input ref="editGalleryFileInput" type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden @change="handleEditGalleryPhotoChange">
+                            <button class="btn-upload" type="button" @click="editGalleryFileInput?.click()">Replace photo <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="7" y2="8"></line></svg></button>
+                        </div>
+                    </div>
+                </div>
+                <p v-if="editGalleryError" class="new-user-error">{{ editGalleryError }}</p>
+                <div class="modal-footer">
+                    <button class="btn-back" type="button" @click="cancelEditGalleryPhoto">Cancel</button>
+                    <button class="btn-next" type="submit" :disabled="editGallerySaving">{{ editGallerySaving ? 'Saving...' : 'Save Changes' }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Gallery Photo Confirmation Modal -->
+    <div v-if="photoToDelete" class="new-user-modal-overlay" @click.self="photoToDelete = null">
+        <div class="new-user-modal new-user-confirm-modal" role="dialog" aria-modal="true">
+            <div class="new-user-modal-header">
+                <h2>Delete Photo?</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="photoToDelete = null">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <p>Delete <strong>"{{ photoToDelete.title }}"</strong>? This action cannot be undone.</p>
+            <p v-if="deletePhotoError" class="new-user-error">{{ deletePhotoError }}</p>
+            <div class="modal-footer">
+                <button class="btn-back" type="button" @click="photoToDelete = null">Cancel</button>
+                <button class="btn-next btn-danger" type="button" :disabled="deletePhotoSaving" @click="deleteGalleryPhoto">{{ deletePhotoSaving ? 'Deleting...' : 'Delete Photo' }}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Published Issue Modal -->
+    <div v-if="isIssueUploadModalOpen" class="new-user-modal-overlay" @click.self="closeIssueUploadModal">
+        <form class="new-user-modal" role="dialog" aria-modal="true" @submit.prevent="submitIssueUpload">
+            <div class="new-user-modal-header">
+                <h2>Upload Published Issue</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="closeIssueUploadModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="new-user-step">
+                <p class="presswork-modal-note">The uploaded PDF will be converted into a flipbook for readers.</p>
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input v-model="issueUploadForm.title" class="form-control" placeholder="e.g. AY 2025-2026 Issue 1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PDF File</label>
+                    <div class="upload-box">
+                        <div class="upload-circle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        </div>
+                        <div class="upload-info">
+                            <p v-if="issueUploadFileName">{{ issueUploadFileName }}</p>
+                            <p v-else>Choose a PDF file to upload.<br>PDF only - Up to 35MB</p>
+                            <input ref="issueFileInput" type="file" accept="application/pdf" hidden @change="handleIssuePdfChange">
+                            <button class="btn-upload" type="button" @click="issueFileInput?.click()">Upload PDF <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="7" y2="8"></line></svg></button>
+                        </div>
+                    </div>
+                </div>
+                <p v-if="issueUploadError" class="new-user-error">{{ issueUploadError }}</p>
+                <div class="modal-footer">
+                    <button class="btn-back" type="button" @click="closeIssueUploadModal">Cancel</button>
+                    <button class="btn-next" type="submit" :disabled="issueUploadSaving">{{ issueUploadSaving ? 'Uploading...' : 'Upload Issue' }}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Published Issue Detail / Edit Modal -->
+    <div v-if="isIssueDetailModalOpen" class="new-user-modal-overlay" @click.self="closeIssueDetailModal">
+        <div class="new-user-modal" role="dialog" aria-modal="true">
+            <div class="new-user-modal-header">
+                <h2>{{ isEditingIssue ? 'Edit Published Issue' : viewingIssue?.title }}</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="closeIssueDetailModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <!-- Detail mode -->
+            <div v-if="!isEditingIssue" class="new-user-step">
+                <div class="issue-thumb-preview">
+                    <img v-if="issueThumbnails[viewingIssue?.id]" :src="issueThumbnails[viewingIssue?.id]" alt="" class="issue-thumb-img" />
+                    <div v-else-if="issueThumbnailLoading" class="issue-thumb-placeholder">Loading preview…</div>
+                    <div v-else class="issue-thumb-placeholder">No preview available</div>
+                </div>
+                <p class="gallery-card-meta" style="margin-top: 10px;">{{ viewingIssue?.uploader?.name || 'Unknown' }} &bull; {{ formatDate(viewingIssue?.created_at) }}</p>
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                    <button class="btn-back" type="button" style="color: #dc2626;" @click="deleteIssueFromDetailModal">Delete</button>
+                    <div style="display: flex; gap: 14px;">
+                        <button class="btn-back" type="button" @click="startEditIssue">Edit</button>
+                        <button class="btn-next" type="button" @click="viewIssueBooklet">View Booklet</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit mode -->
+            <form v-else class="new-user-step" @submit.prevent="submitEditIssue">
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input v-model="editIssueForm.title" class="form-control" placeholder="e.g. AY 2025-2026 Issue 1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PDF File</label>
+                    <div class="upload-box">
+                        <div class="upload-circle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        </div>
+                        <div class="upload-info">
+                            <p v-if="editIssueFileName">{{ editIssueFileName }}</p>
+                            <p v-else>Choose a PDF file to replace the current one.<br>PDF only - Up to 35MB</p>
+                            <input ref="editIssueFileInput" type="file" accept="application/pdf" hidden @change="handleEditIssuePdfChange">
+                            <button class="btn-upload" type="button" @click="editIssueFileInput?.click()">Replace PDF <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="7" y2="8"></line></svg></button>
+                        </div>
+                    </div>
+                </div>
+                <p v-if="editIssueError" class="new-user-error">{{ editIssueError }}</p>
+                <div class="modal-footer">
+                    <button class="btn-back" type="button" @click="cancelEditIssue">Cancel</button>
+                    <button class="btn-next" type="submit" :disabled="editIssueSaving">{{ editIssueSaving ? 'Saving...' : 'Save Changes' }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Published Issue Confirmation Modal -->
+    <div v-if="issueToDelete" class="new-user-modal-overlay" @click.self="issueToDelete = null">
+        <div class="new-user-modal new-user-confirm-modal" role="dialog" aria-modal="true">
+            <div class="new-user-modal-header">
+                <h2>Delete Issue?</h2>
+                <button class="new-user-close" type="button" aria-label="Close" @click="issueToDelete = null">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <p>Delete <strong>"{{ issueToDelete.title }}"</strong>? This action cannot be undone.</p>
+            <p v-if="deleteIssueError" class="new-user-error">{{ deleteIssueError }}</p>
+            <div class="modal-footer">
+                <button class="btn-back" type="button" @click="issueToDelete = null">Cancel</button>
+                <button class="btn-next btn-danger" type="button" :disabled="deleteIssueSaving" @click="deleteIssue">{{ deleteIssueSaving ? 'Deleting...' : 'Delete Issue' }}</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Contributor Modal -->
     <div v-if="isEditUserModalOpen" class="new-user-modal-overlay" @click.self="closeEditUser">
         <form class="new-user-modal" role="dialog" aria-modal="true" @submit.prevent="saveEditedUser">
@@ -1018,12 +1398,26 @@
                 </button>
             </div>
             <div class="new-user-step">
+                <div class="form-group">
+                    <label class="form-label">Profile Picture</label>
+                    <div class="upload-box">
+                        <div class="upload-circle" :class="{ 'has-preview': editUserImagePreview }">
+                            <img v-if="editUserImagePreview" :src="editUserImagePreview" alt="Profile preview">
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        </div>
+                        <div class="upload-info">
+                            <p>Choose a new photo for this contributor.<br>jpeg, png, webp - Up to 4MB</p>
+                            <input ref="editUserFileInput" type="file" accept="image/jpeg,image/png,image/webp" hidden @change="handleEditUserImage">
+                            <button class="btn-upload" type="button" @click="editUserFileInput?.click()">{{ editUserImagePreview ? 'Change image' : 'Upload image' }} <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="7" y2="8"></line></svg></button>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group"><label class="form-label">Full Name</label><input v-model="editUserForm.name" class="form-control" required></div>
                 <div class="form-group"><label class="form-label">Email</label><input v-model="editUserForm.email" type="email" class="form-control" required></div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Role</label>
-                        <select v-model="editUserForm.role" class="form-control select-control" required @change="editUserForm.secondary_role = ''">
+                        <select v-model="editUserForm.role" class="form-control select-control" required @change="editUserForm.secondary_role = ''; editUserForm.tertiary_role = ''">
                             <option value="section_editor">Section Editor</option>
                             <option value="staff_writer">Staff Writer</option>
                             <option value="staff_artist">Staff Artist</option>
@@ -1040,9 +1434,16 @@
                 </div>
                 <div v-if="SECONDARY_ROLES[editUserForm.role]" class="form-group" style="margin-top: 8px;">
                     <label class="form-label">Section / Secondary Role</label>
-                    <select v-model="editUserForm.secondary_role" class="form-control select-control">
+                    <select v-model="editUserForm.secondary_role" class="form-control select-control" @change="editUserForm.tertiary_role = ''">
                         <option value="">None / Default</option>
                         <option v-for="secRole in SECONDARY_ROLES[editUserForm.role]" :key="secRole" :value="secRole">{{ secRole }}</option>
+                    </select>
+                </div>
+                <div v-if="editUserForm.role === 'section_editor' && editUserForm.secondary_role" class="form-group" style="margin-top: 8px;">
+                    <label class="form-label">Additional Section Editor Role</label>
+                    <select v-model="editUserForm.tertiary_role" class="form-control select-control">
+                        <option value="">None</option>
+                        <option v-for="secRole in SECONDARY_ROLES.section_editor.filter(r => r !== editUserForm.secondary_role)" :key="secRole" :value="secRole">{{ secRole }}</option>
                     </select>
                 </div>
                 <div class="form-row edit-user-academic-group">
@@ -1160,7 +1561,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <div class="input-icon-wrap custom-select-wrap">
-                                <select v-model="newContributorForm.role" class="form-control select-control" @change="newContributorForm.secondary_role = ''">
+                                <select v-model="newContributorForm.role" class="form-control select-control" @change="newContributorForm.secondary_role = ''; newContributorForm.tertiary_role = ''">
                                     <option value="" disabled>Role</option>
                                     <option value="section_editor">Section Editor</option>
                                     <option value="staff_writer">Staff Writer</option>
@@ -1183,9 +1584,18 @@
                     <div v-if="SECONDARY_ROLES[newContributorForm.role]" class="form-group" style="margin-top: 12px;">
                         <label class="form-label">Section / Secondary Role</label>
                         <div class="input-icon-wrap custom-select-wrap">
-                            <select v-model="newContributorForm.secondary_role" class="form-control select-control">
+                            <select v-model="newContributorForm.secondary_role" class="form-control select-control" @change="newContributorForm.tertiary_role = ''">
                                 <option value="">None / Default</option>
                                 <option v-for="secRole in SECONDARY_ROLES[newContributorForm.role]" :key="secRole" :value="secRole">{{ secRole }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div v-if="newContributorForm.role === 'section_editor' && newContributorForm.secondary_role" class="form-group" style="margin-top: 12px;">
+                        <label class="form-label">Additional Section Editor Role</label>
+                        <div class="input-icon-wrap custom-select-wrap">
+                            <select v-model="newContributorForm.tertiary_role" class="form-control select-control">
+                                <option value="">None</option>
+                                <option v-for="secRole in SECONDARY_ROLES.section_editor.filter(r => r !== newContributorForm.secondary_role)" :key="secRole" :value="secRole">{{ secRole }}</option>
                             </select>
                         </div>
                     </div>
@@ -1231,12 +1641,17 @@ import AssignTaskModal from '../../components/AssignTaskModal.vue';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
 import ArticleDetailsModal from '../../components/ArticleDetailsModal.vue';
+import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
+import VideoManageModal from '../../components/VideoManageModal.vue';
+import DirectPublishModal from '../../components/DirectPublishModal.vue';
+import { VIDEO_CATEGORIES, youtubeThumbnail, fetchCreditedVideos, buildVideoPreviewData } from '../../utils/video';
 import EditTaskModal from '../../components/EditTaskModal.vue';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
 const activeTab = ref('overview');
+const openDropdown = ref(null);
 const searchQuery = ref('');
 const eicUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 const eicOverview = ref({
@@ -1245,6 +1660,7 @@ const eicOverview = ref({
     updated_at: null,
 });
 const eicArticles = ref([]);
+const eicVideos = ref([]);
 const eicUsers = ref([]);
 const eicAcademicYears = ref([]);
 const eicExpandedYears = ref({});
@@ -1256,6 +1672,9 @@ const isAssignTaskModalOpen = ref(false);
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
 const isArticleDetailsOpen = ref(false);
+const isArticlePreviewOpen = ref(false);
+const isArchivePreviewOpen = ref(false);
+const isEicEditingArticle = ref(false);
 
 // ── EIC My Articles State ───────────────────────────────────────────────────
 const eicMyArticles = ref([]);
@@ -1339,6 +1758,54 @@ const yearToDelete = ref('');
 const deleteYearSaving = ref(false);
 const deleteYearError = ref('');
 
+// ── Gallery ──────────────────────────────────────────────────────────────────
+const galleryPhotos = ref([]);
+const galleryLoading = ref(false);
+const isGalleryUploadModalOpen = ref(false);
+const galleryUploadForm = ref({ title: '' });
+const galleryUploadFile = ref(null);
+const galleryUploadPreview = ref('');
+const galleryFileInput = ref(null);
+const galleryUploadError = ref('');
+const galleryUploadSaving = ref(false);
+const photoToDelete = ref(null);
+const deletePhotoError = ref('');
+const deletePhotoSaving = ref(false);
+const isGalleryViewModalOpen = ref(false);
+const viewingPhoto = ref(null);
+const isEditingGalleryPhoto = ref(false);
+const editGalleryForm = ref({ title: '' });
+const editGalleryFile = ref(null);
+const editGalleryPreview = ref('');
+const editGalleryFileInput = ref(null);
+const editGalleryError = ref('');
+const editGallerySaving = ref(false);
+
+// ── Published Issues ────────────────────────────────────────────────────────
+const publishedIssues = ref([]);
+const issuesLoading = ref(false);
+const isIssueUploadModalOpen = ref(false);
+const issueUploadForm = ref({ title: '' });
+const issueUploadFile = ref(null);
+const issueUploadFileName = ref('');
+const issueFileInput = ref(null);
+const issueUploadError = ref('');
+const issueUploadSaving = ref(false);
+const issueToDelete = ref(null);
+const deleteIssueError = ref('');
+const deleteIssueSaving = ref(false);
+const isIssueDetailModalOpen = ref(false);
+const viewingIssue = ref(null);
+const isEditingIssue = ref(false);
+const editIssueForm = ref({ title: '' });
+const editIssueFile = ref(null);
+const editIssueFileName = ref('');
+const editIssueFileInput = ref(null);
+const editIssueError = ref('');
+const editIssueSaving = ref(false);
+const issueThumbnails = ref({});
+const issueThumbnailLoading = ref(false);
+
 const selectedTask = ref({});
 const selectedArticle = ref({});
 
@@ -1363,6 +1830,7 @@ const searchPlaceholder = computed(() => {
         case 'press-works': return 'Search press works';
         case 'my-articles': return 'Search my articles';
         case 'articles': return 'Search published articles';
+        case 'videos': return 'Search videos';
         case 'contributors': return 'Search contributors';
         case 'archive': return 'Search archive folders';
         case 'archive-year': return 'Search archived articles';
@@ -1496,6 +1964,439 @@ const deleteYear = async () => {
     }
 };
 
+// ── Gallery ──────────────────────────────────────────────────────────────────
+const loadGalleryPhotos = async () => {
+    galleryLoading.value = true;
+    try {
+        const response = await fetch('/api/gallery', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) galleryPhotos.value = await response.json();
+    } catch {
+        galleryPhotos.value = [];
+    } finally {
+        galleryLoading.value = false;
+    }
+};
+
+const openGalleryUploadModal = () => {
+    galleryUploadForm.value = { title: '' };
+    galleryUploadFile.value = null;
+    galleryUploadPreview.value = '';
+    galleryUploadError.value = '';
+    isGalleryUploadModalOpen.value = true;
+};
+
+const closeGalleryUploadModal = () => {
+    isGalleryUploadModalOpen.value = false;
+};
+
+const handleGalleryPhotoChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    galleryUploadFile.value = file;
+    galleryUploadPreview.value = file ? URL.createObjectURL(file) : '';
+};
+
+const submitGalleryUpload = async () => {
+    galleryUploadError.value = '';
+    if (!galleryUploadForm.value.title.trim()) {
+        galleryUploadError.value = 'Please provide a title.';
+        return;
+    }
+    if (!galleryUploadFile.value) {
+        galleryUploadError.value = 'Please choose a photo to upload.';
+        return;
+    }
+
+    galleryUploadSaving.value = true;
+    const payload = new FormData();
+    payload.append('title', galleryUploadForm.value.title);
+    payload.append('photo', galleryUploadFile.value);
+
+    try {
+        const response = await fetch('/api/gallery', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+            body: payload,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const validationError = data.errors ? Object.values(data.errors)[0]?.[0] : data.message;
+            throw new Error(validationError || 'Could not upload photo.');
+        }
+        galleryPhotos.value.unshift(data);
+        closeGalleryUploadModal();
+    } catch (error) {
+        galleryUploadError.value = error.message;
+    } finally {
+        galleryUploadSaving.value = false;
+    }
+};
+
+const confirmDeleteGalleryPhoto = (photo) => {
+    photoToDelete.value = photo;
+    deletePhotoError.value = '';
+};
+
+const deleteGalleryPhoto = async () => {
+    if (!photoToDelete.value) return;
+    deletePhotoSaving.value = true;
+    deletePhotoError.value = '';
+    try {
+        const response = await fetch(`/api/gallery/${photoToDelete.value.id}`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(data.message || 'Could not delete photo.');
+        }
+        galleryPhotos.value = galleryPhotos.value.filter(p => p.id !== photoToDelete.value.id);
+        photoToDelete.value = null;
+    } catch (error) {
+        deletePhotoError.value = error.message;
+    } finally {
+        deletePhotoSaving.value = false;
+    }
+};
+
+const openGalleryViewModal = (photo) => {
+    viewingPhoto.value = photo;
+    isEditingGalleryPhoto.value = false;
+    isGalleryViewModalOpen.value = true;
+};
+
+const closeGalleryViewModal = () => {
+    isGalleryViewModalOpen.value = false;
+    isEditingGalleryPhoto.value = false;
+};
+
+const startEditGalleryPhoto = () => {
+    editGalleryForm.value = { title: viewingPhoto.value?.title || '' };
+    editGalleryFile.value = null;
+    editGalleryPreview.value = viewingPhoto.value?.image_url || '';
+    editGalleryError.value = '';
+    isEditingGalleryPhoto.value = true;
+};
+
+const cancelEditGalleryPhoto = () => {
+    isEditingGalleryPhoto.value = false;
+};
+
+const handleEditGalleryPhotoChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+    editGalleryFile.value = file;
+    editGalleryPreview.value = URL.createObjectURL(file);
+};
+
+const submitEditGalleryPhoto = async () => {
+    editGalleryError.value = '';
+    if (!editGalleryForm.value.title.trim()) {
+        editGalleryError.value = 'Please provide a title.';
+        return;
+    }
+
+    editGallerySaving.value = true;
+    const payload = new FormData();
+    payload.append('title', editGalleryForm.value.title);
+    if (editGalleryFile.value) {
+        payload.append('photo', editGalleryFile.value);
+    }
+
+    try {
+        const response = await fetch(`/api/gallery/${viewingPhoto.value.id}`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+            body: payload,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const validationError = data.errors ? Object.values(data.errors)[0]?.[0] : data.message;
+            throw new Error(validationError || 'Could not save changes.');
+        }
+        viewingPhoto.value = data;
+        const idx = galleryPhotos.value.findIndex(p => p.id === data.id);
+        if (idx !== -1) galleryPhotos.value[idx] = data;
+        isEditingGalleryPhoto.value = false;
+    } catch (error) {
+        editGalleryError.value = error.message;
+    } finally {
+        editGallerySaving.value = false;
+    }
+};
+
+const deletePhotoFromViewModal = () => {
+    photoToDelete.value = viewingPhoto.value;
+    closeGalleryViewModal();
+};
+
+// ── Published Issues ────────────────────────────────────────────────────────
+// The archive lists gallery photos and issues too, so it needs the raw lists (no thumbnails rendered)
+const loadArchiveExtras = async () => {
+    const headers = {
+        Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+        Accept: 'application/json',
+    };
+    try {
+        const [galleryRes, issuesRes] = await Promise.all([
+            fetch('/api/gallery', { headers }),
+            fetch('/api/published-issues', { headers }),
+        ]);
+        if (galleryRes.ok) galleryPhotos.value = await galleryRes.json();
+        if (issuesRes.ok) publishedIssues.value = await issuesRes.json();
+    } catch {
+        // Keep whatever is already loaded.
+    }
+};
+
+const loadPublishedIssues = async () => {
+    issuesLoading.value = true;
+    try {
+        const response = await fetch('/api/published-issues', {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        if (response.ok) {
+            publishedIssues.value = await response.json();
+            publishedIssues.value.forEach(renderIssueThumbnail);
+        }
+    } catch {
+        publishedIssues.value = [];
+    } finally {
+        issuesLoading.value = false;
+    }
+};
+
+const openIssueUploadModal = () => {
+    issueUploadForm.value = { title: '' };
+    issueUploadFile.value = null;
+    issueUploadFileName.value = '';
+    issueUploadError.value = '';
+    isIssueUploadModalOpen.value = true;
+};
+
+const closeIssueUploadModal = () => {
+    isIssueUploadModalOpen.value = false;
+};
+
+const handleIssuePdfChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    issueUploadFile.value = file;
+    issueUploadFileName.value = file ? file.name : '';
+};
+
+const submitIssueUpload = async () => {
+    issueUploadError.value = '';
+    if (!issueUploadForm.value.title.trim()) {
+        issueUploadError.value = 'Please provide a title.';
+        return;
+    }
+    if (!issueUploadFile.value) {
+        issueUploadError.value = 'Please choose a PDF to upload.';
+        return;
+    }
+
+    issueUploadSaving.value = true;
+    const payload = new FormData();
+    payload.append('title', issueUploadForm.value.title);
+    payload.append('pdf', issueUploadFile.value);
+
+    try {
+        const response = await fetch('/api/published-issues', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+            body: payload,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const validationError = data.errors ? Object.values(data.errors)[0]?.[0] : data.message;
+            throw new Error(validationError || 'Could not upload issue.');
+        }
+        publishedIssues.value.unshift(data);
+        renderIssueThumbnail(data);
+        closeIssueUploadModal();
+    } catch (error) {
+        issueUploadError.value = error.message;
+    } finally {
+        issueUploadSaving.value = false;
+    }
+};
+
+const confirmDeleteIssue = (issue) => {
+    issueToDelete.value = issue;
+    deleteIssueError.value = '';
+};
+
+const deleteIssue = async () => {
+    if (!issueToDelete.value) return;
+    deleteIssueSaving.value = true;
+    deleteIssueError.value = '';
+    try {
+        const response = await fetch(`/api/published-issues/${issueToDelete.value.id}`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(data.message || 'Could not delete issue.');
+        }
+        publishedIssues.value = publishedIssues.value.filter(i => i.id !== issueToDelete.value.id);
+        issueToDelete.value = null;
+    } catch (error) {
+        deleteIssueError.value = error.message;
+    } finally {
+        deleteIssueSaving.value = false;
+    }
+};
+
+// PDF.js (CDN, free) — used to render a first-page thumbnail for the issue detail modal.
+const PDFJS_VERSION_EIC = '3.11.174';
+const loadPdfJsForThumbnail = () => {
+    return new Promise((resolve, reject) => {
+        if (window.pdfjsLib) {
+            resolve(window.pdfjsLib);
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION_EIC}/pdf.min.js`;
+        script.onload = () => {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION_EIC}/pdf.worker.min.js`;
+            resolve(window.pdfjsLib);
+        };
+        script.onerror = () => reject(new Error('Could not load PDF renderer.'));
+        document.head.appendChild(script);
+    });
+};
+
+const renderIssueThumbnail = async (issue) => {
+    if (!issue?.id || !issue?.pdf_url || issueThumbnails.value[issue.id]) return;
+    issueThumbnailLoading.value = true;
+    try {
+        const pdfjsLib = await loadPdfJsForThumbnail();
+        const pdf = await pdfjsLib.getDocument(issue.pdf_url).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.3 });
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        issueThumbnails.value = { ...issueThumbnails.value, [issue.id]: canvas.toDataURL('image/jpeg', 0.85) };
+    } catch (e) {
+        console.warn('Could not render issue thumbnail:', e);
+    } finally {
+        issueThumbnailLoading.value = false;
+    }
+};
+
+const openIssueDetailModal = (issue) => {
+    viewingIssue.value = issue;
+    isEditingIssue.value = false;
+    isIssueDetailModalOpen.value = true;
+    renderIssueThumbnail(issue);
+};
+
+const closeIssueDetailModal = () => {
+    isIssueDetailModalOpen.value = false;
+    isEditingIssue.value = false;
+};
+
+const startEditIssue = () => {
+    editIssueForm.value = { title: viewingIssue.value?.title || '' };
+    editIssueFile.value = null;
+    editIssueFileName.value = '';
+    editIssueError.value = '';
+    isEditingIssue.value = true;
+};
+
+const cancelEditIssue = () => {
+    isEditingIssue.value = false;
+};
+
+const handleEditIssuePdfChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+    editIssueFile.value = file;
+    editIssueFileName.value = file.name;
+};
+
+const submitEditIssue = async () => {
+    editIssueError.value = '';
+    if (!editIssueForm.value.title.trim()) {
+        editIssueError.value = 'Please provide a title.';
+        return;
+    }
+
+    editIssueSaving.value = true;
+    const payload = new FormData();
+    payload.append('title', editIssueForm.value.title);
+    if (editIssueFile.value) {
+        payload.append('pdf', editIssueFile.value);
+    }
+
+    try {
+        const response = await fetch(`/api/published-issues/${viewingIssue.value.id}`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+                Accept: 'application/json',
+            },
+            body: payload,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const validationError = data.errors ? Object.values(data.errors)[0]?.[0] : data.message;
+            throw new Error(validationError || 'Could not save changes.');
+        }
+        viewingIssue.value = data;
+        const idx = publishedIssues.value.findIndex(i => i.id === data.id);
+        if (idx !== -1) publishedIssues.value[idx] = data;
+        if (editIssueFile.value) {
+            const thumbs = { ...issueThumbnails.value };
+            delete thumbs[data.id];
+            issueThumbnails.value = thumbs;
+            renderIssueThumbnail(data);
+        }
+        isEditingIssue.value = false;
+    } catch (error) {
+        editIssueError.value = error.message;
+    } finally {
+        editIssueSaving.value = false;
+    }
+};
+
+const deleteIssueFromDetailModal = () => {
+    issueToDelete.value = viewingIssue.value;
+    closeIssueDetailModal();
+};
+
+const viewIssueBooklet = () => {
+    if (viewingIssue.value?.id) {
+        window.open(`/booklet/${viewingIssue.value.id}`, '_blank');
+    }
+};
+
 const eicStatusLabel = (status) => (status || 'unknown').replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
 const eicStatusClass = (status) => ({
     submitted: 'status-for-approval',
@@ -1504,9 +2405,13 @@ const eicStatusClass = (status) => ({
     approved: 'status-approved',
     rejected: 'status-returned',
 }[status] || 'status-for-approval');
-const eicEndorsementCandidates = computed(() => eicArticles.value.filter(article => [
-    'submitted', 'under_review', 'endorsed', 'approved', 'rejected',
-].includes(article.status)));
+const eicEndorsementCandidates = computed(() => [
+    ...eicArticles.value.filter(article => [
+        'submitted', 'under_review', 'endorsed', 'approved',
+    ].includes(article.status)),
+    // A video only reaches the EIC once the Head / Assistant Head Broadcaster has sent it on
+    ...eicVideos.value.filter(video => ['endorsed', 'approved'].includes(video.status)),
+]);
 const eicEndorsementFilterDefinitions = computed(() => [
     {
         key: 'status',
@@ -1516,7 +2421,7 @@ const eicEndorsementFilterDefinitions = computed(() => [
         key: 'section',
         options: [
             { value: 'all', label: 'Section' },
-            ...['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Videos'].map(section => ({ value: section, label: section })),
+            ...['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Video'].map(section => ({ value: section, label: section })),
         ],
     },
     {
@@ -1535,11 +2440,11 @@ const eicFilterLabel = (filter) => eicEndorsementFilterDefinitions.value.find(de
 const filteredEicEndorsements = computed(() => {
     const filtered = eicEndorsementCandidates.value.filter(article =>
         (eicFilters.status === 'all' || article.status === eicFilters.status)
-        && (eicFilters.section === 'all' || article.section?.name === eicFilters.section)
+        && (eicFilters.section === 'all' || resolveArticleSection(article) === eicFilters.section)
         && (eicFilters.priority === 'all' || (article.priority || 'moderate').toLowerCase() === eicFilters.priority)
         && matchesSearch(
             article.title,
-            article.section?.name,
+            resolveArticleSection(article),
             article.author?.name,
             article.priority,
             eicStatusLabel(article.status),
@@ -1575,7 +2480,7 @@ const availableSections = computed(() => {
     eicArticles.value.forEach(a => {
         if (a.section?.name) sections.add(a.section.name);
     });
-    ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Videos'].forEach(s => sections.add(s));
+    ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Video'].forEach(s => sections.add(s));
     return Array.from(sections);
 });
 
@@ -1629,6 +2534,61 @@ const paginatedEicPublishedArticles = computed(() => {
     return filteredEicPublishedArticles.value.slice(start, start + eicPublishedPageSize);
 });
 
+const isDirectPublishOpen = ref(false);
+const isCreditedVideoPreviewOpen = ref(false);
+const creditedVideoPreview = ref({});
+
+// ── Videos tab ───────────────────────────────────────────────────────────────
+const isVideoManageOpen = ref(false);
+const manageVideo = ref(null);
+const manageVideoStartInEdit = ref(false);
+const videoCategoryFilter = ref('all');
+const activeVideoCategoryFilter = ref(false);
+
+const eicPublishedVideos = computed(() => eicVideos.value.filter(video => ['published', 'scheduled'].includes(video.status)));
+const videoCategoryOptions = computed(() => [
+    { value: 'all', label: 'All Sections' },
+    ...VIDEO_CATEGORIES.map(category => ({ value: category, label: category })),
+]);
+const filteredEicVideos = computed(() => eicPublishedVideos.value
+    .filter(video => (videoCategoryFilter.value === 'all' || video.video_category === videoCategoryFilter.value)
+        && matchesSearch(video.title, video.video_category, video.author?.name))
+    .sort((first, second) => {
+        const firstDate = new Date(first.published_at || first.scheduled_at || first.created_at || 0).getTime();
+        const secondDate = new Date(second.published_at || second.scheduled_at || second.created_at || 0).getTime();
+        return secondDate - firstDate;
+    }));
+
+const videoThumbnailFor = (video) => youtubeThumbnail(video.video_url) || video.cover_image || '';
+const toggleVideoCategoryFilter = () => { activeVideoCategoryFilter.value = !activeVideoCategoryFilter.value; };
+const selectVideoCategory = (value) => {
+    videoCategoryFilter.value = value;
+    activeVideoCategoryFilter.value = false;
+};
+
+const openVideoManage = (video) => {
+    manageVideo.value = video;
+    manageVideoStartInEdit.value = false;
+    isVideoManageOpen.value = true;
+};
+const closeVideoManage = () => {
+    isVideoManageOpen.value = false;
+    manageVideo.value = null;
+    manageVideoStartInEdit.value = false;
+};
+const handleVideoUpdated = (updated) => {
+    if (updated?.id) {
+        const merged = { ...(eicVideos.value.find(v => v.id === updated.id) || {}), ...updated };
+        eicVideos.value = eicVideos.value.map(v => v.id === updated.id ? merged : v);
+        manageVideo.value = merged;
+    }
+    loadEicArticles();
+};
+const handleVideoDeleted = () => {
+    loadEicArticles();
+    loadEicOverview();
+};
+
 const SECONDARY_ROLES = {
     section_editor: [
         'Associate Editor for Internal',
@@ -1640,8 +2600,12 @@ const SECONDARY_ROLES = {
         'Art Editor',
         'Layout Editor',
         'Publication Adviser',
+        'News Editor',
         'Opinion Editor',
         'Editorial Editor',
+        'Feature Editor',
+        'Sci-Tech Editor',
+        'DevCom Editor',
         'Literary Editor',
         'Sports Editor',
         'Head Broadcaster',
@@ -1678,6 +2642,9 @@ const selectedUser = ref(null);
 const isEditUserModalOpen = ref(false);
 const isDeleteUserModalOpen = ref(false);
 const editUserSaving = ref(false);
+const editUserFileInput = ref(null);
+const editUserImage = ref(null);
+const editUserImagePreview = ref('');
 const editUserError = ref('');
 const deleteUserSaving = ref(false);
 const deleteUserError = ref('');
@@ -1686,6 +2653,7 @@ const editUserForm = ref({
     email: '',
     role: 'staff_writer',
     secondary_role: '',
+    tertiary_role: '',
     is_active: true,
     program: '',
     year_section: '',
@@ -1699,13 +2667,23 @@ const openEditUser = (user) => {
         email: user.email || '',
         role: user.role || 'staff_writer',
         secondary_role: user.secondary_role || '',
+        tertiary_role: user.tertiary_role || '',
         is_active: user.is_active !== false,
         program: user.program || '',
         year_section: user.year_section || '',
         password: '',
     };
+    editUserImage.value = null;
+    editUserImagePreview.value = user.profile_picture_url || (user.profile_picture ? `/storage/${user.profile_picture}` : '');
     editUserError.value = '';
     isEditUserModalOpen.value = true;
+};
+
+const handleEditUserImage = (event) => {
+    const image = event.target.files?.[0] || null;
+    if (!image) return;
+    editUserImage.value = image;
+    editUserImagePreview.value = URL.createObjectURL(image);
 };
 
 const closeEditUser = () => {
@@ -1721,17 +2699,22 @@ const saveEditedUser = async () => {
     const payload = { ...editUserForm.value };
     if (!payload.password) delete payload.password;
     if (!payload.secondary_role) payload.secondary_role = null;
+    if (!payload.tertiary_role) payload.tertiary_role = null;
 
     try {
-        const response = await fetch(`/api/users/${selectedUser.value.id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
-                Accept: 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
+        const headers = { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' };
+        let request;
+        if (editUserImage.value) {
+            // Files need multipart, and PHP only parses multipart on POST, so spoof PUT.
+            const body = new FormData();
+            Object.entries(payload).forEach(([key, value]) => body.append(key, typeof value === 'boolean' ? (value ? 1 : 0) : (value ?? '')));
+            body.append('profile_picture', editUserImage.value);
+            body.append('_method', 'PUT');
+            request = { method: 'POST', headers, body };
+        } else {
+            request = { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) };
+        }
+        const response = await fetch(`/api/users/${selectedUser.value.id}`, request);
         const data = await response.json();
         if (!response.ok) {
             editUserError.value = data.message || 'Failed to update contributor.';
@@ -1803,6 +2786,7 @@ const newContributorForm = ref({
     email: '',
     role: 'staff_writer',
     secondary_role: '',
+    tertiary_role: '',
     status: 'active',
     password: '',
     passwordConfirmation: '',
@@ -1820,6 +2804,7 @@ const openNewContributorModal = () => {
         email: '',
         role: 'staff_writer',
         secondary_role: '',
+        tertiary_role: '',
         status: 'active',
         password: '',
         passwordConfirmation: '',
@@ -1873,6 +2858,9 @@ const saveNewContributor = async () => {
     payload.append('role', newContributorForm.value.role);
     if (newContributorForm.value.secondary_role) {
         payload.append('secondary_role', newContributorForm.value.secondary_role);
+    }
+    if (newContributorForm.value.tertiary_role) {
+        payload.append('tertiary_role', newContributorForm.value.tertiary_role);
     }
     payload.append('program', newContributorForm.value.program || '');
     payload.append('year_section', newContributorForm.value.year_section || '');
@@ -1977,7 +2965,8 @@ const filteredEicContributors = computed(() => {
             || user.role === eicContributorRole.value;
 
         const matchesSection = eicContributorSection.value === 'all'
-            || user.secondary_role === eicContributorSection.value;
+            || user.secondary_role === eicContributorSection.value
+            || user.tertiary_role === eicContributorSection.value;
 
         const matchesStatus = eicContributorStatus.value === 'inactive'
             ? user.is_active === false
@@ -1986,6 +2975,7 @@ const filteredEicContributors = computed(() => {
         const matchesSearchQuery = matchesSearch(
             user.name,
             user.secondary_role,
+            user.tertiary_role,
             formatRole(user.role),
             user.email,
             user.program,
@@ -2040,7 +3030,34 @@ const archiveFolders = computed(() => {
         folders.set(yearMeta.key, { key: yearMeta.key, label: yearMeta.label, articles: [] });
     });
 
-    eicArticles.value.forEach((article) => {
+    // Articles, plus everything else the newsroom posted that year (gallery photos,
+    // published issues and videos), all listed in the same format
+    const archiveItems = [
+        ...eicArticles.value,
+        ...galleryPhotos.value.map(photo => ({
+            id: `gallery-${photo.id}`,
+            archive_kind: 'gallery',
+            title: photo.title,
+            section: { name: 'Gallery' },
+            author: photo.uploader,
+            status: 'published',
+            created_at: photo.created_at,
+            source: photo,
+        })),
+        ...publishedIssues.value.map(issue => ({
+            id: `issue-${issue.id}`,
+            archive_kind: 'issue',
+            title: issue.title,
+            section: { name: 'Published Issue' },
+            author: issue.uploader,
+            status: 'published',
+            created_at: issue.created_at,
+            source: issue,
+        })),
+        ...eicPublishedVideos.value.map(video => ({ ...video, id: `video-${video.id}`, archive_kind: 'video', source: video })),
+    ];
+
+    archiveItems.forEach((article) => {
         const articleDate = article.created_at ? new Date(article.created_at) : new Date();
         const yearMeta = getAcademicYearMeta(articleDate);
         const existing = folders.get(yearMeta.key) || {
@@ -2187,6 +3204,16 @@ watch(activeTab, () => {
     if (activeTab.value === 'assignments') {
         loadEicAssigned();
     }
+    if (activeTab.value === 'gallery' && !galleryPhotos.value.length) {
+        loadGalleryPhotos();
+    }
+    // Thumbnails are cached per issue, so re-loading the list is cheap
+    if (activeTab.value === 'published-issues') {
+        loadPublishedIssues();
+    }
+    if (activeTab.value === 'archive' || activeTab.value === 'archive-year') {
+        loadArchiveExtras();
+    }
 });
 
 watch([eicContributorRole, eicContributorSection, eicContributorStatus, searchQuery], () => {
@@ -2203,6 +3230,7 @@ const closeAllEicFilters = () => {
     activeEicContributorFilter.value = null;
     activeAnalyticsDropdown.value = false;
     eicMyArticlesStatusDropdownOpen.value = false;
+    activeVideoCategoryFilter.value = false;
 };
 
 const loadEicOverview = async () => {
@@ -2220,16 +3248,23 @@ const loadEicOverview = async () => {
 };
 
 const loadEicArticles = async () => {
+    const headers = {
+        Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
+        Accept: 'application/json',
+    };
     try {
-        const response = await fetch('/api/articles', {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
-                Accept: 'application/json',
-            },
-        });
+        const response = await fetch('/api/articles', { headers });
         if (response.ok) eicArticles.value = await response.json();
     } catch {
         eicArticles.value = [];
+    }
+
+    // Videos are a separate content type, so they load (and refresh) alongside the articles
+    try {
+        const response = await fetch('/api/articles?type=video', { headers });
+        if (response.ok) eicVideos.value = await response.json();
+    } catch {
+        eicVideos.value = [];
     }
 };
 
@@ -2350,6 +3385,32 @@ const parseNotesField = (notes, key) => {
     return match ? match[1].trim() : '';
 };
 
+const KNOWN_SECTIONS = ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Video'];
+const SECTION_ROLE_ALIASES = { 'Sci&Tech': 'Sci-Tech' };
+
+// Writer/section-editor secondary roles are named after their section (e.g. "News Writer"),
+// so when an article/task was never given a real section_id, fall back to that.
+const deriveSectionFromRole = (secondaryRole) => {
+    if (!secondaryRole || typeof secondaryRole !== 'string') return '';
+    const stripped = secondaryRole.replace(/\s*(Writer|Editor|Artist|Presenter)$/i, '').trim();
+    const mapped = SECTION_ROLE_ALIASES[stripped] || stripped;
+    return KNOWN_SECTIONS.includes(mapped) ? mapped : '';
+};
+
+const resolveArticleSection = (article = {}) => {
+    if (article.type === 'video') return 'Video';
+    if (article.section?.name) return article.section.name;
+    if (typeof article.section === 'string' && article.section) return article.section;
+    const tasks = Array.isArray(article.tasks) ? article.tasks : [];
+    const primaryTask = tasks.find(t => t.type === 'writing') || tasks[0] || null;
+    if (primaryTask?.section?.name) return primaryTask.section.name;
+    const fromNotes = parseNotesField(primaryTask?.notes, 'Section');
+    if (fromNotes) return fromNotes;
+    const fromRole = deriveSectionFromRole(article.author?.secondary_role);
+    if (fromRole) return fromRole;
+    return '';
+};
+
 const formatDeadline = (dateStr, dueTimeStr) => {
     if (!dateStr) return 'No deadline';
     if (typeof dateStr === 'string' && dateStr.includes('•')) return dateStr;
@@ -2435,6 +3496,12 @@ const loadEicMyArticles = async () => {
             const data = await articlesRes.value.json();
             articlesList = Array.isArray(data) ? data : [];
         }
+
+        // Videos the EIC was credited on (e.g. as scriptwriter) also show up under My Articles
+        const credited = await fetchCreditedVideos(eicUser.value.id);
+        credited.forEach(video => {
+            if (!articlesList.some(a => a.id === video.id)) articlesList.push(video);
+        });
 
         if (tasksRes.status === 'fulfilled' && tasksRes.value.ok) {
             const data = await tasksRes.value.json();
@@ -2655,6 +3722,14 @@ const getStatusClass = assignedStatusClass;
 
 const openArticleOrTaskModal = (item) => {
     const matchedTask = item.matchedTask || (item.isTask ? item.raw : null);
+
+    // A credited video opens as a read-only preview
+    if (item.raw?.type === 'video') {
+        creditedVideoPreview.value = buildVideoPreviewData(item.raw);
+        isCreditedVideoPreviewOpen.value = true;
+        return;
+    }
+
     const notesStr = item.notes || matchedTask?.notes || '';
     const dueTime = parseNotesField(notesStr, 'Due Time');
     const mediaArtist = parseNotesField(notesStr, 'Media Artist');
@@ -2705,27 +3780,158 @@ const openTaskModal = (task = {}) => {
     isAssignedTaskModalOpen.value = true;
 };
 
-const openArticleDetails = (item = {}) => {
-    const rawSection = item.section?.name || (typeof item.section === 'string' ? item.section : 'News');
-    selectedArticle.value = {
+const extractFileName = (url) => {
+    if (!url || typeof url !== 'string') return 'file';
+    const parts = url.split('/');
+    return parts[parts.length - 1] || 'file';
+};
+
+const buildAttachedFiles = (item) => {
+    const files = [];
+    if (item.cover_image) {
+        files.push({ name: extractFileName(item.cover_image), type: 'image', url: item.cover_image });
+    }
+    if (Array.isArray(item.media_files)) {
+        item.media_files.forEach((url) => {
+            files.push({ name: extractFileName(url), type: 'image', url });
+        });
+    }
+    return files;
+};
+
+const staffRoleLabel = (role) => (role === 'staff_broadcaster' ? 'Staff Broadcaster' : 'Staff Artist');
+
+const buildSelectedArticle = (item = {}) => {
+    const rawSection = resolveArticleSection(item) || 'Unassigned';
+    const tasks = Array.isArray(item.tasks) ? item.tasks : [];
+    const primaryTask = tasks.find(t => t.type === 'writing') || tasks[0] || null;
+    const isVideo = item.type === 'video';
+    const artistTask = isVideo ? null : (tasks.find(t => ['illustration', 'photography', 'layout'].includes(t.type)) || null);
+    const artist = artistTask?.assignee || null;
+
+    // The video crew (videographer / video editor) shown in the review modal's Assigned Team
+    const crewRoles = { videography: 'Videographer', video_editing: 'Video Editor' };
+    const creditRoles = { reporter: 'Reporter', scriptwriter: 'Scriptwriter', videographer: 'Videographer', video_editor: 'Video Editor' };
+    const avatarFor = (person) => person.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=ffd5dc&color=9f1239&size=100`;
+    const credits = Array.isArray(item.credits) ? item.credits.filter(c => c.user) : [];
+    // The Head's final credits win; before they exist, fall back to the crew assigned on the tasks
+    const videoCrew = !isVideo ? [] : (credits.length
+        ? credits.map(c => ({ role: creditRoles[c.role] || c.role, name: c.user.name, email: c.user.email || '', avatar: avatarFor(c.user) }))
+        : tasks.filter(t => crewRoles[t.type] && t.assignee).map(t => ({
+            role: crewRoles[t.type],
+            name: t.assignee.name,
+            email: t.assignee.email || '',
+            avatar: avatarFor(t.assignee),
+        })));
+
+    return {
         ...item,
-        title: item.title || 'Untitled Article',
+        video_crew: videoCrew,
+        title: item.title || (isVideo ? 'Untitled Video' : 'Untitled Article'),
         section: rawSection,
-        coverage: item.coverage || `${rawSection} Coverage`,
         writer: item.author?.name || item.writer || 'Staff Writer',
         dateEndorsed: formatDate(item.endorsed_at || item.submitted_at || item.created_at),
-        deadline: formatDate(item.deadline || item.endorsed_at || item.created_at),
+        deadline: formatDate(primaryTask?.deadline || item.endorsed_at || item.created_at),
         status: eicStatusLabel(item.status),
         raw_status: item.status,
         wordCount: item.word_count || (item.content ? item.content.trim().split(/\s+/).filter(Boolean).length : '0'),
-        remarks: item.editor_notes || item.remarks || 'This article has been reviewed and revised on the initial feedback.',
+        artist_name: artist?.name || '',
+        artist_email: artist?.email || '',
+        artist_role: artist?.secondary_role || (artist ? staffRoleLabel(artist.role) : ''),
+        artist_avatar: artist?.profile_picture_url || '',
+        attached_files: buildAttachedFiles(item),
     };
+};
+
+const openArticleDetails = (item = {}) => {
+    selectedArticle.value = buildSelectedArticle(item);
     isArticleDetailsOpen.value = true;
+};
+
+const openArticlePreview = (item = {}) => {
+    selectedArticle.value = buildSelectedArticle(item);
+    isArticlePreviewOpen.value = true;
+};
+
+// An archive row can be an article, a gallery photo, a published issue or a video
+const openArchiveItem = (item = {}) => {
+    if (item.archive_kind === 'gallery') return openGalleryViewModal(item.source);
+    if (item.archive_kind === 'issue') return openIssueDetailModal(item.source);
+    if (item.archive_kind === 'video') return openVideoManage(item.source);
+    return openArchivePreview(item);
+};
+
+const openArchivePreview = (item = {}) => {
+    selectedArticle.value = buildSelectedArticle(item);
+    isArchivePreviewOpen.value = true;
+};
+
+const handleRequestPublishPreview =(articleData) => {
+    isArticleDetailsOpen.value = false;
+    selectedArticle.value = articleData || selectedArticle.value;
+    isArticlePreviewOpen.value = true;
+};
+
+const handleArticleUpdated = (updated) => {
+    if (updated && selectedArticle.value) {
+        selectedArticle.value = {
+            ...selectedArticle.value,
+            status: updated.status,
+            raw_status: updated.status,
+            scheduled_at: updated.scheduled_at,
+            published_at: updated.published_at,
+        };
+    }
+    loadEicOverview();
+    loadEicArticles();
+};
+
+const handleArticleDeleted = () => {
+    isArticlePreviewOpen.value = false;
+    isArchivePreviewOpen.value = false;
+    loadEicOverview();
+    loadEicArticles();
+};
+
+const handleEditArticleFromPreview = (articleData = {}) => {
+    // Videos have their own editor (headline, details, YouTube link, section)
+    if (articleData.type === 'video') {
+        isArticlePreviewOpen.value = false;
+        isArchivePreviewOpen.value = false;
+        manageVideo.value = eicVideos.value.find(v => v.id === articleData.id) || articleData;
+        manageVideoStartInEdit.value = true;
+        isVideoManageOpen.value = true;
+        return;
+    }
+
+    const tasks = Array.isArray(articleData.tasks) ? articleData.tasks : [];
+    const writingTask = tasks.find(t => t.type === 'writing') || null;
+
+    isArticlePreviewOpen.value = false;
+    isArchivePreviewOpen.value = false;
+    isEicEditingArticle.value = true;
+    selectedTask.value = {
+        id: writingTask?.id || null,
+        title: articleData.title,
+        section: articleData.section,
+        article_id: articleData.id,
+        deadline: writingTask?.deadline || null,
+        status: writingTask?.status || 'completed',
+        notes: writingTask?.notes || '',
+        mediaArtist: articleData.artist_name || '',
+        writer: {
+            name: articleData.author?.name || articleData.writer || 'Staff Writer',
+            avatar: articleData.author?.profile_picture_url || '',
+        },
+        raw: writingTask || { article_id: articleData.id },
+    };
+    isWorkspaceModalOpen.value = true;
 };
 
 const handleOpenWorkspace = (taskData) => {
     isAssignedTaskModalOpen.value = false;
     isArticleDetailsOpen.value = false;
+    isEicEditingArticle.value = false;
     selectedTask.value = taskData || selectedTask.value;
     isWorkspaceModalOpen.value = true;
 };
@@ -2849,6 +4055,163 @@ const openMonitoringSheet = (sheet) => {
 .action-menu-btn:hover {
     background: #e2e8f0;
     color: #0f172a;
+}
+
+/* Gallery Tab */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 18px;
+}
+
+.gallery-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.gallery-card-img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gallery-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15, 23, 42, 0.6);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.gallery-delete-btn:hover {
+    background: #dc2626;
+}
+
+.gallery-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+}
+
+.gallery-card-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.gallery-card-meta {
+    font-size: 11.5px;
+    color: #94a3b8;
+}
+
+/* Videos Tab (extends the gallery card) */
+.video-card-thumb {
+    aspect-ratio: 16 / 9;
+    background: #0f172a;
+}
+
+.video-card-play {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.video-card-badge {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.video-card-badge.scheduled {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.gallery-view-modal {
+    max-width: 560px;
+}
+
+.issue-thumb-preview {
+    width: 100%;
+    max-height: 360px;
+    min-height: 180px;
+    background: #f1f5f9;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.issue-thumb-img {
+    width: 100%;
+    max-height: 360px;
+    object-fit: contain;
+    display: block;
+}
+
+.issue-thumb-placeholder {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 600;
+    padding: 40px 0;
+}
+
+.gallery-view-img {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    background: #f1f5f9;
+    border-radius: 14px;
+    display: block;
+}
+
+/* Published Issues Tab */
+.issue-row-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1d6bf3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .delete-year-btn {

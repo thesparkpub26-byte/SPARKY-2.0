@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\ArticleCredit;
 use App\Models\Activity;
 use App\Models\Notification;
+use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ArticleController extends Controller
@@ -12,7 +15,9 @@ class ArticleController extends Controller
     /** List articles with optional filters */
     public function index(Request $request)
     {
-        $query = Article::with(['author', 'section', 'tasks.assignee']);
+        $this->publishDueSchedules();
+
+        $query = Article::with(['author', 'section', 'tasks.assignee', 'tasks.assignedBy', 'credits.user']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -23,8 +28,16 @@ class ArticleController extends Controller
         if ($request->has('section_id')) {
             $query->where('section_id', $request->section_id);
         }
+        // Videos a user was credited on (reporter, scriptwriter, videographer, video editor)
+        if ($request->has('credited_to')) {
+            $query->whereHas('credits', fn ($q) => $q->where('user_id', $request->credited_to));
+        }
+        // Videos live in the same table but are a separate content type: they only show up
+        // when asked for (?type=video) or explicitly included (?include_videos=1).
         if ($request->has('type')) {
             $query->where('type', $request->type);
+        } elseif (!$request->boolean('include_videos')) {
+            $query->where('type', '!=', Article::TYPE_VIDEO);
         }
 
         return response()->json($query->orderByDesc('created_at')->get());
@@ -33,7 +46,8 @@ class ArticleController extends Controller
     /** Get a single article */
     public function show(Article $article)
     {
-        return response()->json($article->load(['author', 'section', 'tasks.assignee']));
+        $this->publishDueSchedules();
+        return response()->json($article->fresh()->load(['author', 'section', 'tasks.assignee', 'tasks.assignedBy', 'credits.user']));
     }
 
     /** Create a new article */
@@ -44,11 +58,13 @@ class ArticleController extends Controller
             'content'               => 'nullable|string',
             'excerpt'               => 'nullable|string|max:1000',
             'section_id'            => 'nullable|exists:sections,id',
-            'type'                  => 'nullable|in:article,feature,opinion,photo_essay,illustration',
+            'type'                  => 'nullable|in:article,feature,opinion,photo_essay,illustration,video',
             'word_count'            => 'nullable|integer|min:0',
             'cover_image'           => 'nullable|string',
             'media_files'           => 'nullable|array',
             'media_files.*'         => 'nullable|string',
+            'video_url'             => 'nullable|url|max:500',
+            'video_category'        => 'nullable|in:' . implode(',', Article::VIDEO_CATEGORIES),
             'monitoring_sheet_url'  => 'nullable|url',
             'editor_notes'          => 'nullable|string',
         ]);
@@ -67,16 +83,27 @@ class ArticleController extends Controller
             'title'                 => 'sometimes|string|max:500',
             'content'               => 'nullable|string',
             'excerpt'               => 'nullable|string|max:1000',
+            'status'                => 'nullable|in:draft,submitted,under_review,endorsed,approved,rejected,published,scheduled',
             'section_id'            => 'nullable|exists:sections,id',
-            'type'                  => 'nullable|in:article,feature,opinion,photo_essay,illustration',
+            'type'                  => 'nullable|in:article,feature,opinion,photo_essay,illustration,video',
             'word_count'            => 'nullable|integer|min:0',
             'cover_image'           => 'nullable|string',
             'media_files'           => 'nullable|array',
             'media_files.*'         => 'nullable|string',
+            'video_url'             => 'nullable|url|max:500',
+            'video_category'        => 'nullable|in:' . implode(',', Article::VIDEO_CATEGORIES),
             'monitoring_sheet_url'  => 'nullable|url',
             'editor_notes'          => 'nullable|string',
             'eic_notes'             => 'nullable|string',
+            'scheduled_at'          => 'required_if:status,scheduled|nullable|date',
         ]);
+
+        if (($validated['status'] ?? null) === Article::STATUS_SCHEDULED) {
+            $validated['published_at'] = null;
+        } elseif (($validated['status'] ?? null) === Article::STATUS_PUBLISHED) {
+            $validated['published_at'] = $article->published_at ?? now();
+            $validated['scheduled_at'] = null;
+        }
 
         $article->update($validated);
         Activity::record($request->user(), 'Updated an article', $article);
@@ -84,13 +111,234 @@ class ArticleController extends Controller
         return response()->json($article->load(['author', 'section']));
     }
 
-    /** Delete an article */
-    public function destroy(Article $article)
+    /** Replace a video's credits and notify anyone newly credited. */
+    private function syncCredits(Article $article, array $credits): void
     {
-        Activity::record(request()->user(), 'Deleted an article', $article);
+        $existing = $article->credits()->get()->map(fn ($c) => $c->user_id . ':' . $c->role)->all();
+
+        $article->credits()->delete();
+        $added = [];
+        foreach (array_keys(ArticleCredit::ROLES) as $role) {
+            foreach (array_unique($credits[$role] ?? []) as $userId) {
+                $article->credits()->create(['user_id' => $userId, 'role' => $role]);
+                if (!in_array($userId . ':' . $role, $existing, true)) {
+                    $added[] = [$userId, $role];
+                }
+            }
+        }
+
+        foreach ($added as [$userId, $role]) {
+            Notification::create([
+                'user_id' => $userId,
+                'title'   => 'Credited on a Video',
+                'message' => "You were credited as " . ArticleCredit::ROLES[$role] . " on '{$article->title}'.",
+                'type'    => Notification::TYPE_GENERAL,
+                'data'    => ['article_id' => $article->id],
+            ]);
+        }
+    }
+
+    /**
+     * Publish a video straight away ("Publish Automatic/Past Video"), skipping the
+     * presenter → Head Broadcaster → EIC review. Everyone credited sees it under their own work.
+     */
+    public function publishDirectVideo(Request $request)
+    {
+        $user = $request->user();
+        $isBroadcastHead = $user->role === 'section_editor'
+            && stripos(($user->secondary_role ?? '') . ' ' . ($user->tertiary_role ?? ''), 'broadcaster') !== false;
+        if (!$isBroadcastHead && !in_array($user->role, ['eic', 'admin'])) {
+            return response()->json(['message' => 'Only the Head Broadcasters can publish a video directly.'], 403);
+        }
+
+        $rules = [
+            'title'          => 'required|string|max:500',
+            'excerpt'        => 'required|string|max:1000',
+            'video_url'      => 'required|url|max:500',
+            'video_category' => 'required|in:' . implode(',', Article::VIDEO_CATEGORIES),
+            'cover_image'    => 'nullable|string',
+            'published_at'   => 'nullable|date|before_or_equal:now',
+            'credits'        => 'nullable|array',
+        ];
+        foreach (array_keys(ArticleCredit::ROLES) as $role) {
+            $rules["credits.$role"] = 'nullable|array';
+            $rules["credits.$role.*"] = 'integer|exists:users,id';
+        }
+        $validated = $request->validate($rules);
+
+        $credits = $validated['credits'] ?? [];
+        $publishedAt = isset($validated['published_at']) ? Carbon::parse($validated['published_at']) : now();
+
+        // The first reporter is the on-screen presenter; otherwise whoever is publishing owns it
+        $article = new Article([
+            'title'          => $validated['title'],
+            'content'        => $validated['excerpt'],
+            'excerpt'        => $validated['excerpt'],
+            'author_id'      => ($credits['reporter'][0] ?? null) ?: $user->id,
+            'section_id'     => \App\Models\Section::whereRaw('LOWER(name) = ?', ['video'])->value('id'),
+            'type'           => Article::TYPE_VIDEO,
+            'status'         => Article::STATUS_PUBLISHED,
+            'video_url'      => $validated['video_url'],
+            'video_category' => $validated['video_category'],
+            'cover_image'    => $validated['cover_image'] ?? null,
+            'submitted_at'   => $publishedAt,
+            'endorsed_at'    => $publishedAt,
+            'approved_at'    => $publishedAt,
+            'published_at'   => $publishedAt,
+        ]);
+        // A past video belongs to the academic year it was published in
+        $article->created_at = $publishedAt;
+        $article->updated_at = $publishedAt;
+        $article->save();
+
+        $this->syncCredits($article, $credits);
+        Activity::record($user, 'Published a video directly', $article);
+
+        return response()->json($article->load(['author', 'section', 'credits.user']), 201);
+    }
+
+    /**
+     * Publish an article straight away ("Publish Automatic/Past Article"), skipping the
+     * writer → editor → copyreader → EIC review. For urgent stories and for back-filling
+     * past issues. The chosen writer becomes the author and the PJ/Artist gets a
+     * completed illustration task, so both see it under their own work.
+     */
+    public function publishDirect(Request $request)
+    {
+        $user = $request->user();
+        if (!in_array($user->role, ['section_editor', 'eic', 'admin'])) {
+            return response()->json(['message' => 'Only editors can publish an article directly.'], 403);
+        }
+
+        $validated = $request->validate([
+            'title'          => 'required|string|max:500',
+            'content'        => 'required|string',
+            'section_id'     => 'required|exists:sections,id',
+            'author_id'      => 'required|exists:users,id',
+            'artist_id'      => 'nullable|exists:users,id',
+            'cover_image'    => 'nullable|string',
+            'media_files'    => 'nullable|array',
+            'media_files.*'  => 'nullable|string',
+            'published_at'   => 'nullable|date|before_or_equal:now',
+        ]);
+
+        $publishedAt = isset($validated['published_at']) ? Carbon::parse($validated['published_at']) : now();
+        $plain = trim(preg_replace('/\s+/', ' ', strip_tags(str_replace(['</p>', '<br>', '<br/>', '</div>'], ' ', $validated['content']))));
+
+        $article = new Article([
+            'title'        => $validated['title'],
+            'content'      => $validated['content'],
+            'excerpt'      => mb_substr($plain, 0, 300),
+            'author_id'    => $validated['author_id'],
+            'section_id'   => $validated['section_id'],
+            'type'         => Article::TYPE_ARTICLE,
+            'status'       => Article::STATUS_PUBLISHED,
+            'word_count'   => $plain === '' ? 0 : count(preg_split('/\s+/', $plain)),
+            'cover_image'  => $validated['cover_image'] ?? null,
+            'media_files'  => $validated['media_files'] ?? [],
+            'submitted_at' => $publishedAt,
+            'endorsed_at'  => $publishedAt,
+            'approved_at'  => $publishedAt,
+            'published_at' => $publishedAt,
+        ]);
+        // A past article belongs to the academic year it was published in
+        $article->created_at = $publishedAt;
+        $article->updated_at = $publishedAt;
+        $article->save();
+
+        if (!empty($validated['artist_id'])) {
+            Task::create([
+                'title'        => $article->title,
+                'description'  => 'Published directly without a review workflow.',
+                'article_id'   => $article->id,
+                'assignee_id'  => $validated['artist_id'],
+                'assigned_by'  => $user->id,
+                'section_id'   => $article->section_id,
+                'type'         => Task::TYPE_ILLUSTRATION,
+                'status'       => Task::STATUS_COMPLETED,
+                'completed_at' => $publishedAt,
+            ]);
+        }
+
+        Activity::record($user, 'Published an article directly', $article);
+
+        foreach (array_filter([$validated['author_id'], $validated['artist_id'] ?? null]) as $recipientId) {
+            if ((int) $recipientId === $user->id) continue;
+            Notification::create([
+                'user_id' => $recipientId,
+                'title'   => 'Article Published',
+                'message' => "'{$article->title}' was published with you credited on it.",
+                'type'    => Notification::TYPE_GENERAL,
+                'data'    => ['article_id' => $article->id],
+            ]);
+        }
+
+        return response()->json($article->load(['author', 'section', 'tasks.assignee']), 201);
+    }
+
+    /**
+     * Replace the credits on a video: {credits: {reporter: [ids], scriptwriter: [ids],
+     * videographer: [ids], video_editor: [ids]}}. Set by the Head / Assistant Head
+     * Broadcaster (or the EIC / admin) before the video goes to the EIC.
+     */
+    public function setCredits(Request $request, Article $article)
+    {
+        $user = $request->user();
+        if (!in_array($user->role, ['section_editor', 'eic', 'admin'])) {
+            return response()->json(['message' => 'Not authorized to credit this video.'], 403);
+        }
+        if ($article->type !== Article::TYPE_VIDEO) {
+            return response()->json(['message' => 'Only videos can be credited.'], 422);
+        }
+
+        $roles = array_keys(ArticleCredit::ROLES);
+        $rules = ['credits' => 'required|array'];
+        foreach ($roles as $role) {
+            $rules["credits.$role"] = 'nullable|array';
+            $rules["credits.$role.*"] = 'integer|exists:users,id';
+        }
+        $validated = $request->validate($rules);
+
+        $this->syncCredits($article, $validated['credits']);
+
+        Activity::record($user, 'Updated video credits', $article);
+
+        return response()->json($article->fresh()->load(['author', 'section', 'tasks.assignee', 'credits.user']));
+    }
+
+    /** Delete an article */
+    public function destroy(Request $request, Article $article)
+    {
+        $user = $request->user();
+        $isPrivileged = in_array($user->role, ['eic', 'admin']);
+        $isOwner = $article->author_id === $user->id;
+
+        if ($article->status === Article::STATUS_PUBLISHED) {
+            if (!$isPrivileged) {
+                return response()->json(['message' => 'Only the Editor-in-Chief can delete a published article.'], 403);
+            }
+        } elseif (!$isOwner && !$isPrivileged) {
+            return response()->json(['message' => 'Not authorized to delete this article.'], 403);
+        }
+
+        Activity::record($user, 'Deleted an article', $article);
         $article->tasks()->delete();
         $article->delete();
         return response()->json(['message' => 'Article deleted successfully.']);
+    }
+
+    /** Flip any past-due scheduled articles to published (lazy scheduler — no cron required) */
+    private function publishDueSchedules(): void
+    {
+        Article::where('status', Article::STATUS_SCHEDULED)
+            ->where('scheduled_at', '<=', now())
+            ->get()
+            ->each(function (Article $article) {
+                $article->update([
+                    'status'       => Article::STATUS_PUBLISHED,
+                    'published_at' => $article->scheduled_at,
+                ]);
+            });
     }
 
     /** Staff Writer submits article to Section Editor */
@@ -178,7 +426,71 @@ class ArticleController extends Controller
             'data'    => ['article_id' => $article->id],
         ]);
 
+        // Send every linked task (writer, artist, etc.) back to "returned" so it reappears
+        // in the assignee's Ongoing column instead of staying stuck under Submitted.
+        // A video's presenter task was already marked completed when the Head Broadcaster sent it
+        // to the EIC, so it has to be reopened here too or the presenter never sees the return.
+        $tasks = Task::where('article_id', $article->id)
+            ->where(function ($q) use ($article) {
+                $q->where('status', '!=', Task::STATUS_COMPLETED);
+                if ($article->type === Article::TYPE_VIDEO) {
+                    $q->orWhere('type', Task::TYPE_WRITING);
+                }
+            })
+            ->get();
+
+        foreach ($tasks as $task) {
+            // A returned video only goes back to its presenter; the crew (videographer,
+            // video editor) has nothing to revise.
+            if ($article->type === Article::TYPE_VIDEO && $task->type !== Task::TYPE_WRITING) {
+                continue;
+            }
+
+            $task->update([
+                'status'           => Task::STATUS_RETURNED,
+                'notes'            => $this->withRevisionNotes($task->notes, $request->rejection_reason),
+                'returned_by_role' => $this->returnerRoleLabel($request->user()),
+            ]);
+
+            if ($task->assignee_id !== $article->author_id) {
+                Notification::create([
+                    'user_id' => $task->assignee_id,
+                    'title'   => 'Task Returned for Revision',
+                    'message' => "The article '{$article->title}' was returned for revision. Notes: {$request->rejection_reason}",
+                    'type'    => Notification::TYPE_TASK_RETURNED,
+                    'data'    => ['task_id' => $task->id, 'article_id' => $article->id],
+                ]);
+            }
+        }
+
         return response()->json($article->load(['author', 'section']));
+    }
+
+    /**
+     * Merge a revision reason into a task's notes without losing the structured
+     * fields (Section, Coverage, Media Artist, etc.) other views parse out of it.
+     */
+    private function withRevisionNotes(?string $notes, string $reason): string
+    {
+        $base = trim(preg_replace('/\s*\|?\s*Revision Notes:\s*[^|]*/i', '', $notes ?? ''));
+        $segment = 'Revision Notes: ' . $reason;
+        return $base !== '' ? "{$base} | {$segment}" : $segment;
+    }
+
+    /**
+     * Which editorial-review stage sent a task back, so the writer's workspace
+     * can route the revision note into the matching Section Editor / Copyreader / EIC box.
+     */
+    private function returnerRoleLabel($user): string
+    {
+        if (!$user) return '';
+        if ($user->role === 'eic') return 'eic';
+        if ($user->role === 'section_editor') return 'section_editor';
+        if (in_array('Copyreader', [$user->secondary_role, $user->tertiary_role], true)
+            || in_array('Copy Editor', [$user->secondary_role, $user->tertiary_role], true)) {
+            return 'copyreader';
+        }
+        return $user->role ?? '';
     }
 
     /**
@@ -204,10 +516,18 @@ class ArticleController extends Controller
 
     private function notifySectionEditors(Article $article, string $title, string $message): void
     {
-        $editors = \App\Models\User::where('role', 'section_editor')
-            ->where(function ($q) use ($article) {
-                $q->where('section_id', $article->section_id)->orWhereNull('section_id');
-            })->get();
+        // (users no longer have a section_id column, so every section editor is notified)
+        $editors = \App\Models\User::where('role', 'section_editor');
+
+        // Videos are reviewed only by the Head / Assistant Head Broadcaster
+        if ($article->type === Article::TYPE_VIDEO) {
+            $editors->where(function ($q) {
+                $q->where('secondary_role', 'like', '%Broadcaster%')
+                  ->orWhere('tertiary_role', 'like', '%Broadcaster%');
+            });
+        }
+
+        $editors = $editors->get();
 
         foreach ($editors as $editor) {
             Notification::create([

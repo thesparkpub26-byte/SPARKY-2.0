@@ -311,7 +311,8 @@
                                 <td><span class="role-pill">{{ formatRole(member.role) }}</span></td>
                                 <td v-if="activeTab !== 'readers'">
                                     <span v-if="member.secondary_role" class="section-badge" style="background-color: #dbeafe; color: #1e40af; font-weight: 600; padding: 4px 10px; border-radius: 999px; font-size: 12px; display: inline-block;">{{ member.secondary_role }}</span>
-                                    <span v-else style="color: #94a3b8;">—</span>
+                                    <span v-if="member.tertiary_role" class="section-badge" style="background-color: #ede9fe; color: #5b21b6; font-weight: 600; padding: 4px 10px; border-radius: 999px; font-size: 12px; display: inline-block; margin-left: 4px;">{{ member.tertiary_role }}</span>
+                                    <span v-if="!member.secondary_role && !member.tertiary_role" style="color: #94a3b8;">—</span>
                                 </td>
                                 <td v-if="activeTab !== 'readers'">{{ member.program || '—' }}</td>
                                 <td v-if="activeTab !== 'readers'">{{ member.year_section || '—' }}</td>
@@ -663,7 +664,7 @@
                                 <td>{{ article.author?.name || 'Unknown' }}</td>
                                 <td><span class="status-pill" :class="articleStatusClass(article.status)">{{ articleStatusLabel(article.status) }}</span></td>
                                 <td>{{ formatDate(article.created_at) }}</td>
-                                <td><div class="action-icons"><button class="action-btn edit" type="button" aria-label="Edit article" @click="openEditArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></button><button class="action-btn delete" type="button" aria-label="Delete article" @click="openDeleteArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg></button></div></td>
+                                <td><div class="action-icons"><button v-if="!article.archive_kind" class="action-btn edit" type="button" aria-label="Edit article" @click="openEditArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></button><button v-if="!article.archive_kind" class="action-btn delete" type="button" aria-label="Delete article" @click="openDeleteArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg></button></div></td>
                             </tr>
                             <tr v-if="!filteredArticles.length"><td colspan="6" class="empty-activity">No articles found.</td></tr>
                         </tbody>
@@ -983,6 +984,7 @@
                                     <td>{{ formatDate(article.created_at) }}</td>
                                     <td>
                                         <div class="action-icons">
+                                            <button class="action-btn edit" type="button" aria-label="View" @click="openArchiveItem(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
                                             <button class="action-btn edit" type="button" aria-label="Edit article" @click="openEditArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></button>
                                             <button class="action-btn delete" type="button" aria-label="Delete article" @click="openDeleteArticle(article)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg></button>
                                         </div>
@@ -1224,7 +1226,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <div class="input-icon-wrap custom-select-wrap">
-                                <select v-model="newUserForm.role" class="form-control select-control" @change="newUserForm.secondary_role = ''"><option value="" disabled>Role</option><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="staff_broadcaster">Staff Broadcaster</option><option value="reader">Reader</option></select>
+                                <select v-model="newUserForm.role" class="form-control select-control" @change="newUserForm.secondary_role = ''; newUserForm.tertiary_role = ''"><option value="" disabled>Role</option><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="staff_broadcaster">Staff Broadcaster</option><option value="reader">Reader</option></select>
                             </div>
                         </div>
                         <div class="form-group">
@@ -1235,9 +1237,17 @@
                     </div>
                     <div v-if="SECONDARY_ROLES[newUserForm.role]" class="form-group" style="margin-top: 12px;">
                         <div class="input-icon-wrap custom-select-wrap">
-                            <select v-model="newUserForm.secondary_role" class="form-control select-control">
+                            <select v-model="newUserForm.secondary_role" class="form-control select-control" @change="newUserForm.tertiary_role = ''">
                                 <option value="">Section / Secondary Role (Optional)</option>
                                 <option v-for="secRole in SECONDARY_ROLES[newUserForm.role]" :key="secRole" :value="secRole">{{ secRole }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div v-if="newUserForm.role === 'section_editor' && newUserForm.secondary_role" class="form-group" style="margin-top: 12px;">
+                        <div class="input-icon-wrap custom-select-wrap">
+                            <select v-model="newUserForm.tertiary_role" class="form-control select-control">
+                                <option value="">Additional Section Editor Role (Optional)</option>
+                                <option v-for="secRole in SECONDARY_ROLES[newUserForm.role].filter(r => r !== newUserForm.secondary_role)" :key="secRole" :value="secRole">{{ secRole }}</option>
                             </select>
                         </div>
                     </div>
@@ -1284,17 +1294,38 @@
                 </button>
             </div>
             <div class="new-user-step">
+                <div class="form-group">
+                    <label class="form-label">Display Picture</label>
+                    <div class="upload-box">
+                        <div class="upload-circle" :class="{ 'has-preview': editUserImagePreview }">
+                            <img v-if="editUserImagePreview" :src="editUserImagePreview" alt="Profile preview">
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        </div>
+                        <div class="upload-info">
+                            <p>Choose a new photo for this user.<br>jpeg, png, webp - Up to 4MB</p>
+                            <input ref="editUserFileInput" type="file" accept="image/jpeg,image/png,image/webp" hidden @change="handleEditUserImage">
+                            <button class="btn-upload" type="button" @click="editUserFileInput?.click()">{{ editUserImagePreview ? 'Change image' : 'Upload image' }} <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="7" y2="8"></line></svg></button>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group"><label class="form-label">Username</label><input v-model="editUserForm.name" class="form-control" required></div>
                 <div class="form-group"><label class="form-label">Email</label><input v-model="editUserForm.email" type="email" class="form-control" required></div>
                 <div class="form-row">
-                    <div class="form-group"><label class="form-label">Role</label><select v-model="editUserForm.role" class="form-control select-control" required @change="editUserForm.secondary_role = ''"><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="staff_broadcaster">Staff Broadcaster</option><option value="reader">Reader</option></select></div>
+                    <div class="form-group"><label class="form-label">Role</label><select v-model="editUserForm.role" class="form-control select-control" required @change="editUserForm.secondary_role = ''; editUserForm.tertiary_role = ''"><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="staff_broadcaster">Staff Broadcaster</option><option value="reader">Reader</option></select></div>
                     <div class="form-group"><label class="form-label">Status</label><select v-model="editUserForm.is_active" class="form-control select-control"><option :value="true">Active</option><option :value="false">Inactive</option></select></div>
                 </div>
                 <div v-if="SECONDARY_ROLES[editUserForm.role]" class="form-group" style="margin-top: 8px;">
                     <label class="form-label">Section / Secondary Role</label>
-                    <select v-model="editUserForm.secondary_role" class="form-control select-control">
+                    <select v-model="editUserForm.secondary_role" class="form-control select-control" @change="editUserForm.tertiary_role = ''">
                         <option value="">None / Default</option>
                         <option v-for="secRole in SECONDARY_ROLES[editUserForm.role]" :key="secRole" :value="secRole">{{ secRole }}</option>
+                    </select>
+                </div>
+                <div v-if="editUserForm.role === 'section_editor' && editUserForm.secondary_role" class="form-group" style="margin-top: 8px;">
+                    <label class="form-label">Additional Section Editor Role</label>
+                    <select v-model="editUserForm.tertiary_role" class="form-control select-control">
+                        <option value="">None</option>
+                        <option v-for="secRole in SECONDARY_ROLES[editUserForm.role].filter(r => r !== editUserForm.secondary_role)" :key="secRole" :value="secRole">{{ secRole }}</option>
                     </select>
                 </div>
                 <div v-if="['eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'].includes(editUserForm.role)" class="form-row edit-user-academic-group">
@@ -1357,8 +1388,18 @@
             <div class="modal-footer"><button class="btn-back" type="button" @click="closeDeleteYearModal">Cancel</button><button class="btn-next btn-danger" type="button" :disabled="deleteYearSaving" @click="deleteYear">{{ deleteYearSaving ? 'Deleting...' : 'Delete Academic Year' }}</button></div>
         </div>
     </div>
+    <!-- Archive Article Preview (read-only) -->
+    <ArticlePreviewModal
+        :is-open="isArchivePreviewOpen"
+        :article-data="archivePreviewArticle"
+        archived
+        @close="isArchivePreviewOpen = false"
+        @edit-article="handleArchiveEdit"
+        @action-complete="handleArchiveDeleted"
+    />
+
     <!-- Assigned Task Quick Modal -->
-    <AssignedTaskModal 
+    <AssignedTaskModal
         :is-open="isAssignedTaskModalOpen" 
         :task-data="selectedTask"
         @close="isAssignedTaskModalOpen = false" 
@@ -1378,6 +1419,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
+import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
@@ -1511,6 +1553,44 @@ const getAcademicYearMeta = (dateInput = new Date()) => {
     };
 };
 
+const archiveGallery = ref([]);
+const archiveIssues = ref([]);
+const archiveVideos = ref([]);
+
+const loadArchiveExtras = async () => {
+    const headers = { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' };
+    const load = async (url, target) => {
+        try {
+            const response = await fetch(url, { headers });
+            if (response.ok) target.value = await response.json();
+        } catch {
+            // Keep whatever is already loaded.
+        }
+    };
+    await Promise.all([
+        load('/api/gallery', archiveGallery),
+        load('/api/published-issues', archiveIssues),
+        load('/api/articles?type=video', archiveVideos),
+    ]);
+};
+
+// An archive row can be an article, a gallery photo, a published issue or a video
+const openArchiveItem = (item = {}) => {
+    if (item.archive_kind === 'gallery') {
+        if (item.source?.image_url) window.open(item.source.image_url, '_blank', 'noopener');
+    } else if (item.archive_kind === 'issue') {
+        window.open(`/booklet/${item.source.id}`, '_blank', 'noopener');
+    } else if (item.archive_kind === 'video') {
+        openArchivePreview(item.source);
+    } else {
+        openArchivePreview(item);
+    }
+};
+
+watch(activeTab, (tab) => {
+    if (tab === 'archive' || tab === 'archive-year') loadArchiveExtras();
+});
+
 const archiveFolders = computed(() => {
     const folders = new Map();
     const currentFolder = getAcademicYearMeta();
@@ -1521,7 +1601,36 @@ const archiveFolders = computed(() => {
         folders.set(yearMeta.key, { key: yearMeta.key, label: yearMeta.label, articles: [] });
     });
 
-    articles.value.forEach((article) => {
+    // Articles, plus everything else the newsroom posted that year (gallery photos,
+    // published issues and videos), all listed in the same format
+    const archiveItems = [
+        ...articles.value,
+        ...archiveGallery.value.map(photo => ({
+            id: `gallery-${photo.id}`,
+            archive_kind: 'gallery',
+            title: photo.title,
+            section: { name: 'Gallery' },
+            author: photo.uploader,
+            status: 'published',
+            created_at: photo.created_at,
+            source: photo,
+        })),
+        ...archiveIssues.value.map(issue => ({
+            id: `issue-${issue.id}`,
+            archive_kind: 'issue',
+            title: issue.title,
+            section: { name: 'Published Issue' },
+            author: issue.uploader,
+            status: 'published',
+            created_at: issue.created_at,
+            source: issue,
+        })),
+        ...archiveVideos.value
+            .filter(video => ['published', 'scheduled'].includes(video.status))
+            .map(video => ({ ...video, id: `video-${video.id}`, section: { name: 'Video' }, archive_kind: 'video', source: video })),
+    ];
+
+    archiveItems.forEach((article) => {
         const articleDate = article.created_at ? new Date(article.created_at) : new Date();
         const yearMeta = getAcademicYearMeta(articleDate);
         const existing = folders.get(yearMeta.key) || {
@@ -1574,8 +1683,12 @@ const SECONDARY_ROLES = {
         'Art Editor',
         'Layout Editor',
         'Publication Adviser',
+        'News Editor',
         'Opinion Editor',
         'Editorial Editor',
+        'Feature Editor',
+        'Sci-Tech Editor',
+        'DevCom Editor',
         'Literary Editor',
         'Sports Editor',
         'Head Broadcaster',
@@ -1627,9 +1740,10 @@ const managementSectionOptions = computed(() => {
     }
 
     users.value.forEach(u => {
-        if (u.secondary_role && (targetRoles.length === 0 || targetRoles.includes(u.role))) {
+        if (targetRoles.length === 0 || targetRoles.includes(u.role)) {
             if (managementRole.value === 'all' || u.role === managementRole.value) {
-                secRolesSet.add(u.secondary_role);
+                if (u.secondary_role) secRolesSet.add(u.secondary_role);
+                if (u.tertiary_role) secRolesSet.add(u.tertiary_role);
             }
         }
     });
@@ -1647,11 +1761,12 @@ const filteredManagementUsers = computed(() => {
     const filtered = users.value
         .filter(user => rolesByTab[activeTab.value]?.includes(user.role))
         .filter(user => managementRole.value === 'all' || user.role === managementRole.value)
-        .filter(user => managementSection.value === 'all' || user.secondary_role === managementSection.value)
+        .filter(user => managementSection.value === 'all' || user.secondary_role === managementSection.value || user.tertiary_role === managementSection.value)
         .filter(user => matchesSearch(
             user.name,
             user.email,
             user.secondary_role,
+            user.tertiary_role,
             user.program,
             user.year_section,
             formatRole(user.role),
@@ -1981,6 +2096,9 @@ const isNewUserModalOpen = ref(false);
 const newUserStep = ref(1);
 const newUserFileInput = ref(null);
 const newUserImagePreview = ref('');
+const editUserFileInput = ref(null);
+const editUserImage = ref(null);
+const editUserImagePreview = ref('');
 const newUserSaving = ref(false);
 const newUserError = ref('');
 const isEditUserModalOpen = ref(false);
@@ -1990,7 +2108,7 @@ const editUserSaving = ref(false);
 const deleteUserSaving = ref(false);
 const editUserError = ref('');
 const deleteUserError = ref('');
-const editUserForm = ref({ name: '', email: '', role: '', secondary_role: '', is_active: true, program: '', year_section: '', password: '' });
+const editUserForm = ref({ name: '', email: '', role: '', secondary_role: '', tertiary_role: '', is_active: true, program: '', year_section: '', password: '' });
 const isEditArticleModalOpen = ref(false);
 const isDeleteArticleModalOpen = ref(false);
 const selectedArticle = ref(null);
@@ -2004,6 +2122,7 @@ const newUserForm = ref({
     email: '',
     role: '',
     secondary_role: '',
+    tertiary_role: '',
     status: '',
     password: '',
     passwordConfirmation: '',
@@ -2021,7 +2140,7 @@ const openNewUserModal = () => {
 const closeNewUserModal = () => {
     isNewUserModalOpen.value = false;
     newUserImagePreview.value = '';
-    newUserForm.value = { name: '', email: '', role: '', secondary_role: '', status: '', password: '', passwordConfirmation: '', program: '', year_section: '', image: null };
+    newUserForm.value = { name: '', email: '', role: '', secondary_role: '', tertiary_role: '', status: '', password: '', passwordConfirmation: '', program: '', year_section: '', image: null };
 };
 
 const handleNewUserImage = (event) => {
@@ -2037,16 +2156,26 @@ const openEditUser = (member) => {
         email: member.email,
         role: member.role,
         secondary_role: member.secondary_role || '',
+        tertiary_role: member.tertiary_role || '',
         is_active: member.is_active !== false,
         program: member.program || '',
         year_section: member.year_section || '',
         password: '',
     };
+    editUserImage.value = null;
+    editUserImagePreview.value = member.profile_picture_url || '';
     editUserError.value = '';
     isEditUserModalOpen.value = true;
 };
 
 const closeEditUser = () => { isEditUserModalOpen.value = false; };
+
+const handleEditUserImage = (event) => {
+    const image = event.target.files?.[0] || null;
+    if (!image) return;
+    editUserImage.value = image;
+    editUserImagePreview.value = URL.createObjectURL(image);
+};
 
 const saveEditedUser = async () => {
     if (!selectedUser.value) return;
@@ -2055,12 +2184,21 @@ const saveEditedUser = async () => {
     const payload = { ...editUserForm.value };
     if (!payload.password) delete payload.password;
     if (!payload.secondary_role) payload.secondary_role = null;
+    if (!payload.tertiary_role) payload.tertiary_role = null;
     try {
-        const response = await fetch(`/api/users/${selectedUser.value.id}`, {
-            method: 'PUT',
-            headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json', 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
+        const headers = { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' };
+        let request;
+        if (editUserImage.value) {
+            // Files need multipart, and PHP only parses multipart on POST, so spoof PUT.
+            const body = new FormData();
+            Object.entries(payload).forEach(([key, value]) => body.append(key, typeof value === 'boolean' ? (value ? 1 : 0) : (value ?? '')));
+            body.append('profile_picture', editUserImage.value);
+            body.append('_method', 'PUT');
+            request = { method: 'POST', headers, body };
+        } else {
+            request = { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) };
+        }
+        const response = await fetch(`/api/users/${selectedUser.value.id}`, request);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.message || Object.values(data.errors || {})[0]?.[0] || 'Could not update user.');
         const index = users.value.findIndex(user => user.id === data.id);
@@ -2101,6 +2239,39 @@ const deleteSelectedUser = async () => {
     } finally {
         deleteUserSaving.value = false;
     }
+};
+
+const isArchivePreviewOpen = ref(false);
+const archivePreviewArticle = ref({});
+
+const openArchivePreview = (article = {}) => {
+    const tasks = Array.isArray(article.tasks) ? article.tasks : [];
+    const artist = tasks.find(t => ['illustration', 'photography', 'layout'].includes(t.type))?.assignee || null;
+    const fileName = (url) => String(url).split('/').pop() || 'file';
+    const files = [];
+    if (article.cover_image) files.push({ name: fileName(article.cover_image), type: 'image', url: article.cover_image });
+    (Array.isArray(article.media_files) ? article.media_files : []).forEach(url => files.push({ name: fileName(url), type: 'image', url }));
+
+    archivePreviewArticle.value = {
+        ...article,
+        raw_status: article.status,
+        artist_name: artist?.name || '',
+        artist_avatar: artist?.profile_picture_url || '',
+        attached_files: files,
+    };
+    isArchivePreviewOpen.value = true;
+};
+
+const handleArchiveEdit = (article) => {
+    isArchivePreviewOpen.value = false;
+    openEditArticle(article);
+};
+
+const handleArchiveDeleted = () => {
+    const deletedId = archivePreviewArticle.value?.id;
+    isArchivePreviewOpen.value = false;
+    articles.value = articles.value.filter(article => article.id !== deletedId);
+    archiveVideos.value = archiveVideos.value.filter(video => video.id !== deletedId);
 };
 
 const openEditArticle = (article) => {
@@ -2180,6 +2351,9 @@ const saveNewUser = async () => {
     payload.append('role', newUserForm.value.role);
     if (newUserForm.value.secondary_role) {
         payload.append('secondary_role', newUserForm.value.secondary_role);
+    }
+    if (newUserForm.value.tertiary_role) {
+        payload.append('tertiary_role', newUserForm.value.tertiary_role);
     }
     if (newUserForm.value.role !== 'reader') {
         payload.append('program', newUserForm.value.program || '');

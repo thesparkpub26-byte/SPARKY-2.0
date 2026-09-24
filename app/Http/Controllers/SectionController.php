@@ -9,12 +9,12 @@ class SectionController extends Controller
 {
     public function index()
     {
-        return response()->json(Section::withCount(['users', 'articles'])->orderBy('name')->get());
+        return response()->json(Section::withCount(['articles'])->orderBy('name')->get());
     }
 
     public function show(Section $section)
     {
-        return response()->json($section->load(['users', 'articles']));
+        return response()->json($section->load(['articles']));
     }
 
     public function store(Request $request)

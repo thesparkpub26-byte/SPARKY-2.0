@@ -27,17 +27,23 @@ class Article extends Model
         'editor_notes',
         'cover_image',
         'media_files',
+        'video_url',
+        'video_category',
         'monitoring_sheet_url',
+        'scheduled_at',
+        'published_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'submitted_at' => 'datetime',
-            'endorsed_at'  => 'datetime',
-            'approved_at'  => 'datetime',
-            'rejected_at'  => 'datetime',
-            'media_files'  => 'array',
+            'submitted_at'  => 'datetime',
+            'endorsed_at'   => 'datetime',
+            'approved_at'   => 'datetime',
+            'rejected_at'   => 'datetime',
+            'scheduled_at'  => 'datetime',
+            'published_at'  => 'datetime',
+            'media_files'   => 'array',
         ];
     }
 
@@ -49,6 +55,7 @@ class Article extends Model
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
     const STATUS_PUBLISHED = 'published';
+    const STATUS_SCHEDULED = 'scheduled';
 
     // Type constants
     const TYPE_ARTICLE = 'article';
@@ -56,6 +63,10 @@ class Article extends Model
     const TYPE_OPINION = 'opinion';
     const TYPE_PHOTO_ESSAY = 'photo_essay';
     const TYPE_ILLUSTRATION = 'illustration';
+    const TYPE_VIDEO = 'video';
+
+    // Video categories (EIC picks one when reviewing / editing a video)
+    const VIDEO_CATEGORIES = ['Documentary', 'Reel', 'Telesiklab'];
 
     // Relationships
     public function author()
@@ -71,6 +82,11 @@ class Article extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function credits()
+    {
+        return $this->hasMany(ArticleCredit::class);
     }
 
     // Status helpers

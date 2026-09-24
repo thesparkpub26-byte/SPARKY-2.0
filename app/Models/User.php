@@ -18,6 +18,7 @@ class User extends Authenticatable
         'password',
         'role',
         'secondary_role',
+        'tertiary_role',
         'program',
         'year_section',
         'avatar',

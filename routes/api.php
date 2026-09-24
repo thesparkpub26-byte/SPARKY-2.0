@@ -12,6 +12,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PressWorkController;
 use App\Http\Controllers\MonitoringSheetController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\PublishedIssueController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +48,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/monitoring-sheets/{monitoringSheet}/entries/{entry}', [MonitoringSheetController::class, 'deleteEntry']);
     Route::post('/monitoring-sheets/{monitoringSheet}/entries/{entry}/article', [MonitoringSheetController::class, 'uploadArticle']);
 
+    // Gallery
+    Route::get('/gallery',            [GalleryController::class, 'index']);
+    Route::post('/gallery',           [GalleryController::class, 'store']);
+    Route::post('/gallery/{photo}',   [GalleryController::class, 'update']);   // multipart/form-data
+    Route::delete('/gallery/{photo}', [GalleryController::class, 'destroy']);
+
+    // Published Issues
+    Route::get('/published-issues',            [PublishedIssueController::class, 'index']);
+    Route::get('/published-issues/{issue}',    [PublishedIssueController::class, 'show']);
+    Route::post('/published-issues',           [PublishedIssueController::class, 'store']);
+    Route::post('/published-issues/{issue}',   [PublishedIssueController::class, 'update']);  // multipart/form-data
+    Route::delete('/published-issues/{issue}', [PublishedIssueController::class, 'destroy']);
+
     // Self-service profile
     Route::post('/profile',         [UserController::class, 'updateProfile']);   // multipart/form-data
     Route::delete('/profile',       [UserController::class, 'deleteAccount']);
@@ -59,6 +74,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Articles
     Route::post('/articles/upload-media',  [ArticleController::class, 'uploadMedia']);
     Route::apiResource('articles', ArticleController::class);
+    Route::post('/articles/publish-direct',    [ArticleController::class, 'publishDirect']);
+    Route::post('/articles/publish-direct-video', [ArticleController::class, 'publishDirectVideo']);
+    Route::put('/articles/{article}/credits',  [ArticleController::class, 'setCredits']);
     Route::post('/articles/{article}/submit',  [ArticleController::class, 'submit']);
     Route::post('/articles/{article}/endorse', [ArticleController::class, 'endorse']);
     Route::post('/articles/{article}/approve', [ArticleController::class, 'approve']);

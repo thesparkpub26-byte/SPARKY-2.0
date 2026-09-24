@@ -220,9 +220,9 @@
                                             <span class="detail-label">Artist:</span>
                                             <span class="detail-value">{{ task.mediaArtist }}</span>
                                         </div>
-                                        <div class="task-detail-item" v-if="task.status === 'returned' && task.notes" style="margin-top: 4px;">
+                                        <div class="task-detail-item" v-if="task.status === 'returned' && task.revisionNotes" style="margin-top: 4px;">
                                             <span class="detail-label" style="color: #dc2626; font-weight: 600;">Revision Notes:</span>
-                                            <span class="detail-value" style="color: #991b1b; font-size: 12px; line-height: 1.4;">{{ task.notes }}</span>
+                                            <span class="detail-value" style="color: #991b1b; font-size: 12px; line-height: 1.4;">{{ task.revisionNotes }}</span>
                                         </div>
                                     </div>
                                     <div class="task-card-footer">
@@ -340,9 +340,15 @@
                                     </td>
                                     <td style="color: #64748b;">{{ formatArticleDate(article.lastUpdated) }}</td>
                                     <td style="padding-right: 28px; text-align: right;" @click.stop>
-                                        <button class="article-delete-btn" @click.stop="confirmDeleteArticle(article)" title="Delete Article">
+                                        <button
+                                            v-if="article.status !== 'published'"
+                                            class="article-delete-btn"
+                                            @click.stop="confirmDeleteArticle(article)"
+                                            title="Delete Article"
+                                        >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                         </button>
+                                        <span v-else style="font-size: 11px; color: #94a3b8;" title="Only the Editor-in-Chief can delete a published article.">—</span>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredArticles.length === 0">
@@ -513,11 +519,20 @@
         @close="isArtistSubmissionModalOpen = false"
     />
 
+    <!-- Read-only Article Preview (published articles) -->
+    <ArticlePreviewModal
+        :is-open="isArticlePreviewOpen"
+        :article-data="selectedArticlePreview"
+        read-only
+        @close="isArticlePreviewOpen = false"
+    />
+
     <!-- Delete Article Confirmation Modal -->
     <div v-if="articleToDelete" class="writer-confirm-overlay" @click.self="articleToDelete = null">
         <div class="writer-confirm-card">
             <h3 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#0f172a;">Delete Article?</h3>
             <p style="margin:0 0 20px;font-size:13.5px;color:#64748b;line-height:1.5;">This will permanently delete <strong>"{{ articleToDelete.title }}"</strong>. This cannot be undone.</p>
+            <p v-if="deleteArticleError" style="margin:0 0 16px;font-size:13px;color:#dc2626;">{{ deleteArticleError }}</p>
             <div style="display:flex;gap:12px;justify-content:flex-end;">
                 <button class="btn-cancel" @click="articleToDelete = null" :disabled="deletingArticle">Cancel</button>
                 <button class="btn-confirm-delete" @click="doDeleteArticle" :disabled="deletingArticle">{{ deletingArticle ? 'Deleting…' : 'Delete' }}</button>
@@ -532,8 +547,10 @@ import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
 import ArtistSubmissionModal from '../../components/ArtistSubmissionModal.vue';
+import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
+import { fetchCreditedVideos } from '../../utils/video';
 
 const router = useRouter();
 const activeTab = ref('tasks');
@@ -541,13 +558,20 @@ const searchQuery = ref('');
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
 const isArtistSubmissionModalOpen = ref(false);
+const isArticlePreviewOpen = ref(false);
 const selectedTask = ref({});
 const selectedArtistSubmission = ref({});
+const selectedArticlePreview = ref({});
 const isLoadingTasks = ref(false);
 
 // ── User Management ─────────────────────────────────────────────────────────────
 const user = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 const token = localStorage.getItem('sparky_token');
+
+const isCopyreader = computed(() => {
+    const roles = [user.value?.secondary_role, user.value?.tertiary_role];
+    return roles.includes('Copy Editor') || roles.includes('Copyreader');
+});
 
 const formatRole = (role, secondaryRole) => {
     if (secondaryRole) return secondaryRole;
@@ -669,10 +693,15 @@ const fetchTasks = async () => {
                 // Store all tasks for artist submission matching
                 allTasks.value = data;
 
-                // Only show writing-type tasks assigned specifically to this logged-in writer
-                const userTasks = user.value.id
-                    ? data.filter(t => t.assignee_id === user.value.id && t.type === 'writing')
-                    : data.filter(t => t.type === 'writing');
+                // Copyreaders/Copy Editors review other writers' articles (editing-type tasks);
+                // everyone else only sees their own writing-type tasks. Once the linked
+                // article is published, the task is done and drops off this working queue.
+                const relevantType = isCopyreader.value ? 'editing' : 'writing';
+                const userTasks = data.filter(t =>
+                    t.type === relevantType
+                    && (user.value.id ? t.assignee_id === user.value.id : true)
+                    && t.article?.status !== 'published'
+                );
 
                 tasks.value = userTasks.map(t => {
                     const dueTime = parseNotesField(t.notes, 'Due Time');
@@ -685,7 +714,7 @@ const fetchTasks = async () => {
                         const writerClean = (t.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
                         const pairedTask = data.find(other => {
                             if (other.assignee_id === user.value.id) return false;
-                            if (other.type === 'writing') return false;
+                            if (!['illustration', 'photography', 'layout'].includes(other.type)) return false;
                             if (other.article_id && t.article_id && other.article_id === t.article_id) return true;
                             const otherClean = (other.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
                             return otherClean && writerClean && otherClean === writerClean;
@@ -696,20 +725,49 @@ const fetchTasks = async () => {
                         }
                     }
 
+                    // For non-writing tasks (e.g. a copyreader's editing task), the
+                    // real "writer" is whoever holds the writing-type task for the
+                    // same article — not this task's own assignee.
+                    let writer = null;
+                    if (t.type === 'writing') {
+                        writer = t.assignee || null;
+                    } else if (t.article_id) {
+                        const writingSibling = data.find(other => other.type === 'writing' && other.article_id === t.article_id);
+                        writer = writingSibling?.assignee || null;
+                    }
+
+                    // Same idea for deadline/priority: fall back to the writer's task
+                    // if this task doesn't carry its own (e.g. older editing tasks).
+                    let effectiveDeadline = t.deadline;
+                    let effectivePriority = t.priority;
+                    if (t.type !== 'writing' && t.article_id && (!effectiveDeadline || !effectivePriority)) {
+                        const writingSibling = data.find(other => other.type === 'writing' && other.article_id === t.article_id);
+                        if (writingSibling) {
+                            effectiveDeadline = effectiveDeadline || writingSibling.deadline;
+                            effectivePriority = effectivePriority || writingSibling.priority;
+                        }
+                    }
+
                     return {
                         id: t.id,
                         title: t.title,
                         section: t.section?.name || parseNotesField(t.notes, 'Section') || 'News',
                         coverage: parseNotesField(t.notes, 'Coverage') || '',
                         dueTime: dueTime,
-                        deadline: formatDeadline(t.deadline, dueTime),
-                        priority: t.priority || 'medium',
+                        deadline: formatDeadline(effectiveDeadline, dueTime),
+                        priority: effectivePriority || 'medium',
                         status: t.status || 'pending',
                         articleDesc: t.description || '',
                         thumbnailDesc: parseNotesField(t.notes, 'Thumbnail') || '',
                         mediaArtist: mediaArtist,
                         mediaArtistRole: mediaArtistRole || 'Graphic Artist / PJ',
                         notes: t.notes || '',
+                        revisionNotes: parseNotesField(t.notes, 'Revision Notes') || '',
+                        writer: writer ? {
+                            name: writer.name,
+                            role: writer.secondary_role || writer.role || 'Staff Writer',
+                            avatar: writer.profile_picture ? `/storage/${writer.profile_picture}` : (writer.profile_picture_url || '')
+                        } : null,
                         assignees: t.assignee ? [{ name: t.assignee.name, secondary_role: t.assignee.secondary_role || '', role: t.assignee.role || 'Staff Writer', avatar: t.assignee.profile_picture ? `/storage/${t.assignee.profile_picture}` : (t.assignee.profile_picture_url || '') }] : [],
                         raw: t
                     };
@@ -726,14 +784,17 @@ const fetchTasks = async () => {
 // ── Fetch Articles from Backend ────────────────────────────────────────────────
 const articleToDelete = ref(null);
 const deletingArticle = ref(false);
+const deleteArticleError = ref('');
 
 const confirmDeleteArticle = (article) => {
     articleToDelete.value = article;
+    deleteArticleError.value = '';
 };
 
 const doDeleteArticle = async () => {
     if (!articleToDelete.value) return;
     deletingArticle.value = true;
+    deleteArticleError.value = '';
     try {
         const res = await fetch(`/api/articles/${articleToDelete.value.id}`, {
             method: 'DELETE',
@@ -746,9 +807,13 @@ const doDeleteArticle = async () => {
             articleToDelete.value = null;
             await fetchArticles();
             await fetchTasks();
+        } else {
+            const data = await res.json().catch(() => ({}));
+            deleteArticleError.value = data.message || 'Failed to delete this article.';
         }
     } catch (err) {
         console.warn('Could not delete article:', err);
+        deleteArticleError.value = 'Failed to delete this article.';
     } finally {
         deletingArticle.value = false;
     }
@@ -780,6 +845,12 @@ const fetchArticles = async () => {
                         );
                     }
                     return true;
+                });
+
+                // Videos this writer was credited on (e.g. as scriptwriter) live here too
+                const credited = await fetchCreditedVideos(user.value.id);
+                credited.forEach(video => {
+                    if (!validArticles.some(a => a.id === video.id)) validArticles.push(video);
                 });
 
                 articles.value = validArticles.map(a => {
@@ -1072,7 +1143,52 @@ const handleViewSubmissions = () => {
     activeTab.value = 'tasks';
 };
 
+const extractFileNameSW = (url) => {
+    if (!url || typeof url !== 'string') return 'file';
+    const parts = url.split('/');
+    return parts[parts.length - 1] || 'file';
+};
+
+const staffRoleLabelSW = (role) => (role === 'staff_broadcaster' ? 'Staff Broadcaster' : 'Staff Artist');
+
+// Builds the same article-preview shape EditorInChiefDashboard uses, so a writer's
+// own published article opens the identical read-only preview.
+const buildArticlePreviewData = (item = {}) => {
+    const tasks = Array.isArray(item.tasks) ? item.tasks : [];
+    const primaryTask = tasks.find(t => t.type === 'writing') || tasks[0] || null;
+    const artistTask = tasks.find(t => ['illustration', 'photography', 'layout'].includes(t.type)) || null;
+    const artist = artistTask?.assignee || null;
+
+    const attachedFiles = [];
+    if (item.cover_image) {
+        attachedFiles.push({ name: extractFileNameSW(item.cover_image), type: 'image', url: item.cover_image });
+    }
+    if (Array.isArray(item.media_files)) {
+        item.media_files.forEach((url) => {
+            attachedFiles.push({ name: extractFileNameSW(url), type: 'image', url });
+        });
+    }
+
+    return {
+        ...item,
+        raw_status: item.status,
+        coverage: parseNotesField(primaryTask?.notes, 'Coverage') || '',
+        artist_name: artist?.name || '',
+        artist_email: artist?.email || '',
+        artist_role: artist?.secondary_role || (artist ? staffRoleLabelSW(artist.role) : ''),
+        artist_avatar: artist?.profile_picture_url || '',
+        attached_files: attachedFiles,
+    };
+};
+
 const openArticleModal = (article) => {
+    // Videos have no writing workspace here, so they always open as the read-only preview
+    if (article.raw?.type === 'video' || (article.status === 'published' && article.raw)) {
+        selectedArticlePreview.value = buildArticlePreviewData(article.raw);
+        isArticlePreviewOpen.value = true;
+        return;
+    }
+
     // Find the task by article_id, not by title matching
     const relatedTask = tasks.value.find(t => t.raw?.article_id === article.id);
 

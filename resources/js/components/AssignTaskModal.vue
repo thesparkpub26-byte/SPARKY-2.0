@@ -16,8 +16,8 @@
             <!-- STEP 1: Article Info, Section, Priority, Deadline -->
             <div class="modal-body-step" v-if="currentStep === 1">
                 <div class="field-group">
-                    <label class="field-label">Article About</label>
-                    <input type="text" class="pill-input" v-model="form.title" placeholder="Write what the article is about..." />
+                    <label class="field-label">{{ isRadioBroadcasting ? 'Video About' : 'Article About' }}</label>
+                    <input type="text" class="pill-input" v-model="form.title" :placeholder="isRadioBroadcasting ? 'Write what the video is about...' : 'Write what the article is about...'" />
                 </div>
 
                 <div class="field-row">
@@ -119,6 +119,27 @@
                     </div>
                 </div>
 
+                <!-- Video Editor (Radio Broadcasting only) -->
+                <div class="field-group" v-if="isRadioBroadcasting">
+                    <div class="media-label-row">
+                        <label class="field-label">Video Editor</label>
+                        <label class="no-graphics-toggle">
+                            <input type="checkbox" v-model="form.noVideoEditor" />
+                            <span>No Editor Needed</span>
+                        </label>
+                    </div>
+                    <div v-if="!form.noVideoEditor" class="select-wrapper">
+                        <select class="pill-select" v-model="form.videoEditor">
+                            <option value="">Select Video Editor</option>
+                            <option v-for="user in filteredVideoEditors" :key="user.id || user.name" :value="user.name">
+                                {{ user.name }} ({{ user.secondary_role || 'Video Editor' }})
+                            </option>
+                        </select>
+                        <svg class="select-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                    <div v-else class="no-graphics-pill">No Editor Needed</div>
+                </div>
+
                 <div class="field-group">
                     <label class="field-label">Description</label>
                     <div class="textarea-container">
@@ -209,6 +230,8 @@ const form = ref({
     dueTime: '',
     writer: '',
     mediaArtist: '',
+    noVideoEditor: false,
+    videoEditor: '',
     description: ''
 });
 
@@ -318,10 +341,18 @@ const filteredMediaAssignees = computed(() => {
     }
 });
 
+// Video Editor options: the same crew pool as the Videographer (any Videographer,
+// Video Editor or Technical Director), minus whoever is already the Videographer.
+const filteredVideoEditors = computed(() =>
+    filteredMediaAssignees.value.filter(u => form.value.noGraphics || !form.value.mediaArtist || u.name !== form.value.mediaArtist)
+);
+
 // Reset writer and mediaArtist whenever section changes
 watch(() => form.value.section, () => {
     form.value.writer = '';
     form.value.mediaArtist = '';
+    form.value.videoEditor = '';
+    form.value.noVideoEditor = false;
 });
 
 watch(() => props.isOpen, (newVal) => {
@@ -353,7 +384,7 @@ const submitTask = async () => {
 
     // Validation: Check required fields
     const requiredFields = [
-        { field: form.value.title, name: 'Article About' },
+        { field: form.value.title, name: isRadioBroadcasting.value ? 'Video About' : 'Article About' },
         { field: form.value.section, name: 'Section' },
         { field: form.value.priority, name: 'Priority' },
         { field: form.value.dueDate, name: 'Deadline Date' },
@@ -378,6 +409,12 @@ const submitTask = async () => {
         return;
     }
 
+    if (isRadioBroadcasting.value && !form.value.noVideoEditor && !form.value.videoEditor) {
+        errorMessage.value = 'Please select a Video Editor or check "No Editor Needed"';
+        isSubmitting.value = false;
+        return;
+    }
+
     try {
         const token = localStorage.getItem('sparky_token');
         const priorityMap = {
@@ -398,11 +435,17 @@ const submitTask = async () => {
         const writerId = writerUser ? writerUser.id : currentUser.value?.id;
 
         // 2. Submit Writer Task to /api/tasks
+        const radio = isRadioBroadcasting.value;
+        const videographerName = radio && !form.value.noGraphics ? form.value.mediaArtist : '';
+        const videoEditorName = radio && !form.value.noVideoEditor ? form.value.videoEditor : '';
         const notesContent = [
             form.value.section ? `Section: ${form.value.section}` : '',
             form.value.coverage ? `Coverage: ${form.value.coverage}` : '',
             form.value.dueTime ? `Due Time: ${form.value.dueTime}` : '',
-            form.value.mediaArtist ? `Media Artist: ${form.value.mediaArtist}` : ''
+            // Radio Broadcasting lists its crew by role so every assignee's task details can show the whole team
+            !radio && form.value.mediaArtist ? `Media Artist: ${form.value.mediaArtist}` : '',
+            videographerName ? `Videographer: ${videographerName}` : '',
+            videoEditorName ? `Video Editor: ${videoEditorName}` : ''
         ].filter(Boolean).join(' | ');
 
         const responseWriter = await fetch('/api/tasks', {
@@ -414,7 +457,7 @@ const submitTask = async () => {
             },
             body: JSON.stringify({
                 title: form.value.title,
-                description: form.value.description || `Article assignment about "${form.value.title}" in ${form.value.section}.`,
+                description: form.value.description || `${radio ? 'Video' : 'Article'} assignment about "${form.value.title}" in ${form.value.section}.`,
                 assignee_id: writerId,
                 type: 'writing',
                 priority: mappedPriority,
@@ -430,27 +473,41 @@ const submitTask = async () => {
             return;
         }
 
-        // 3. If Media Artist / Videographer is selected, create their task on /api/tasks too
-        if (!form.value.noGraphics && form.value.mediaArtist) {
+        // 3. Create the media / crew tasks
+        const createCrewTask = async (assignee, title, type) => {
+            await fetch('/api/tasks', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    title,
+                    description: form.value.description || `Media assignment for "${form.value.title}" in ${form.value.section}.`,
+                    assignee_id: assignee.id,
+                    type,
+                    priority: mappedPriority,
+                    deadline: form.value.dueDate || null,
+                    notes: notesContent || null
+                })
+            });
+        };
+
+        if (radio) {
+            // Broadcasting crew: a videographer and a video editor, each on their own view-only task
+            const videographer = videographerName ? allUsers.value.find(u => u.name === videographerName) : null;
+            if (videographer) {
+                await createCrewTask(videographer, `${form.value.title} (Videography)`, 'videography');
+            }
+            const videoEditor = videoEditorName ? allUsers.value.find(u => u.name === videoEditorName) : null;
+            if (videoEditor) {
+                await createCrewTask(videoEditor, `${form.value.title} (Video Editing)`, 'video_editing');
+            }
+        } else if (!form.value.noGraphics && form.value.mediaArtist) {
             const artistUser = allUsers.value.find(u => u.name === form.value.mediaArtist);
             if (artistUser) {
-                await fetch('/api/tasks', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        title: `${form.value.title} (${isRadioBroadcasting.value ? 'Video Production' : 'Visuals / Graphics'})`,
-                        description: form.value.description || `Media assignment for "${form.value.title}" in ${form.value.section}.`,
-                        assignee_id: artistUser.id,
-                        type: isRadioBroadcasting.value ? 'layout' : 'illustration',
-                        priority: mappedPriority,
-                        deadline: form.value.dueDate || null,
-                        notes: notesContent || null
-                    })
-                });
+                await createCrewTask(artistUser, `${form.value.title} (Visuals / Graphics)`, 'illustration');
             }
         }
 

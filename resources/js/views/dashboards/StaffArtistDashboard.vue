@@ -24,6 +24,18 @@
                     </div>
                 </a>
 
+                <!-- My Works Nav Item -->
+                <a href="#" class="nav-item" :class="{ active: activeTab === 'works' }" @click.prevent="activeTab = 'works'">
+                    <div class="nav-item-left">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        My Works
+                    </div>
+                </a>
+
                 <!-- Recent Submissions Nav Item -->
                 <a href="#" class="nav-item" :class="{ active: activeTab === 'submissions' }" @click.prevent="activeTab = 'submissions'">
                     <div class="nav-item-left">
@@ -177,6 +189,80 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MY WORKS TAB -->
+                <div v-show="activeTab === 'works'" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <h1 class="page-title" style="margin-bottom: 0;">My Works</h1>
+                        <div class="filter-pills-group">
+                            <div class="custom-filter" @click.stop>
+                                <button type="button" class="filter-trigger" @click="activeWorksFilter = !activeWorksFilter">
+                                    <span>{{ worksFilterLabel }}</span>
+                                    <svg :class="{ rotated: activeWorksFilter }" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m6 9 6 6 6-6" />
+                                    </svg>
+                                </button>
+                                <div v-if="activeWorksFilter" class="filter-menu">
+                                    <button v-for="option in worksFilterOptions" :key="option.value" type="button" :class="{ selected: selectedWorksFilter === option.value }" @click="selectWorksFilter(option.value)">{{ option.label }}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="articles-card">
+                        <table class="articles-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding-left: 28px;">Title</th>
+                                    <th>Writer</th>
+                                    <th style="text-align: center;">Status</th>
+                                    <th style="padding-right: 28px;">Last Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="work in paginatedWorks" :key="work.id" @click="openWork(work)" style="cursor: pointer;">
+                                    <td style="padding-left: 28px; font-weight: 700;">
+                                        <div>{{ work.title }}</div>
+                                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px; font-weight: 500;">{{ work.section }}</div>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <img :src="work.writerAvatar" :alt="work.writerName" style="width: 26px; height: 26px; border-radius: 50%; object-fit: cover;">
+                                            <span style="font-weight: 600; font-size: 13px; color: #334155;">{{ work.writerName }}</span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="status-pill" :class="getWorkStatusClass(work.status)">{{ formatWorkStatus(work.status) }}</span>
+                                    </td>
+                                    <td style="padding-right: 28px; color: #64748b;">{{ formatSubmittedDate(work.lastUpdated) }}</td>
+                                </tr>
+                                <tr v-if="filteredWorks.length === 0">
+                                    <td colspan="4" style="text-align: center; padding: 40px; color: #64748b;">
+                                        No works found
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-container" v-if="filteredWorks.length > 0">
+                        <div class="pagination-pill">
+                            <button class="page-btn" @click="worksCurrentPage--" :disabled="worksCurrentPage === 1">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+                                Previous
+                            </button>
+                            <a v-for="page in Math.min(totalWorksPages, 5)" :key="page" href="#" class="page-number" :class="{ active: page === worksCurrentPage }" @click.prevent="worksCurrentPage = page">{{ page }}</a>
+                            <span v-if="totalWorksPages > 5" class="page-dots">&bull;&bull;&bull;</span>
+                            <button class="page-btn" @click="worksCurrentPage++" :disabled="worksCurrentPage === totalWorksPages">
+                                Next
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                            </button>
+                            <div class="page-results-count">
+                                Showing <strong>{{ paginatedWorks.length }}</strong> of {{ filteredWorks.length }} works
                             </div>
                         </div>
                     </div>
@@ -353,6 +439,14 @@
         @open-workspace="handleOpenWorkspace"
     />
 
+    <!-- Read-only Article Preview (published works) -->
+    <ArticlePreviewModal
+        :is-open="isArticlePreviewOpen"
+        :article-data="selectedArticlePreview"
+        read-only
+        @close="isArticlePreviewOpen = false"
+    />
+
     <!-- Artist Visuals & Media Workspace Modal -->
     <ArtistWorkspaceModal
         :is-open="isWorkspaceModalOpen"
@@ -364,10 +458,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
 import ArtistWorkspaceModal from '../../components/ArtistWorkspaceModal.vue';
+import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
@@ -462,10 +557,134 @@ const selectedTask = ref({});
 const staffAcademicYears = ref([]);
 const staffExpandedYears = ref({});
 
+const articles = ref([]);
+const isArticlePreviewOpen = ref(false);
+const selectedArticlePreview = ref({});
+
+const articleById = computed(() => Object.fromEntries(articles.value.map(a => [a.id, a])));
+
+// Once the linked article is published, the artist's job is over: the task leaves
+// My Tasks and lives on as a work under My Works.
+const isTaskDone = (task) => {
+    const article = task.article || articleById.value[task.linked_article_id];
+    return article?.status === 'published';
+};
+
 // Computed properties
-const pendingTasks = computed(() => tasks.value.filter(t => t.status === 'pending'));
-const ongoingTasks = computed(() => tasks.value.filter(t => t.status === 'ongoing' || t.status === 'in_progress' || t.status === 'returned'));
-const submittedTasks = computed(() => tasks.value.filter(t => t.status === 'submitted' || t.status === 'completed'));
+const activeTasks = computed(() => tasks.value.filter(t => !isTaskDone(t)));
+const pendingTasks = computed(() => activeTasks.value.filter(t => t.status === 'pending'));
+const ongoingTasks = computed(() => activeTasks.value.filter(t => t.status === 'ongoing' || t.status === 'in_progress' || t.status === 'returned'));
+const submittedTasks = computed(() => activeTasks.value.filter(t => t.status === 'submitted' || t.status === 'completed'));
+
+// ── My Works (articles the artist collaborated on) ───────────────────────────
+const worksPerPage = 8;
+const worksCurrentPage = ref(1);
+const activeWorksFilter = ref(false);
+const selectedWorksFilter = ref('all');
+
+const worksFilterOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'submitted', label: 'For Review' },
+    { value: 'under_review', label: 'Under Review' },
+    { value: 'endorsed', label: 'Endorsed' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'scheduled', label: 'Scheduled' },
+    { value: 'published', label: 'Published' }
+];
+const worksFilterLabel = computed(() => worksFilterOptions.find(o => o.value === selectedWorksFilter.value)?.label || 'Status');
+
+const selectWorksFilter = (value) => {
+    selectedWorksFilter.value = value;
+    activeWorksFilter.value = false;
+    worksCurrentPage.value = 1;
+};
+
+const avatarFor = (person, background) => person?.profile_picture
+    ? `/storage/${person.profile_picture}`
+    : `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(person?.name || 'writer')}&backgroundColor=${background}`;
+
+const works = computed(() => {
+    const myTaskByArticle = {};
+    tasks.value.forEach(t => { if (t.linked_article_id) myTaskByArticle[t.linked_article_id] = t; });
+
+    return articles.value
+        .filter(a => myTaskByArticle[a.id] || (a.tasks || []).some(t => t.assignee_id === user.value.id && t.type !== 'writing'))
+        .map(a => ({
+            id: a.id,
+            title: a.title || 'Untitled Article',
+            section: a.section?.name || 'Unassigned',
+            status: a.status,
+            writerName: a.author?.name || 'Staff Writer',
+            writerAvatar: avatarFor(a.author, 'd1fae5'),
+            lastUpdated: a.updated_at || a.created_at,
+            task: myTaskByArticle[a.id] || null,
+            raw: a
+        }))
+        .sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+});
+
+const filteredWorks = computed(() => selectedWorksFilter.value === 'all'
+    ? works.value
+    : works.value.filter(w => w.status === selectedWorksFilter.value));
+const totalWorksPages = computed(() => Math.max(1, Math.ceil(filteredWorks.value.length / worksPerPage)));
+const paginatedWorks = computed(() => {
+    const start = (worksCurrentPage.value - 1) * worksPerPage;
+    return filteredWorks.value.slice(start, start + worksPerPage);
+});
+
+const formatWorkStatus = (status) => {
+    const map = { draft: 'Draft', submitted: 'For Review', under_review: 'Under Review', endorsed: 'Endorsed', approved: 'Approved', rejected: 'Rejected', scheduled: 'Scheduled', published: 'Published' };
+    return map[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Draft');
+};
+
+const getWorkStatusClass = (status) => {
+    const map = {
+        draft: 'status-draft',
+        submitted: 'status-for-review',
+        under_review: 'status-under-revision',
+        endorsed: 'status-endorsed',
+        approved: 'status-approved',
+        rejected: 'status-rejected',
+        scheduled: 'status-for-review',
+        published: 'status-published'
+    };
+    return map[status] || 'status-draft';
+};
+
+const fileNameOf = (url) => String(url || '').split('/').pop() || 'file';
+
+// Same read-only preview shape the writer and EIC dashboards use
+const buildArticlePreviewData = (item = {}) => {
+    const itemTasks = Array.isArray(item.tasks) ? item.tasks : [];
+    const primaryTask = itemTasks.find(t => t.type === 'writing') || itemTasks[0] || null;
+    const artistTask = itemTasks.find(t => ['illustration', 'photography', 'layout'].includes(t.type)) || null;
+    const artist = artistTask?.assignee || null;
+
+    const attachedFiles = [];
+    if (item.cover_image) attachedFiles.push({ name: fileNameOf(item.cover_image), type: 'image', url: item.cover_image });
+    (Array.isArray(item.media_files) ? item.media_files : []).forEach(url => attachedFiles.push({ name: fileNameOf(url), type: 'image', url }));
+
+    return {
+        ...item,
+        raw_status: item.status,
+        coverage: parseNotesField(primaryTask?.notes, 'Coverage') || '',
+        artist_name: artist?.name || '',
+        artist_email: artist?.email || '',
+        artist_avatar: artist?.profile_picture_url || '',
+        attached_files: attachedFiles,
+    };
+};
+
+const openWork = (work) => {
+    if (work.status === 'published') {
+        selectedArticlePreview.value = buildArticlePreviewData(work.raw);
+        isArticlePreviewOpen.value = true;
+    } else if (work.task) {
+        openTaskModal(work.task);
+    }
+};
 
 // ── Recent Submissions (for submissions tab) ─────────────────────────────────
 const submissionsPerPage = 8;
@@ -562,6 +781,7 @@ const fetchTasks = async () => {
                 .map(t => {
                     // Find paired writer task by matching title prefix or article_id
                     let pairedWriter = null;
+                    let linkedArticleId = t.article_id || null;
                     if (t.article_id) {
                         const wt = allTasksList.find(other => other.article_id === t.article_id && other.type === 'writing');
                         if (wt && wt.assignee) pairedWriter = wt.assignee;
@@ -575,10 +795,14 @@ const fetchTasks = async () => {
                             return otherClean && cleanTitle && otherClean === cleanTitle;
                         });
                         if (wt && wt.assignee) pairedWriter = wt.assignee;
+                        // Artist tasks are created before the article exists, so they may not carry an
+                        // article_id yet — fall back to the paired writing task's article.
+                        if (wt && !linkedArticleId) linkedArticleId = wt.article_id || null;
                     }
 
                     return {
                         ...t,
+                        linked_article_id: linkedArticleId,
                         writer: pairedWriter || { name: 'Staff Writer', role: 'Staff Writer' }
                     };
                 })
@@ -586,6 +810,38 @@ const fetchTasks = async () => {
         }
     } catch (e) {
         console.error('Failed to fetch tasks:', e);
+    }
+};
+
+// Fetch articles (drives My Works and hides tasks whose article is published)
+const fetchArticles = async () => {
+    try {
+        const response = await fetch('/api/articles', {
+            headers: { 'Authorization': `Bearer ${token.value}`, 'Accept': 'application/json' }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            articles.value = Array.isArray(data) ? data : [];
+        }
+    } catch (e) {
+        console.error('Failed to fetch articles:', e);
+    }
+};
+
+watch(activeTab, (tab) => {
+    if (tab === 'tasks') {
+        fetchTasks();
+        fetchArticles();
+    } else if (tab === 'works') {
+        fetchArticles();
+    }
+});
+
+watch(selectedWorksFilter, () => { worksCurrentPage.value = 1; });
+
+const closeWorksFilter = (event) => {
+    if (activeWorksFilter.value && !event.target.closest('.custom-filter')) {
+        activeWorksFilter.value = false;
     }
 };
 
@@ -707,8 +963,11 @@ onMounted(() => {
     if (user.value.id && token.value) {
         fetchUser();
         fetchTasks();
+        fetchArticles();
         fetchPressWorks();
     }
+
+    document.addEventListener('click', closeWorksFilter);
 
     // Refresh user on storage change
     const handleStorageChange = (e) => {
@@ -724,6 +983,7 @@ onMounted(() => {
 
     onUnmounted(() => {
         window.removeEventListener('storage', handleStorageChange);
+        document.removeEventListener('click', closeWorksFilter);
     });
 });
 </script>

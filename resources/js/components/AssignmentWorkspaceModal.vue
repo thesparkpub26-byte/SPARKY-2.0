@@ -18,7 +18,26 @@
 
             <!-- Article Information -->
             <div class="article-meta-hdr">
-                <span class="section-pill-badge">{{ (task.section && typeof task.section === 'object') ? (task.section.name || 'News') : (task.section || 'News') }}</span>
+                <span v-if="!allowSectionEdit" class="section-pill-badge">{{ (task.section && typeof task.section === 'object') ? (task.section.name || 'News') : (task.section || 'News') }}</span>
+                <div v-else class="section-edit-dropdown" @click.stop>
+                    <button type="button" class="section-edit-trigger" @click="isSectionMenuOpen = !isSectionMenuOpen">
+                        <span>{{ selectedSectionLabel }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" :class="{ rotated: isSectionMenuOpen }"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <div v-if="isSectionMenuOpen" class="section-edit-menu">
+                        <button
+                            v-for="sec in canonicalSectionOptions"
+                            :key="sec.id"
+                            type="button"
+                            class="section-edit-option"
+                            :class="{ selected: selectedSectionId === sec.id }"
+                            @click="selectedSectionId = sec.id; isSectionMenuOpen = false;"
+                        >
+                            {{ sec.name }}
+                        </button>
+                        <p v-if="canonicalSectionOptions.length === 0" class="section-edit-empty">No sections available.</p>
+                    </div>
+                </div>
                 <h1 class="article-main-title">{{ task.title || 'Untitled Assignment' }}</h1>
             </div>
 
@@ -33,7 +52,7 @@
                         {{ (thumbnailPreview ? 1 : 0) + mediaPreviews.length }}
                     </span>
                 </button>
-                <button class="tab-nav-btn" :class="{ active: currentTab === 'details' }" @click="currentTab = 'details'">
+                <button v-if="!allowSectionEdit" class="tab-nav-btn" :class="{ active: currentTab === 'details' }" @click="currentTab = 'details'">
                     Details
                 </button>
             </div>
@@ -64,6 +83,12 @@
                         <button class="tool-btn" type="button" title="Bold" @click="formatDoc('bold')"><b>B</b></button>
                         <button class="tool-btn" type="button" title="Italic" @click="formatDoc('italic')"><i>I</i></button>
                         <button class="tool-btn" type="button" title="Underline" @click="formatDoc('underline')"><u>U</u></button>
+                        <button v-if="isCopyreader" class="tool-btn" type="button" title="Highlight" @click="formatDoc('hiliteColor', '#fef08a')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+                        </button>
+                        <button v-if="isCopyreader" class="tool-btn" type="button" title="Remove Highlight" @click="formatDoc('hiliteColor', 'transparent')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg><line x1="3" y1="3" x2="21" y2="21"/>
+                        </button>
                         <div class="toolbar-divider"></div>
                         <button class="tool-btn" type="button" title="Align Left" @click="formatDoc('justifyLeft')">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
@@ -112,7 +137,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                             Save
                         </button>
-                        <button type="button" class="btn-outline-pill" @click="saveAsDraft">
+                        <button v-if="!allowSectionEdit" type="button" class="btn-outline-pill" @click="saveAsDraft">
                             Save as Draft
                         </button>
                         <button type="button" class="btn-blue-pill" @click="currentTab = 'visuals'">
@@ -257,23 +282,47 @@
                             Back
                         </button>
                         <div class="actions-right">
-                            <button type="button" class="btn-outline-pill" @click="saveAsDraft">
-                                Save as Draft
-                            </button>
-                            <button type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true">
-                                Submit for Review
-                            </button>
+                            <template v-if="allowSectionEdit">
+                                <button type="button" class="btn-blue-pill-action" @click="saveProgress">
+                                    Save
+                                </button>
+                            </template>
+                            <template v-else>
+                                <button type="button" class="btn-outline-pill" @click="saveAsDraft">
+                                    Save as Draft
+                                </button>
+                                <template v-if="isCopyreader">
+                                    <button type="button" class="btn-return-pill-ws" @click="openCopyreaderConfirm('return')" :disabled="copyreaderDone">
+                                        Return to Writer
+                                    </button>
+                                    <button type="button" class="btn-blue-pill-action" @click="openCopyreaderConfirm('endorse')" :disabled="copyreaderDone">
+                                        {{ copyreaderDone ? 'Already Handled' : 'Submit to Editor-In-Chief' }}
+                                    </button>
+                                </template>
+                                <button v-else type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true" :disabled="alreadySubmitted">
+                                    {{ alreadySubmitted ? 'Already Submitted' : 'Submit for Review' }}
+                                </button>
+                            </template>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- TAB 3: DETAILS -->
-            <div class="tab-content-body" v-if="currentTab === 'details'">
+            <div class="tab-content-body" v-if="currentTab === 'details' && !allowSectionEdit">
                 <div class="details-container-card">
                     
                     <!-- Workflow Steps Header -->
-                    <div class="workflow-badge-row" v-if="!isSectionEditor">
+                    <div class="workflow-badge-row" v-if="isCopyreader">
+                        <span class="workflow-step-pill">1. Writer Draft</span>
+                        <span class="workflow-arrow">&rarr;</span>
+                        <span class="workflow-step-pill">2. Section Editor</span>
+                        <span class="workflow-arrow">&rarr;</span>
+                        <span class="workflow-step-pill active">3. Copyreader</span>
+                        <span class="workflow-arrow">&rarr;</span>
+                        <span class="workflow-step-pill">4. EIC Approval</span>
+                    </div>
+                    <div class="workflow-badge-row" v-else-if="!isSectionEditor">
                         <span class="workflow-step-pill">1. Writer Draft</span>
                         <span class="workflow-arrow">&rarr;</span>
                         <span class="workflow-step-pill active">2. Section Editor</span>
@@ -351,8 +400,16 @@
                             <button type="button" class="btn-outline-pill" @click="saveAsDraft">
                                 Save as Draft
                             </button>
-                            <button type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true">
-                                Submit for Review
+                            <template v-if="isCopyreader">
+                                <button type="button" class="btn-return-pill-ws" @click="openCopyreaderConfirm('return')" :disabled="copyreaderDone">
+                                    Return to Writer
+                                </button>
+                                <button type="button" class="btn-blue-pill-action" @click="openCopyreaderConfirm('endorse')" :disabled="copyreaderDone">
+                                    {{ copyreaderDone ? 'Already Handled' : 'Submit to Editor-In-Chief' }}
+                                </button>
+                            </template>
+                            <button v-else type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true" :disabled="alreadySubmitted">
+                                {{ alreadySubmitted ? 'Already Submitted' : 'Submit for Review' }}
                             </button>
                         </div>
                     </div>
@@ -389,6 +446,37 @@
             </div>
         </div>
 
+        <!-- COPYREADER ACTION CONFIRMATION MODAL -->
+        <div class="submodal-overlay" v-if="isCopyreaderModalOpen" @click.self="closeCopyreaderModal">
+            <div class="submodal-card">
+                <div :class="copyreaderAction === 'endorse' ? 'submit-icon-circle' : 'return-icon-circle'">
+                    <svg v-if="copyreaderAction === 'endorse'" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                </div>
+
+                <h3 class="submodal-title">{{ copyreaderAction === 'endorse' ? 'Submit to Editor-in-Chief?' : 'Return to Writer?' }}</h3>
+                <p class="submodal-desc" v-if="copyreaderAction === 'endorse'">
+                    <strong>"{{ articleHeadline || task.title }}"</strong> along with your edits will be sent to the <strong>Editor-in-Chief</strong> for final approval.
+                </p>
+                <template v-else>
+                    <p class="submodal-desc" style="margin-bottom: 14px;">Provide revision notes for the writer. They'll be notified and the article goes back to draft.</p>
+                    <div class="ws-field-group">
+                        <label class="ws-field-label">Revision Notes <span style="color: #dc2626;">*</span></label>
+                        <textarea v-model="copyreaderReturnNotes" class="ws-textarea" rows="4" maxlength="800" placeholder="E.g. Please fix the grammar in paragraph 2..."></textarea>
+                    </div>
+                </template>
+
+                <p v-if="copyreaderError" class="ws-error-msg">{{ copyreaderError }}</p>
+
+                <div class="submodal-actions">
+                    <button type="button" class="btn-grey-pill" @click="closeCopyreaderModal" :disabled="isCopyreaderActing">Cancel</button>
+                    <button type="button" class="btn-blue-pill btn-full-width" @click="confirmCopyreaderAction" :disabled="isCopyreaderActing || (copyreaderAction === 'return' && !copyreaderReturnNotes.trim())">
+                        {{ isCopyreaderActing ? 'Submitting...' : (copyreaderAction === 'endorse' ? 'Yes, Submit to EIC' : 'Yes, Return to Writer') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- SUBMISSION SUCCESS MODAL -->
         <div class="submodal-overlay" v-if="isSuccessModalOpen">
             <div class="submodal-card">
@@ -398,13 +486,14 @@
                     </svg>
                 </div>
 
-                <h3 class="submodal-title">Your submission is successful!</h3>
-                <p class="submodal-desc" v-if="isSectionEditor">Your article has been submitted and will be reviewed directly by the Copyreader.</p>
+                <h3 class="submodal-title">{{ copyreaderSuccessMessage ? 'Done!' : 'Your submission is successful!' }}</h3>
+                <p class="submodal-desc" v-if="copyreaderSuccessMessage">{{ copyreaderSuccessMessage }}</p>
+                <p class="submodal-desc" v-else-if="isSectionEditor">Your article has been submitted and will be reviewed directly by the Copyreader.</p>
                 <p class="submodal-desc" v-else>The {{ sectionEditorTitle }} will review your draft and notify you if any revisions are needed before passing it to the Copyreader.</p>
 
                 <div class="submodal-actions">
                     <button type="button" class="btn-grey-pill" @click="closeAllModals('done')">Done</button>
-                    <button type="button" class="btn-blue-pill btn-full-width" @click="closeAllModals('submissions')">View Submissions</button>
+                    <button type="button" class="btn-blue-pill btn-full-width" @click="closeAllModals('submissions')">{{ isCopyreader ? 'Back to My Tasks' : 'View Submissions' }}</button>
                 </div>
             </div>
         </div>
@@ -423,6 +512,10 @@ const props = defineProps({
     taskData: {
         type: Object,
         default: () => ({})
+    },
+    allowSectionEdit: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -432,6 +525,13 @@ const currentTab = ref('content');
 const isSubmitModalOpen = ref(false);
 const isSuccessModalOpen = ref(false);
 const isSubmitting = ref(false);
+
+const isCopyreaderModalOpen = ref(false);
+const copyreaderAction = ref('endorse'); // 'endorse' | 'return'
+const copyreaderReturnNotes = ref('');
+const isCopyreaderActing = ref(false);
+const copyreaderError = ref('');
+const copyreaderSuccessMessage = ref('');
 const saveFeedback = ref('');
 
 // Editor & Headline State
@@ -449,6 +549,8 @@ const isUploadingThumbnail = ref(false);
 
 const task = computed(() => props.taskData || {});
 
+const alreadySubmitted = computed(() => ['submitted', 'completed'].includes(task.value?.status));
+
 // User info from local storage
 const currentUser = computed(() => {
     try {
@@ -459,10 +561,16 @@ const currentUser = computed(() => {
 });
 
 const authorName = computed(() => {
+    if ((isCopyreader.value || props.allowSectionEdit) && task.value?.writer?.name) {
+        return task.value.writer.name;
+    }
     return currentUser.value?.name || task.value?.assignee?.name || 'Staff Writer';
 });
 
 const authorAvatar = computed(() => {
+    if ((isCopyreader.value || props.allowSectionEdit) && task.value?.writer) {
+        return task.value.writer.avatar || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(task.value.writer.name || 'Writer')}&backgroundColor=dbeafe`;
+    }
     if (currentUser.value?.profile_picture) {
         return '/storage/' + currentUser.value.profile_picture;
     }
@@ -501,6 +609,28 @@ const collaboratorArtist = computed(() => {
 // Users list for finding artist profile picture
 const allUsers = ref([]);
 
+// Section/category editing (EIC-only, via allowSectionEdit).
+// The `sections` table has stale/duplicate rows, so the dropdown is always
+// built from this fixed canonical list rather than whatever's in the DB.
+const CANONICAL_SECTIONS = ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Video'];
+const allSections = ref([]);
+const selectedSectionId = ref(null);
+
+const canonicalSectionOptions = computed(() => {
+    return CANONICAL_SECTIONS
+        .map(name => allSections.value.find(sec => sec.name === name))
+        .filter(Boolean);
+});
+
+const isSectionMenuOpen = ref(false);
+const selectedSectionLabel = computed(() => {
+    return canonicalSectionOptions.value.find(sec => sec.id === selectedSectionId.value)?.name || 'Select section';
+});
+
+onMounted(() => {
+    window.addEventListener('click', () => { isSectionMenuOpen.value = false; });
+});
+
 const collaboratorArtistUser = computed(() => {
     if (!collaboratorArtist.value) return null;
     return allUsers.value.find(u => u.name === collaboratorArtist.value);
@@ -531,22 +661,48 @@ const sectionEditorTitle = computed(() => {
     return `${sectionName.value} Section Editor`;
 });
 
+const isCopyreader = computed(() => {
+    const roles = [currentUser.value?.secondary_role, currentUser.value?.tertiary_role];
+    return roles.includes('Copy Editor') || roles.includes('Copyreader');
+});
+
 const isSectionEditor = computed(() => {
+    if (isCopyreader.value) return false;
     const role = (currentUser.value?.role || '').toLowerCase();
     const secRole = (currentUser.value?.secondary_role || '').toLowerCase();
     return role === 'section_editor' || role === 'eic' || secRole.includes('editor');
 });
 
+const copyreaderDone = computed(() => ['completed', 'returned'].includes(task.value?.status));
+
 // Editorial Notes
+const parseNotesField = (notes, key) => {
+    if (!notes || typeof notes !== 'string') return '';
+    const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
+    return match ? match[1].trim() : '';
+};
+
+// Which review stage (Section Editor / Copyreader / EIC) most recently sent this
+// task back for revision, so its note lands in the matching box below.
+const returnedByRole = computed(() => task.value?.raw?.returned_by_role || task.value?.returned_by_role || '');
+
+const taskRevisionNotes = computed(() => {
+    const notes = task.value?.raw?.notes || task.value?.notes;
+    return parseNotesField(notes, 'Revision Notes');
+});
+
 const sectionEditorNotes = computed(() => {
-    return task.value?.sectionEditorNotes || task.value?.editorNotes || (task.value?.status === 'returned' ? task.value?.notes : null);
+    if (returnedByRole.value === 'section_editor' && taskRevisionNotes.value) return taskRevisionNotes.value;
+    return task.value?.sectionEditorNotes || task.value?.editorNotes || null;
 });
 
 const copyreaderNotes = computed(() => {
+    if (returnedByRole.value === 'copyreader' && taskRevisionNotes.value) return taskRevisionNotes.value;
     return task.value?.copyreaderNotes || task.value?.copyNotes || null;
 });
 
 const eicNotes = computed(() => {
+    if (returnedByRole.value === 'eic' && taskRevisionNotes.value) return taskRevisionNotes.value;
     return task.value?.eicNotes || task.value?.eic_notes || null;
 });
 
@@ -582,16 +738,38 @@ const fetchUsers = async () => {
     }
 };
 
+// Fetch sections from API (only needed when allowSectionEdit is enabled)
+const fetchSections = async () => {
+    try {
+        const response = await fetch('/api/sections', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`,
+                'Accept': 'application/json'
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            allSections.value = Array.isArray(data) ? data : (data.sections || []);
+        }
+    } catch (e) {
+        console.warn('Could not fetch sections list', e);
+    }
+};
+
 // Watch task data to initialize workspace
 watch(() => props.isOpen, async (newVal) => {
     if (newVal) {
         currentTab.value = 'content';
         saveFeedback.value = '';
         articleHeadline.value = task.value?.title || '';
+        isCopyreaderModalOpen.value = false;
+        copyreaderError.value = '';
+        copyreaderSuccessMessage.value = '';
 
         // Load article content from backend if article exists
         const articleId = task.value?.article_id || task.value?.raw?.article_id || task.value?.article?.id;
         let articleData = null;
+        let currentSectionName = null;
         if (articleId) {
             try {
                 const token = localStorage.getItem('sparky_token');
@@ -606,6 +784,7 @@ watch(() => props.isOpen, async (newVal) => {
                     articleHeadline.value = articleData.title || task.value?.title || '';
                     articleContent.value = articleData.content || '';
                     thumbnailPreview.value = articleData.cover_image || '';
+                    currentSectionName = articleData.section?.name || null;
                 }
             } catch (e) {
                 console.warn('Could not load article:', e);
@@ -645,6 +824,11 @@ watch(() => props.isOpen, async (newVal) => {
 
         // Fetch users for artist profile picture
         fetchUsers();
+        if (props.allowSectionEdit) {
+            await fetchSections();
+            const matched = allSections.value.find(sec => sec.name === currentSectionName);
+            selectedSectionId.value = matched?.id ?? null;
+        }
     }
 }, { immediate: true });
 
@@ -802,6 +986,48 @@ const removeMedia = (index) => {
 };
 
 // Save handlers
+// Media/artist tasks (illustration, photography, layout) are assigned alongside a
+// writing task but don't get an article until the writer saves — link them to the
+// article by matching their title once it exists, so collaboratorArtist can find them
+// via article_id instead of the fragile title-matching fallback.
+const linkSiblingArtistTask = async (articleId, token) => {
+    try {
+        const res = await fetch('/api/tasks', {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return;
+        const allTasks = await res.json();
+        if (!Array.isArray(allTasks)) return;
+
+        const cleanTitle = (t) => (t || '')
+            .replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '')
+            .trim()
+            .toLowerCase();
+        const baseTitle = cleanTitle(task.value?.title || articleHeadline.value);
+        if (!baseTitle) return;
+
+        const sibling = allTasks.find(t =>
+            ['illustration', 'photography', 'layout'].includes(t.type) &&
+            !t.article_id &&
+            cleanTitle(t.title) === baseTitle
+        );
+
+        if (sibling) {
+            await fetch(`/api/tasks/${sibling.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ article_id: articleId })
+            });
+        }
+    } catch (e) {
+        console.warn('Could not link sibling artist task:', e);
+    }
+};
+
 const saveProgress = async () => {
     try {
         const token = localStorage.getItem('sparky_token');
@@ -817,7 +1043,9 @@ const saveProgress = async () => {
             word_count: wordCount.value,
             cover_image: thumbnailPreview.value,
             media_files: mediaPreviews.value.map(m => m.url),
-            section_id: task.value.section?.id || task.value.raw?.section_id || null,
+            section_id: props.allowSectionEdit
+                ? selectedSectionId.value
+                : (task.value.section?.id || task.value.raw?.section_id || null),
             type: 'article'
         };
 
@@ -875,6 +1103,8 @@ const saveProgress = async () => {
             }
         }
 
+        await linkSiblingArtistTask(articleId, token);
+
         saveFeedback.value = '✓ Progress saved';
         setTimeout(() => {
             saveFeedback.value = '';
@@ -903,7 +1133,9 @@ const saveAsDraft = async () => {
             word_count: wordCount.value,
             cover_image: thumbnailPreview.value,
             media_files: mediaPreviews.value.map(m => m.url),
-            section_id: task.value.section?.id || task.value.raw?.section_id || null,
+            section_id: props.allowSectionEdit
+                ? selectedSectionId.value
+                : (task.value.section?.id || task.value.raw?.section_id || null),
             type: 'article'
         };
 
@@ -975,6 +1207,8 @@ const saveAsDraft = async () => {
             });
         }
 
+        await linkSiblingArtistTask(articleId, token);
+
         const payload = {
             ...task.value,
             title: articleHeadline.value || task.value.title,
@@ -1041,8 +1275,9 @@ const confirmSubmit = async () => {
     } finally {
         isSubmitting.value = false;
         isSubmitModalOpen.value = false;
+        copyreaderSuccessMessage.value = '';
         isSuccessModalOpen.value = true;
-        
+
         emit('task-submitted', {
             ...task.value,
             title: articleHeadline.value || task.value.title,
@@ -1055,8 +1290,131 @@ const confirmSubmit = async () => {
     }
 };
 
+const openCopyreaderConfirm = (action) => {
+    copyreaderAction.value = action;
+    copyreaderReturnNotes.value = '';
+    copyreaderError.value = '';
+    isCopyreaderModalOpen.value = true;
+};
+
+const closeCopyreaderModal = () => {
+    if (isCopyreaderActing.value) return;
+    isCopyreaderModalOpen.value = false;
+};
+
+const confirmCopyreaderAction = async () => {
+    if (copyreaderAction.value === 'return' && !copyreaderReturnNotes.value.trim()) {
+        copyreaderError.value = 'Please provide revision notes.';
+        return;
+    }
+
+    isCopyreaderActing.value = true;
+    copyreaderError.value = '';
+
+    try {
+        const authToken = localStorage.getItem('sparky_token');
+
+        // Persist the copyreader's edits first
+        try {
+            await saveProgress();
+        } catch (saveErr) {
+            console.warn('Could not auto-save progress before copyreader action:', saveErr);
+        }
+
+        const articleId = task.value?.article_id || task.value?.raw?.article_id || task.value?.article?.id;
+        const editingTaskId = task.value?.id;
+
+        if (copyreaderAction.value === 'endorse') {
+            if (!articleId) throw new Error('Missing article ID.');
+
+            const res = await fetch(`/api/articles/${articleId}/endorse`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ editor_notes: '' })
+            });
+            if (!res.ok) {
+                const d = await res.json().catch(() => ({}));
+                throw new Error(d.message || 'Failed to submit to the Editor-in-Chief.');
+            }
+
+            if (editingTaskId) {
+                await fetch(`/api/tasks/${editingTaskId}/complete`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
+                }).catch(() => {});
+            }
+
+            copyreaderSuccessMessage.value = `"${articleHeadline.value || task.value.title}" has been sent to the Editor-in-Chief for final approval.`;
+        } else {
+            // Find the writer's original writing task via the article's tasks
+            let writingTaskId = null;
+            if (articleId) {
+                const artRes = await fetch(`/api/articles/${articleId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
+                });
+                if (artRes.ok) {
+                    const artData = await artRes.json();
+                    writingTaskId = (artData.tasks || []).find(t => t.type === 'writing')?.id || null;
+                }
+            }
+
+            if (writingTaskId) {
+                await fetch(`/api/tasks/${writingTaskId}/return`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ notes: copyreaderReturnNotes.value.trim() })
+                }).catch(() => {});
+            }
+
+            if (articleId) {
+                await fetch(`/api/articles/${articleId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ status: 'draft' })
+                }).catch(() => {});
+            }
+
+            if (editingTaskId) {
+                await fetch(`/api/tasks/${editingTaskId}/complete`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
+                }).catch(() => {});
+            }
+
+            copyreaderSuccessMessage.value = `"${articleHeadline.value || task.value.title}" has been returned to the writer with your revision notes.`;
+        }
+
+        isCopyreaderModalOpen.value = false;
+        isSuccessModalOpen.value = true;
+
+        emit('task-submitted', {
+            ...task.value,
+            title: articleHeadline.value || task.value.title,
+            content: articleContent.value,
+            status: 'completed'
+        });
+    } catch (e) {
+        copyreaderError.value = e.message || 'An error occurred.';
+    } finally {
+        isCopyreaderActing.value = false;
+    }
+};
+
 const closeAllModals = (action) => {
     isSuccessModalOpen.value = false;
+    copyreaderSuccessMessage.value = '';
     closeModal();
     if (action === 'submissions') {
         emit('view-submissions');
@@ -1166,6 +1524,85 @@ const closeAllModals = (action) => {
     font-weight: 700;
     display: inline-block;
     margin-bottom: 8px;
+}
+
+.section-edit-dropdown {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.section-edit-trigger {
+    background-color: #dbeafe;
+    color: #1e40af;
+    padding: 4px 10px 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+
+.section-edit-trigger:hover {
+    background-color: #bfdbfe;
+}
+
+.section-edit-trigger svg {
+    transition: transform 0.15s;
+    flex-shrink: 0;
+}
+
+.section-edit-trigger svg.rotated {
+    transform: rotate(180deg);
+}
+
+.section-edit-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.25);
+    padding: 6px;
+    width: 180px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.section-edit-option {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.section-edit-option:hover {
+    background: #f1f5f9;
+}
+
+.section-edit-option.selected {
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 800;
+}
+
+.section-edit-empty {
+    margin: 4px 8px;
+    font-size: 12px;
+    color: #94a3b8;
 }
 
 .article-main-title {
@@ -1470,9 +1907,40 @@ const closeAllModals = (action) => {
     transition: all 0.2s;
 }
 
-.btn-blue-pill-action:hover {
+.btn-blue-pill-action:hover:not(:disabled) {
     background-color: #1557b0;
     box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
+}
+
+.btn-blue-pill-action:disabled {
+    background-color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.btn-return-pill-ws {
+    background-color: #f59e0b;
+    color: #ffffff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+    transition: all 0.2s;
+}
+
+.btn-return-pill-ws:hover:not(:disabled) {
+    background-color: #d97706;
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+}
+
+.btn-return-pill-ws:disabled {
+    background-color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
 }
 
 /* Upload spinner overlay */
@@ -1880,6 +2348,62 @@ const closeAllModals = (action) => {
     align-items: center;
     justify-content: center;
     margin: 0 auto 20px auto;
+}
+
+.return-icon-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background-color: #f59e0b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px auto;
+}
+
+.ws-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.ws-field-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ws-textarea {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: #1e293b;
+    width: 100%;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.ws-textarea:focus {
+    border-color: #2563eb;
+}
+
+.ws-error-msg {
+    color: #dc2626;
+    font-size: 13px;
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    text-align: left;
 }
 
 .success-icon-circle {
