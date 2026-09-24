@@ -243,7 +243,12 @@
                 <!-- ENDORSEMENTS TAB -->
                 <div v-show="activeTab === 'endorsements'" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
                     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <h1 class="page-title" style="margin-bottom: 0;">Endorsements</h1>
+                        <div>
+                            <h1 class="page-title" style="margin-bottom: 0;">Endorsements</h1>
+                            <p v-if="isEicSectionEditor" style="margin: 6px 0 0; font-size: 12.5px; color: #64748b; max-width: 560px;">
+                                As a {{ eicEditorTitles.join(' / ') }}, submitted articles{{ eicEditorSections.length ? ' in ' + eicEditorSections.join(', ') : '' }} appear here as <strong>For Section Review</strong>. Send them to a copyreader; they return here as Endorsed for your final approval.
+                            </p>
+                        </div>
                         <div class="filter-pills-group eic-endorsement-filters">
                             <div v-for="filter in eicEndorsementFilterDefinitions" :key="filter.key" class="eic-custom-filter" @click.stop>
                                 <button type="button" class="eic-filter-trigger" @click="toggleEicFilter(filter.key)">
@@ -268,10 +273,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="article in paginatedEicEndorsements" :key="article.id" @click="openArticleDetails(article)" style="cursor: pointer;">
+                                <tr v-for="article in paginatedEicEndorsements" :key="article.id" @click="openEndorsementRow(article)" style="cursor: pointer;">
                                     <td style="padding-left: 28px; font-weight: 600;">{{ article.title }}</td>
                                     <td><span class="section-badge">{{ resolveArticleSection(article) || 'Unassigned' }}</span></td>
-                                    <td><span class="status-pill" :class="eicStatusClass(article.status)">{{ eicStatusLabel(article.status) }}</span></td>
+                                    <td><span class="status-pill" :class="eicStatusClass(article.status)">{{ eicRowStatusLabel(article) }}</span></td>
                                     <td><span class="priority-pill priority-moderate">Moderate</span></td>
                                     <td style="padding-right: 28px; text-align: right; color: #64748b;">{{ formatDate(article.created_at) }}</td>
                                 </tr>
@@ -750,7 +755,7 @@
                                             <button class="action-btn edit" type="button" aria-label="Edit contributor" @click="openEditUser(user)">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
                                             </button>
-                                            <button class="action-btn delete" type="button" aria-label="Delete contributor" @click="openDeleteUser(user)">
+                                            <button v-if="!isDeleteHidden(user)" class="action-btn delete" type="button" aria-label="Delete contributor" @click="openDeleteUser(user)">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 1 2 1 2v2"></path></svg>
                                             </button>
                                         </div>
@@ -1070,6 +1075,14 @@
         @action-complete="loadEicOverview(); loadEicArticles();"
         @view-full-article="handleOpenWorkspace"
         @request-publish-preview="handleRequestPublishPreview"
+    />
+
+    <!-- Section-editor review of a submitted article (for an Editor-in-Chief who is also a section editor) -->
+    <SEReviewModal
+        :is-open="isEicSectionReviewOpen"
+        :submission="eicSectionReviewTarget"
+        @close="isEicSectionReviewOpen = false; eicSectionReviewTarget = null;"
+        @reviewed="loadEicOverview(); loadEicArticles(); loadEicMyArticles();"
     />
 
     <!-- Article Preview Modal (Publish / Schedule / Published state) -->
@@ -1414,7 +1427,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Role</label>
-                        <select v-model="editUserForm.role" class="form-control select-control" required @change="editUserForm.secondary_role = ''; editUserForm.tertiary_role = ''">
+                        <select v-model="editUserForm.role" class="form-control select-control" required :disabled="isEditingSelf" @change="editUserForm.secondary_role = ''; editUserForm.tertiary_role = ''">
+                            <option value="eic">Editor-in-Chief</option>
                             <option value="section_editor">Section Editor</option>
                             <option value="staff_writer">Staff Writer</option>
                             <option value="staff_artist">Staff Artist</option>
@@ -1423,20 +1437,26 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Status</label>
-                        <select v-model="editUserForm.is_active" class="form-control select-control">
+                        <select v-model="editUserForm.is_active" class="form-control select-control" :disabled="isEditingSelf">
                             <option :value="true">Active</option>
                             <option :value="false">Inactive</option>
                         </select>
                     </div>
                 </div>
+                <p v-if="isEditingSelf" class="form-hint" style="margin: 6px 0 0; font-size: 12px; color: #64748b;">
+                    This is your own account. To step down as Editor-in-Chief, promote the next Editor-in-Chief: they can then change your position or set you inactive.
+                </p>
+                <p v-else-if="editUserForm.role === 'eic' && selectedUser?.role !== 'eic'" class="form-hint" style="margin: 6px 0 0; font-size: 12px; color: #64748b;">
+                    This person will become an Editor-in-Chief and get the same access as you. They can then change your position or set you inactive.
+                </p>
                 <div v-if="SECONDARY_ROLES[editUserForm.role]" class="form-group" style="margin-top: 8px;">
-                    <label class="form-label">Section / Secondary Role</label>
+                    <label class="form-label">{{ editUserForm.role === 'eic' ? 'Also a Section Editor (optional)' : 'Section / Secondary Role' }}</label>
                     <select v-model="editUserForm.secondary_role" class="form-control select-control" @change="editUserForm.tertiary_role = ''">
                         <option value="">None / Default</option>
                         <option v-for="secRole in SECONDARY_ROLES[editUserForm.role]" :key="secRole" :value="secRole">{{ secRole }}</option>
                     </select>
                 </div>
-                <div v-if="editUserForm.role === 'section_editor' && editUserForm.secondary_role" class="form-group" style="margin-top: 8px;">
+                <div v-if="['section_editor', 'eic'].includes(editUserForm.role) && editUserForm.secondary_role" class="form-group" style="margin-top: 8px;">
                     <label class="form-label">Additional Section Editor Role</label>
                     <select v-model="editUserForm.tertiary_role" class="form-control select-control">
                         <option value="">None</option>
@@ -1560,6 +1580,7 @@
                             <div class="input-icon-wrap custom-select-wrap">
                                 <select v-model="newContributorForm.role" class="form-control select-control" @change="newContributorForm.secondary_role = ''; newContributorForm.tertiary_role = ''">
                                     <option value="" disabled>Role</option>
+                                    <option value="eic">Editor-in-Chief</option>
                                     <option value="section_editor">Section Editor</option>
                                     <option value="staff_writer">Staff Writer</option>
                                     <option value="staff_artist">Staff Artist</option>
@@ -1579,7 +1600,7 @@
 
                     <!-- Filtered Section / Secondary Role -->
                     <div v-if="SECONDARY_ROLES[newContributorForm.role]" class="form-group" style="margin-top: 12px;">
-                        <label class="form-label">Section / Secondary Role</label>
+                        <label class="form-label">{{ newContributorForm.role === 'eic' ? 'Also a Section Editor (optional)' : 'Section / Secondary Role' }}</label>
                         <div class="input-icon-wrap custom-select-wrap">
                             <select v-model="newContributorForm.secondary_role" class="form-control select-control" @change="newContributorForm.tertiary_role = ''">
                                 <option value="">None / Default</option>
@@ -1587,7 +1608,7 @@
                             </select>
                         </div>
                     </div>
-                    <div v-if="newContributorForm.role === 'section_editor' && newContributorForm.secondary_role" class="form-group" style="margin-top: 12px;">
+                    <div v-if="['section_editor', 'eic'].includes(newContributorForm.role) && newContributorForm.secondary_role" class="form-group" style="margin-top: 12px;">
                         <label class="form-label">Additional Section Editor Role</label>
                         <div class="input-icon-wrap custom-select-wrap">
                             <select v-model="newContributorForm.tertiary_role" class="form-control select-control">
@@ -1640,6 +1661,7 @@ const AssignTaskModal = lazyModal(() => import('../../components/AssignTaskModal
 const AssignedTaskModal = lazyModal(() => import('../../components/AssignedTaskModal.vue'));
 const AssignmentWorkspaceModal = lazyModal(() => import('../../components/AssignmentWorkspaceModal.vue'));
 const ArticleDetailsModal = lazyModal(() => import('../../components/ArticleDetailsModal.vue'));
+const SEReviewModal = lazyModal(() => import('../../components/SEReviewModal.vue'));
 const ArticlePreviewModal = lazyModal(() => import('../../components/ArticlePreviewModal.vue'));
 const VideoManageModal = lazyModal(() => import('../../components/VideoManageModal.vue'));
 const DirectPublishModal = lazyModal(() => import('../../components/DirectPublishModal.vue'));
@@ -2440,6 +2462,36 @@ const viewIssueBooklet = () => {
     }
 };
 
+// An Editor-in-Chief can also be a section editor (a "News Editor"...). Then the articles submitted in their
+// section reach them for the section editor's review first: they send it to a copyreader, and it comes back
+// as Endorsed for the final approval. Titles that are only for videos (Head Broadcaster) don't apply to articles.
+const eicEditorTitles = computed(() => [eicUser.value.secondary_role, eicUser.value.tertiary_role]
+    .filter(title => SECONDARY_ROLES.section_editor.includes(title) && title !== 'Copy Editor' && !/Broadcaster/i.test(title)));
+const isEicSectionEditor = computed(() => eicEditorTitles.value.length > 0);
+// "News Editor" -> News. Editors without a section of their own (the Managing Editor...) review every section.
+const eicEditorSections = computed(() => eicEditorTitles.value.map(deriveSectionFromRole).filter(Boolean));
+const needsSectionReview = (article) => isEicSectionEditor.value
+    && article.status === 'submitted'
+    && article.type !== 'video'
+    && (!eicEditorSections.value.length || eicEditorSections.value.includes(resolveArticleSection(article)));
+const eicRowStatusLabel = (article) => needsSectionReview(article) ? 'For Section Review' : eicStatusLabel(article.status);
+
+const isEicSectionReviewOpen = ref(false);
+const eicSectionReviewTarget = ref(null);
+const openEndorsementRow = (article) => {
+    if (!needsSectionReview(article)) return openArticleDetails(article);
+
+    eicSectionReviewTarget.value = {
+        ...article,
+        article_id: article.id,
+        taskId: (article.tasks || []).find(task => task.type === 'writing')?.id || null,
+        authorName: article.author?.name || 'Unknown Writer',
+        section: resolveArticleSection(article) || 'News',
+        raw: article,
+    };
+    isEicSectionReviewOpen.value = true;
+};
+
 const eicStatusLabel = (status) => (status || 'unknown').replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
 const eicStatusClass = (status) => ({
     submitted: 'status-for-approval',
@@ -2681,7 +2733,13 @@ const SECONDARY_ROLES = {
     ],
 };
 
+// An Editor-in-Chief can also be a section editor, so they pick from the same editor titles
+SECONDARY_ROLES.eic = SECONDARY_ROLES.section_editor;
+
 const selectedUser = ref(null);
+// You can't step down yourself: the Editor-in-Chief you promote changes your position or sets you inactive
+const isEditingSelf = computed(() => !!selectedUser.value && selectedUser.value.id === eicUser.value.id);
+const isDeleteHidden = (user) => user.id === eicUser.value.id;
 const isEditUserModalOpen = ref(false);
 const isDeleteUserModalOpen = ref(false);
 const editUserSaving = ref(false);
@@ -2940,12 +2998,13 @@ const saveNewContributor = async () => {
 
 const eicContributorCandidates = computed(() => {
     return (eicUsers.value || []).filter(user =>
-        ['section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'].includes(user.role)
+        ['eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'].includes(user.role)
     );
 });
 
 const eicContributorRoleOptions = [
     { value: 'all', label: 'All Roles', triggerLabel: 'Role' },
+    { value: 'eic', label: 'Editor-in-Chief', triggerLabel: 'Editor-in-Chief' },
     { value: 'section_editor', label: 'Section Editor', triggerLabel: 'Section Editor' },
     { value: 'staff_writer', label: 'Staff Writer', triggerLabel: 'Staff Writer' },
     { value: 'staff_artist', label: 'Staff Artist', triggerLabel: 'Staff Artist' },

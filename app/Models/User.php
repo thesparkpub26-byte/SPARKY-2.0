@@ -61,6 +61,17 @@ class User extends Authenticatable
     const ROLE_STAFF_BROADCASTER = 'staff_broadcaster';
     const ROLE_READER            = 'reader';
 
+    /**
+     * Titles that make someone a section editor (a "Sci-Tech Editor", the "Managing Editor", the Head
+     * Broadcaster...). Copy Editors review as copyreaders instead, so they are not listed.
+     */
+    const SECTION_EDITOR_TITLES = [
+        'Associate Editor for Internal', 'Associate Editor for External', 'Managing Editor', 'Assistant Managing Editor',
+        'Circulation Manager', 'Art Editor', 'Layout Editor', 'Publication Adviser',
+        'News Editor', 'Opinion Editor', 'Editorial Editor', 'Feature Editor', 'Sci-Tech Editor', 'DevCom Editor',
+        'Literary Editor', 'Sports Editor', 'Head Broadcaster', 'Assistant Head Broadcaster',
+    ];
+
     // Relationships
     public function articles()
     {
@@ -106,6 +117,16 @@ class User extends Authenticatable
         return in_array($this->role, [self::ROLE_SECTION_EDITOR, self::ROLE_EIC, self::ROLE_ADMIN], true);
     }
 
+    /**
+     * An Editor-in-Chief who is also a section editor (their secondary / additional role is an editor title).
+     * Submitted articles reach them for the section editor's review too, before a copyreader and the final approval.
+     */
+    public function isEditorInChiefAndSectionEditor(): bool
+    {
+        return $this->isEIC()
+            && array_intersect(self::SECTION_EDITOR_TITLES, [$this->secondary_role, $this->tertiary_role]) !== [];
+    }
+
     /** Copyreaders are staff who hold the Copyreader / Copy Editor title. */
     public function isCopyreader(): bool
     {
@@ -125,6 +146,11 @@ class User extends Authenticatable
      */
     public function displayRole(): string
     {
+        // The Editor-in-Chief keeps that title even when they are also a section editor
+        if ($this->isEIC()) {
+            return 'Editor-in-Chief';
+        }
+
         return trim((string) $this->secondary_role) !== ''
             ? $this->secondary_role
             : ucwords(str_replace('_', ' ', (string) $this->role));

@@ -1226,7 +1226,7 @@
                             </select>
                         </div>
                     </div>
-                    <div v-if="newUserForm.role === 'section_editor' && newUserForm.secondary_role" class="form-group" style="margin-top: 12px;">
+                    <div v-if="['section_editor', 'eic'].includes(newUserForm.role) && newUserForm.secondary_role" class="form-group" style="margin-top: 12px;">
                         <div class="input-icon-wrap custom-select-wrap">
                             <select v-model="newUserForm.tertiary_role" class="form-control select-control">
                                 <option value="">Additional Section Editor Role (Optional)</option>
@@ -1304,7 +1304,7 @@
                         <option v-for="secRole in SECONDARY_ROLES[editUserForm.role]" :key="secRole" :value="secRole">{{ secRole }}</option>
                     </select>
                 </div>
-                <div v-if="editUserForm.role === 'section_editor' && editUserForm.secondary_role" class="form-group" style="margin-top: 8px;">
+                <div v-if="['section_editor', 'eic'].includes(editUserForm.role) && editUserForm.secondary_role" class="form-group" style="margin-top: 8px;">
                     <label class="form-label">Additional Section Editor Role</label>
                     <select v-model="editUserForm.tertiary_role" class="form-control select-control">
                         <option value="">None</option>
@@ -1750,6 +1750,9 @@ const SECONDARY_ROLES = {
         'Illustrator',
     ],
 };
+
+// An Editor-in-Chief can also be a section editor, so they pick from the same editor titles
+SECONDARY_ROLES.eic = SECONDARY_ROLES.section_editor;
 
 const managementSectionOptions = computed(() => {
     const tabRoleMap = {

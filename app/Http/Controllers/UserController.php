@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Activity;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -54,7 +55,7 @@ class UserController extends Controller
 
         $this->guardAdminAccounts($request, null, $validated['role']);
 
-        if (($validated['tertiary_role'] ?? null) && $validated['role'] !== 'section_editor') {
+        if (($validated['tertiary_role'] ?? null) && !in_array($validated['role'], ['section_editor', 'eic'], true)) {
             $validated['tertiary_role'] = null;
         }
 
@@ -85,6 +86,7 @@ class UserController extends Controller
         ]);
 
         $this->guardAdminAccounts($request, $user, $validated['role'] ?? null);
+        $this->guardEditorInChiefSuccession($request, $user, $validated['role'] ?? $user->role, $request->boolean('is_active', $user->is_active));
 
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
@@ -98,11 +100,21 @@ class UserController extends Controller
         }
 
         $resolvedRole = $validated['role'] ?? $user->role;
-        if (($validated['tertiary_role'] ?? null) && $resolvedRole !== 'section_editor') {
+        if (($validated['tertiary_role'] ?? null) && !in_array($resolvedRole, ['section_editor', 'eic'], true)) {
             $validated['tertiary_role'] = null;
         }
 
+        $becomesEic = $resolvedRole === User::ROLE_EIC && !$user->isEIC();
+
         $user->update($validated);
+        if ($becomesEic) {
+            Notification::create([
+                'user_id' => $user->id,
+                'title'   => 'You are now the Editor-in-Chief',
+                'message' => "{$request->user()->name} made you the Editor-in-Chief of TheSPARK. Sign in again to see your new dashboard.",
+                'type'    => Notification::TYPE_GENERAL,
+            ]);
+        }
         if (isset($validated['password']) || ($validated['is_active'] ?? true) === false) {
             $user->tokens()->delete();
         }
@@ -115,10 +127,35 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $this->guardAdminAccounts(request(), $user, null);
+        $this->guardEditorInChiefSuccession(request(), $user, 'deleted', false);
 
         Activity::record(request()->user(), 'Deleted a user', $user);
         $user->delete();
         return response()->json(['message' => 'User deleted successfully.']);
+    }
+
+    /**
+     * The Editor-in-Chief hands over by promoting the next one; the new Editor-in-Chief then deactivates or
+     * re-titles the old one. So nobody steps themselves down, and the site is never left without an active
+     * Editor-in-Chief.
+     */
+    private function guardEditorInChiefSuccession(Request $request, User $target, string $newRole, bool $willBeActive): void
+    {
+        if (!$target->isEIC() || !$target->is_active || ($newRole === User::ROLE_EIC && $willBeActive)) {
+            return; // not an active Editor-in-Chief losing that position
+        }
+
+        abort_if(
+            $request->user()->is($target) && !$request->user()->isAdmin(),
+            403,
+            "You can't step down yourself. Promote the next Editor-in-Chief first: they can then change your position or set you inactive."
+        );
+
+        abort_if(
+            User::where('role', User::ROLE_EIC)->where('is_active', true)->whereKeyNot($target->id)->doesntExist(),
+            422,
+            'There must always be an active Editor-in-Chief. Promote the next Editor-in-Chief first.'
+        );
     }
 
     /** Only an admin may create, promote, edit or delete admin accounts. */

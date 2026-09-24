@@ -688,8 +688,14 @@ class ArticleController extends Controller
 
     private function notifySectionEditors(Article $article, string $title, string $message): void
     {
-        // (users no longer have a section_id column, so every section editor is notified)
-        $editors = \App\Models\User::where('role', 'section_editor');
+        // (users no longer have a section_id column, so every section editor is notified; so is an
+        // Editor-in-Chief who is a section editor too, since it reaches their Endorsements tab)
+        $editors = \App\Models\User::where('is_active', true)->where(function ($q) {
+            $q->where('role', 'section_editor')
+              ->orWhere(fn ($eic) => $eic->where('role', 'eic')->where(fn ($t) => $t
+                  ->whereIn('secondary_role', \App\Models\User::SECTION_EDITOR_TITLES)
+                  ->orWhereIn('tertiary_role', \App\Models\User::SECTION_EDITOR_TITLES)));
+        });
 
         // Videos are reviewed only by the Head / Assistant Head Broadcaster
         if ($article->type === Article::TYPE_VIDEO) {
@@ -714,7 +720,7 @@ class ArticleController extends Controller
 
     private function notifyEICs(Article $article, string $title, string $message): void
     {
-        $eics = \App\Models\User::where('role', 'eic')->get();
+        $eics = \App\Models\User::where('role', 'eic')->where('is_active', true)->get();
         foreach ($eics as $eic) {
             Notification::create([
                 'user_id' => $eic->id,

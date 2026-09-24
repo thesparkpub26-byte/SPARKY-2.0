@@ -1139,6 +1139,14 @@ body {
     font-weight: 600;
 }
 
+/* Literary articles: the photo at its full, uncropped size (only on the article page; cards and thumbnails stay cropped) */
+.article-main-cover.photo-uncropped,
+.article-inline-img.photo-uncropped {
+    height: auto;
+    max-height: none;
+    object-fit: contain;
+}
+
 .article-inline-img {
     display: block;
     width: 100%;

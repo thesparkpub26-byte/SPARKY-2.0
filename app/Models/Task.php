@@ -69,6 +69,22 @@ class Task extends Model
                 $task->assignee_role = User::find($task->assignee_id)?->displayRole();
             }
         });
+
+        // The assign form names the section in the task's notes; keep it as a real section too, so that
+        // every screen (and the published article) knows the section without reading the notes text.
+        static::saving(function (Task $task) {
+            if (blank($task->section_id)) {
+                $task->section_id = Section::idFromNotes($task->notes);
+            }
+        });
+
+        // An article takes the section of the task it was written for, unless it already has one
+        static::saved(function (Task $task) {
+            if ($task->article_id && $task->section_id) {
+                Article::whereKey($task->article_id)->whereNull('section_id')->get()
+                    ->each(fn (Article $article) => $article->update(['section_id' => $task->section_id]));
+            }
+        });
     }
 
     // Relationships

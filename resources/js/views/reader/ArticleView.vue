@@ -30,7 +30,7 @@
             </div>
 
             <!-- Featured Image (the first media upload) -->
-            <img v-if="body.cover" :src="body.cover" :alt="article.title" class="article-main-cover">
+            <img v-if="body.cover" :src="body.cover" :alt="article.title" :class="['article-main-cover', { 'photo-uncropped': isLiterary }]">
 
             <!-- Author Info Row -->
             <div class="article-author-card">
@@ -71,7 +71,7 @@
             <!-- Article Body: paragraphs with the other media uploads placed among them -->
             <div class="article-body-content">
               <template v-for="(block, idx) in body.blocks" :key="idx">
-                <img v-if="block.type === 'image'" :src="block.src" :alt="article.title" class="article-inline-img">
+                <img v-if="block.type === 'image'" :src="block.src" :alt="article.title" :class="['article-inline-img', { 'photo-uncropped': isLiterary }]">
                 <component :is="block.tag" v-else v-html="block.html" />
               </template>
             </div>
@@ -246,6 +246,9 @@ const bookmarked = ref(false);
 const commentsCount = ref(0);
 
 // ── Article ──────────────────────────────────────────────────────────────────
+// Literary pieces (a Literary article, or one by a Literary writer) show their artwork whole, not cropped to a banner
+const isLiterary = computed(() => /literary/i.test(`${article.value?.category || ''} ${article.value?.author?.role || ''}`));
+
 const body = computed(() => article.value ? buildArticleBody(article.value.content, article.value.media) : { cover: null, blocks: [] });
 
 const formatLongDate = (iso) => iso

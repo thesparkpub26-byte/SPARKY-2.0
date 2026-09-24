@@ -5266,3 +5266,11 @@ Content-Transfer-Encoding: quoted-printable
 #40 C:/Users/emher/Desktop/Sparky/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('C://Users//emher//...')
 #41 {main}
 "} 
+[2026-09-24 16:53:20] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 16:53:20] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 16:54:00] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 16:54:00] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 16:54:25] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 16:54:25] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 17:07:54] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-09-24 17:07:54] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
