@@ -12,9 +12,9 @@
     <!-- Right Section -->
     <div class="right-section">
       <div class="form-container">
-        <h2>Almost There</h2>
+        <h2>{{ isReset ? 'Check Your Email' : 'Almost There' }}</h2>
         <p class="subtitle">
-          You're one step away. Enter the 6-digit code sent to<br>
+          {{ isReset ? "If that email has an account, we've sent a 6-digit code to" : "You're one step away. Enter the 6-digit code sent to" }}<br>
           <strong class="otp-email-highlight">{{ maskedEmail }}</strong>
         </p>
         
@@ -56,18 +56,20 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const otp = ref(['', '', '', '', '', '']);
 const otpRef = ref([]);
 const router = useRouter();
+// /otp?mode=reset is the forgot-password flow; otherwise it confirms a new sign-up
+const isReset = useRoute().query.mode === 'reset';
 const errorMsg = ref('');
 const successMsg = ref('');
 const loading = ref(false);
 const resendCooldown = ref(0);
 
-// Retrieve the email saved by SignUpView
-const email = sessionStorage.getItem('otp_email') || '';
+// Retrieve the email saved by SignUpView (or by ForgotPasswordView)
+const email = sessionStorage.getItem(isReset ? 'reset_email' : 'otp_email') || '';
 
 // Mask the email for display: e.g. em***@my.cspc.edu.ph
 const maskedEmail = computed(() => {
@@ -77,9 +79,9 @@ const maskedEmail = computed(() => {
   return `${visible}***@${domain}`;
 });
 
-// Redirect away if there's no pending registration
+// Redirect away if there's nothing pending
 onMounted(() => {
-  if (!email) router.replace('/signup');
+  if (!email) router.replace(isReset ? '/forgot-password' : '/signup');
 });
 
 // Role → destination mapping (same as login)
@@ -125,6 +127,26 @@ const handleVerify = async () => {
   loading.value = true;
 
   try {
+    if (isReset) {
+      const response = await fetch('/api/password/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email, otp: code }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        errorMsg.value = data.message || 'Invalid or expired code.';
+        otp.value = ['', '', '', '', '', ''];
+        otpRef.value[0]?.focus();
+        return;
+      }
+
+      sessionStorage.setItem('reset_token', data.reset_token);
+      router.push('/reset-password');
+      return;
+    }
+
     const response = await fetch('/api/register/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -167,7 +189,8 @@ const resendCode = async () => {
   successMsg.value = '';
 
   try {
-    const response = await fetch('/api/register/resend-otp', {
+    // A reset code is re-sent by asking for a new one
+    const response = await fetch(isReset ? '/api/password/forgot' : '/api/register/resend-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ email }),

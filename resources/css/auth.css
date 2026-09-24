@@ -19,7 +19,7 @@ body {
 /* Left Section */
 .left-section {
     flex: 1;
-    background-image: url('/assets/Fractals.png');
+    background-image: url('/assets/Fractals.jpg');
     background-size: cover;
     background-position: center;
     display: flex;

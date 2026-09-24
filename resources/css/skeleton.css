@@ -1,0 +1,110 @@
+/* Loading skeletons: grey placeholder shapes shown where content is on its way (see SkeletonCards.vue / SkeletonRows.vue) */
+
+.skeleton {
+    background-color: #e9eef5;
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.65) 50%, rgba(255, 255, 255, 0) 100%);
+    background-size: 220px 100%;
+    background-repeat: no-repeat;
+    background-position: -220px 0;
+    animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+/* On dark surfaces (the hero carousel) */
+.skeleton-dark {
+    background-color: #1e293b;
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0) 100%);
+}
+
+@keyframes skeleton-shimmer {
+    to { background-position: calc(100% + 220px) 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton { animation: none; }
+}
+
+/* A line of text */
+.skeleton-line {
+    display: block;
+    height: 13px;
+    border-radius: 7px;
+    margin-bottom: 10px;
+}
+
+.skeleton-line--title { height: 18px; width: 88%; }
+.skeleton-line--wide { width: 100%; }
+.skeleton-line--medium { width: 70%; }
+.skeleton-line--short { width: 42%; }
+
+/* Skeleton copies of the real cards: same shape, but they don't react to the mouse */
+.skeleton-card {
+    pointer-events: none;
+    cursor: default;
+}
+
+.skeleton-card .article-thumb-wrapper,
+.skeleton-card .category-card-img-wrapper,
+.skeleton-card .issue-cover-wrapper {
+    border: 0;
+}
+
+.skeleton-card .article-body .skeleton-line:last-child,
+.skeleton-card .category-card-body .skeleton-line:last-child {
+    margin-bottom: 0;
+}
+
+.skeleton-card .issue-cover-wrapper { background-color: #e9eef5; }
+
+.skeleton-gallery-item {
+    pointer-events: none;
+    cursor: default;
+}
+
+/* Table rows in the dashboards */
+.skeleton-row td {
+    padding-top: 18px;
+    padding-bottom: 18px;
+}
+
+.skeleton-row .skeleton-line {
+    margin-bottom: 0;
+    height: 14px;
+}
+
+/* Hero carousel while the slides load */
+.carousel-skeleton {
+    width: 100%;
+    height: 100%;
+}
+
+/* "Popular Now" sidebar */
+.skeleton-sidebar-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.skeleton-sidebar-item .skeleton-line { margin-bottom: 0; }
+
+.skeleton-sidebar-item .skeleton-image {
+    height: 150px;
+    border-radius: 16px;
+}
+
+/* An article page while it loads */
+.skeleton-article {
+    width: 100%;
+    max-width: 780px;
+    margin: 32px auto 0;
+}
+
+.skeleton-article .skeleton-image {
+    height: 340px;
+    border-radius: 24px;
+    margin: 24px 0;
+}
+
+.skeleton-article .skeleton-line { margin-bottom: 14px; }
+.skeleton-article .skeleton-line--title { height: 30px; }

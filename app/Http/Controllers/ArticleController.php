@@ -7,6 +7,9 @@ use App\Models\ArticleCredit;
 use App\Models\Activity;
 use App\Models\Notification;
 use App\Models\Task;
+use App\Models\User;
+use App\Support\Html;
+use App\Support\PublicCache;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -20,24 +23,17 @@ class ArticleController extends Controller
 
         $query = Article::with(['author', 'section', 'tasks.assignee', 'tasks.assignedBy', 'credits.user']);
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->has('author_id')) {
-            $query->where('author_id', $request->author_id);
-        }
-        if ($request->has('section_id')) {
-            $query->where('section_id', $request->section_id);
-        }
+        $this->filterBy($query, $request, ['status' => 'status', 'type' => 'type'], ['author_id' => 'author_id', 'section_id' => 'section_id']);
         // Videos a user was credited on (reporter, scriptwriter, videographer, video editor)
         if ($request->has('credited_to')) {
-            $query->whereHas('credits', fn ($q) => $q->where('user_id', $request->credited_to));
+            $credited = $request->input('credited_to');
+            is_string($credited) && ctype_digit($credited)
+                ? $query->whereHas('credits', fn ($q) => $q->where('user_id', (int) $credited))
+                : $query->whereRaw('0 = 1');
         }
         // Videos live in the same table but are a separate content type: they only show up
         // when asked for (?type=video) or explicitly included (?include_videos=1).
-        if ($request->has('type')) {
-            $query->where('type', $request->type);
-        } elseif (!$request->boolean('include_videos')) {
+        if (!$request->has('type') && !$request->boolean('include_videos')) {
             $query->where('type', '!=', Article::TYPE_VIDEO);
         }
 
@@ -50,14 +46,14 @@ class ArticleController extends Controller
      */
     public function carousel()
     {
-        $slides = $this->publishedArticles()->limit(4)->get()
+        $slides = PublicCache::remember(request(), 'articles', [], fn () => $this->publishedArticles()->limit(4)->get()
             ->map(fn (Article $a) => [
                 'id'           => $a->id,
                 'title'        => $a->title,
                 'author'       => $a->author?->name,
                 'published_at' => ($a->published_at ?? $a->created_at)?->toIso8601String(),
                 'image'        => $a->cover_image ?: ($a->media_files[0] ?? null),
-            ]);
+            ])->all());
 
         return response()->json($slides);
     }
@@ -67,7 +63,8 @@ class ArticleController extends Controller
     {
         $limit = max(1, min(12, $request->integer('limit', 6)));
 
-        return response()->json($this->publishedArticles()->limit($limit)->get()->map(fn (Article $a) => $this->toCard($a)));
+        return response()->json(PublicCache::remember($request, 'articles', ['limit'], fn () => $this->publishedArticles()
+            ->limit($limit)->get()->map(fn (Article $a) => $this->toCard($a))->all()));
     }
 
     /**
@@ -75,6 +72,11 @@ class ArticleController extends Controller
      * only show that section; without one it lists the latest across every category.
      */
     public function categoryArticles(Request $request)
+    {
+        return response()->json(PublicCache::remember($request, 'articles', ['category', 'page'], fn () => $this->categoryPage($request)));
+    }
+
+    private function categoryPage(Request $request): array
     {
         $category = strtolower(trim((string) $request->query('category', '')));
 
@@ -90,16 +92,24 @@ class ArticleController extends Controller
 
         $page = $query->paginate(5);
 
-        return response()->json([
-            'data'         => $page->getCollection()->map(fn (Article $a) => $this->toCard($a))->values(),
+        return [
+            'data'         => $page->getCollection()->map(fn (Article $a) => $this->toCard($a))->values()->all(),
             'current_page' => $page->currentPage(),
             'last_page'    => $page->lastPage(),
             'total'        => $page->total(),
-        ]);
+        ];
     }
 
-    /** Public: published videos (the broadcasting team's work), newest first. Optional ?limit=. */
+    /**
+     * Public: published videos (the broadcasting team's work), newest first. Optional ?limit=;
+     * with ?page= the list is paginated (9 a page) and wrapped with the paging info.
+     */
     public function videos(Request $request)
+    {
+        return response()->json(PublicCache::remember($request, 'articles', ['limit', 'page'], fn () => $this->videoList($request)));
+    }
+
+    private function videoList(Request $request): array
     {
         $this->publishDueSchedules();
 
@@ -107,20 +117,37 @@ class ArticleController extends Controller
             ->where('type', Article::TYPE_VIDEO)
             ->orderByDesc('published_at')
             ->orderByDesc('id');
+        $toVideo = fn (Article $a) => $this->toVideoCard($a);
+
+        if ($request->filled('page')) {
+            $page = $query->paginate(9);
+
+            return [
+                'data'         => $page->getCollection()->map($toVideo)->values()->all(),
+                'current_page' => $page->currentPage(),
+                'last_page'    => $page->lastPage(),
+                'total'        => $page->total(),
+            ];
+        }
+
         if ($request->filled('limit')) {
             $query->limit(max(1, min(50, $request->integer('limit'))));
         }
 
-        return response()->json($query->get()->map(function (Article $a) {
-            $youtubeId = preg_match('~(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/|live/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})~i', (string) $a->video_url, $m) ? $m[1] : null;
+        return $query->get()->map($toVideo)->all();
+    }
 
-            return array_merge($this->toCard($a), [
-                'badge'     => $a->video_category ?: 'Video',
-                'image'     => $a->cover_image ?: ($youtubeId ? "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg" : null),
-                'readTime'  => 'Watch video',
-                'video_url' => $a->video_url,
-            ]);
-        }));
+    /** A video's card: its category as the badge, a YouTube thumbnail when there's no cover, and the link to watch. */
+    public function toVideoCard(Article $a): array
+    {
+        $youtubeId = preg_match('~(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/|live/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})~i', (string) $a->video_url, $m) ? $m[1] : null;
+
+        return array_merge($this->toCard($a), [
+            'badge'     => $a->video_category ?: 'Video',
+            'image'     => $a->cover_image ?: ($youtubeId ? "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg" : null),
+            'readTime'  => 'Watch video',
+            'video_url' => $a->video_url,
+        ]);
     }
 
     /** Card shape shared by the reader's article grids and lists. */
@@ -138,6 +165,18 @@ class ArticleController extends Controller
             'date'     => ($a->published_at ?? $a->created_at)?->format('M j, Y'),
             'readTime' => max(1, (int) ceil($words / 200)) . ' min' . ($words > 200 ? 's' : '') . ' read',
         ];
+    }
+
+    /**
+     * Who may edit or submit an article: reviewers (editors, copyreaders), its author, and anyone
+     * assigned a task on it or credited on it.
+     */
+    private function canWorkOn(User $user, Article $article): bool
+    {
+        return $user->isReviewer()
+            || $article->author_id === $user->id
+            || $article->tasks()->where('assignee_id', $user->id)->exists()
+            || $article->credits()->where('user_id', $user->id)->exists();
     }
 
     /** Newest published, non-video articles first. */
@@ -169,14 +208,17 @@ class ArticleController extends Controller
             'section_id'            => 'nullable|exists:sections,id',
             'type'                  => 'nullable|in:article,feature,opinion,photo_essay,illustration,video',
             'word_count'            => 'nullable|integer|min:0',
-            'cover_image'           => 'nullable|string',
+            'cover_image'           => ['nullable', 'string', 'not_regex:/^\\s*(javascript|vbscript|data:text)/i'],
             'media_files'           => 'nullable|array',
             'media_files.*'         => 'nullable|string',
-            'video_url'             => 'nullable|url|max:500',
+            'video_url'             => 'nullable|url:http,https|max:500',
             'video_category'        => 'nullable|in:' . implode(',', Article::VIDEO_CATEGORIES),
-            'monitoring_sheet_url'  => 'nullable|url',
             'editor_notes'          => 'nullable|string',
         ]);
+
+        if (array_key_exists('content', $validated)) {
+            $validated['content'] = Html::clean($validated['content']);
+        }
 
         $validated['author_id'] = $request->user()->id;
         $article = Article::create($validated);
@@ -188,6 +230,11 @@ class ArticleController extends Controller
     /** Update article content/metadata */
     public function update(Request $request, Article $article)
     {
+        $user = $request->user();
+        if (!$this->canWorkOn($user, $article)) {
+            return response()->json(['message' => 'You are not allowed to edit this article.'], 403);
+        }
+
         $validated = $request->validate([
             'title'                 => 'sometimes|string|max:500',
             'content'               => 'nullable|string',
@@ -196,16 +243,26 @@ class ArticleController extends Controller
             'section_id'            => 'nullable|exists:sections,id',
             'type'                  => 'nullable|in:article,feature,opinion,photo_essay,illustration,video',
             'word_count'            => 'nullable|integer|min:0',
-            'cover_image'           => 'nullable|string',
+            'cover_image'           => ['nullable', 'string', 'not_regex:/^\\s*(javascript|vbscript|data:text)/i'],
             'media_files'           => 'nullable|array',
             'media_files.*'         => 'nullable|string',
-            'video_url'             => 'nullable|url|max:500',
+            'video_url'             => 'nullable|url:http,https|max:500',
             'video_category'        => 'nullable|in:' . implode(',', Article::VIDEO_CATEGORIES),
-            'monitoring_sheet_url'  => 'nullable|url',
             'editor_notes'          => 'nullable|string',
-            'eic_notes'             => 'nullable|string',
             'scheduled_at'          => 'required_if:status,scheduled|nullable|date',
         ]);
+
+        if (array_key_exists('content', $validated)) {
+            $validated['content'] = Html::clean($validated['content']);
+        }
+
+        // Going live (or being approved for it) is the Editor-in-Chief's call
+        $newStatus = $validated['status'] ?? null;
+        if ($newStatus && $newStatus !== $article->status
+            && in_array($newStatus, [Article::STATUS_PUBLISHED, Article::STATUS_SCHEDULED, Article::STATUS_APPROVED], true)
+            && !in_array($user->role, ['eic', 'admin'], true)) {
+            return response()->json(['message' => 'Only the Editor-in-Chief can publish or schedule an article.'], 403);
+        }
 
         if (($validated['status'] ?? null) === Article::STATUS_SCHEDULED) {
             $validated['published_at'] = null;
@@ -263,7 +320,7 @@ class ArticleController extends Controller
         $rules = [
             'title'          => 'required|string|max:500',
             'excerpt'        => 'required|string|max:1000',
-            'video_url'      => 'required|url|max:500',
+            'video_url'      => 'required|url:http,https|max:500',
             'video_category' => 'required|in:' . implode(',', Article::VIDEO_CATEGORIES),
             'cover_image'    => 'nullable|string',
             'published_at'   => 'nullable|date|before_or_equal:now',
@@ -331,6 +388,7 @@ class ArticleController extends Controller
             'published_at'   => 'nullable|date|before_or_equal:now',
         ]);
 
+        $validated['content'] = Html::clean($validated['content']);
         $publishedAt = isset($validated['published_at']) ? Carbon::parse($validated['published_at']) : now();
         $plain = trim(preg_replace('/\s+/', ' ', strip_tags(str_replace(['</p>', '<br>', '<br/>', '</div>'], ' ', $validated['content']))));
 
@@ -439,20 +497,16 @@ class ArticleController extends Controller
     /** Flip any past-due scheduled articles to published (lazy scheduler — no cron required) */
     private function publishDueSchedules(): void
     {
-        Article::where('status', Article::STATUS_SCHEDULED)
-            ->where('scheduled_at', '<=', now())
-            ->get()
-            ->each(function (Article $article) {
-                $article->update([
-                    'status'       => Article::STATUS_PUBLISHED,
-                    'published_at' => $article->scheduled_at,
-                ]);
-            });
+        Article::publishDue();
     }
 
     /** Staff Writer submits article to Section Editor */
     public function submit(Request $request, Article $article)
     {
+        if (!$this->canWorkOn($request->user(), $article)) {
+            return response()->json(['message' => 'You are not allowed to submit this article.'], 403);
+        }
+
         $article->update([
             'status'       => Article::STATUS_SUBMITTED,
             'submitted_at' => now(),
@@ -468,6 +522,10 @@ class ArticleController extends Controller
     /** Section Editor endorses article to EIC */
     public function endorse(Request $request, Article $article)
     {
+        if (!$request->user()->isReviewer()) {
+            return response()->json(['message' => 'Only editors and copyreaders can endorse an article.'], 403);
+        }
+
         $request->validate(['editor_notes' => 'nullable|string']);
 
         $article->update([
@@ -495,12 +553,13 @@ class ArticleController extends Controller
     /** EIC approves article */
     public function approve(Request $request, Article $article)
     {
-        $request->validate(['eic_notes' => 'nullable|string']);
+        if (!in_array($request->user()->role, ['eic', 'admin'], true)) {
+            return response()->json(['message' => 'Only the Editor-in-Chief can approve an article.'], 403);
+        }
 
         $article->update([
             'status'      => Article::STATUS_APPROVED,
             'approved_at' => now(),
-            'eic_notes'   => $request->eic_notes,
         ]);
         Activity::record($request->user(), 'Approved an article', $article);
 
@@ -518,6 +577,10 @@ class ArticleController extends Controller
     /** EIC or Section Editor rejects article */
     public function reject(Request $request, Article $article)
     {
+        if (!$request->user()->isEditor()) {
+            return response()->json(['message' => 'Only editors can reject an article.'], 403);
+        }
+
         $request->validate(['rejection_reason' => 'required|string']);
 
         $article->update([

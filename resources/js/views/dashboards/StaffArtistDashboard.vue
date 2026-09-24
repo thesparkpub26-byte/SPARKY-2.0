@@ -88,7 +88,7 @@
             <header class="top-header">
                 <div class="search-bar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" placeholder="Search">
+                    <input type="search" v-model="searchInput" :placeholder="searchPlaceholder" aria-label="Search current view">
                 </div>
                 <div class="top-header-right">
                     <NotificationsPopover />
@@ -368,7 +368,7 @@
                     <!-- Academic Years Folders -->
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         <div
-                            v-for="yearGroup in staffAcademicYears"
+                            v-for="yearGroup in shownAcademicYears"
                             :key="yearGroup.academic_year"
                             style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;"
                         >
@@ -422,8 +422,8 @@
                     </div>
 
                     <!-- No Press Works Message -->
-                    <div v-if="staffAcademicYears.length === 0" style="padding: 40px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
-                        No press works available yet. New press works will appear here once they're created.
+                    <div v-if="shownAcademicYears.length === 0" style="padding: 40px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                        {{ noPressWorksText(searchQuery.trim() !== '') }}
                     </div>
                 </div>
 
@@ -458,11 +458,13 @@
 </template>
 
 <script setup>
+import { makeMatcher, searchAcademicYears, noPressWorksText, useDebouncedSearch } from '../../utils/dashboardSearch';
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { lazyModal } from '../../utils/lazyModal';
 import { useRouter } from 'vue-router';
-import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
-import ArtistWorkspaceModal from '../../components/ArtistWorkspaceModal.vue';
-import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
+const AssignedTaskModal = lazyModal(() => import('../../components/AssignedTaskModal.vue'));
+const ArtistWorkspaceModal = lazyModal(() => import('../../components/ArtistWorkspaceModal.vue'));
+const ArticlePreviewModal = lazyModal(() => import('../../components/ArticlePreviewModal.vue'));
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
@@ -555,6 +557,7 @@ const selectedTask = ref({});
 
 // ── Press Works State ─────────────────────────────────────────────────────────
 const staffAcademicYears = ref([]);
+const shownAcademicYears = computed(() => searchAcademicYears(staffAcademicYears.value, matches));
 const staffExpandedYears = ref({});
 
 const articles = ref([]);
@@ -570,11 +573,24 @@ const isTaskDone = (task) => {
     return article?.status === 'published';
 };
 
+// ── Search (the box at the top searches whichever tab is open) ────────────────
+const { input: searchInput, query: searchQuery } = useDebouncedSearch();
+const matches = makeMatcher(searchQuery);
+const searchPlaceholder = computed(() => ({
+    tasks: 'Search my tasks',
+    works: 'Search my works',
+    submissions: 'Search my submissions',
+    pressWorks: 'Search press works',
+}[activeTab.value] || 'Search'));
+
+const sectionNameOf = (t) => (typeof t.section === 'object' ? t.section?.name : t.section) || '';
+
 // Computed properties
 const activeTasks = computed(() => tasks.value.filter(t => !isTaskDone(t)));
-const pendingTasks = computed(() => activeTasks.value.filter(t => t.status === 'pending'));
-const ongoingTasks = computed(() => activeTasks.value.filter(t => t.status === 'ongoing' || t.status === 'in_progress' || t.status === 'returned'));
-const submittedTasks = computed(() => activeTasks.value.filter(t => t.status === 'submitted' || t.status === 'completed'));
+const searchedTasks = computed(() => activeTasks.value.filter(t => matches(t.title, sectionNameOf(t), t.priority, t.type)));
+const pendingTasks = computed(() => searchedTasks.value.filter(t => t.status === 'pending'));
+const ongoingTasks = computed(() => searchedTasks.value.filter(t => t.status === 'ongoing' || t.status === 'in_progress' || t.status === 'returned'));
+const submittedTasks = computed(() => searchedTasks.value.filter(t => t.status === 'submitted' || t.status === 'completed'));
 
 // ── My Works (articles the artist collaborated on) ───────────────────────────
 const worksPerPage = 8;
@@ -625,9 +641,10 @@ const works = computed(() => {
         .sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
 });
 
-const filteredWorks = computed(() => selectedWorksFilter.value === 'all'
+const filteredWorks = computed(() => (selectedWorksFilter.value === 'all'
     ? works.value
-    : works.value.filter(w => w.status === selectedWorksFilter.value));
+    : works.value.filter(w => w.status === selectedWorksFilter.value))
+    .filter(w => matches(w.title, w.section, w.writerName, formatWorkStatus(w.status))));
 const totalWorksPages = computed(() => Math.max(1, Math.ceil(filteredWorks.value.length / worksPerPage)));
 const paginatedWorks = computed(() => {
     const start = (worksCurrentPage.value - 1) * worksPerPage;
@@ -715,6 +732,7 @@ const recentSubmissions = computed(() => {
                 raw: t
             };
         })
+        .filter(item => matches(item.title, item.section, item.writerName))
         .sort((a, b) => new Date(b.raw.updated_at || b.raw.created_at) - new Date(a.raw.updated_at || a.raw.created_at));
 });
 
@@ -838,6 +856,7 @@ watch(activeTab, (tab) => {
 });
 
 watch(selectedWorksFilter, () => { worksCurrentPage.value = 1; });
+watch(searchQuery, () => { worksCurrentPage.value = 1; submissionsCurrentPage.value = 1; });
 
 const closeWorksFilter = (event) => {
     if (activeWorksFilter.value && !event.target.closest('.custom-filter')) {

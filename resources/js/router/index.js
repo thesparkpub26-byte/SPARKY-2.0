@@ -1,36 +1,41 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { STAFF_ROLES, dashboardFor, verifiedUser } from '../utils/session';
 
-// Reader Views
+// Reader views: the home page ships with the app, every other page is fetched the first time it is visited
 import ReaderHome from '../views/reader/ReaderHome.vue';
-import ArticleView from '../views/reader/ArticleView.vue';
-import CategoryView from '../views/reader/CategoryView.vue';
-import VideosView from '../views/reader/VideosView.vue';
-import GalleryView from '../views/reader/GalleryView.vue';
-import PublishedIssuesView from '../views/reader/PublishedIssuesView.vue';
-import PrivacyPolicyView from '../views/reader/PrivacyPolicyView.vue';
-import TermsView from '../views/reader/TermsView.vue';
+const ArticleView = () => import('../views/reader/ArticleView.vue');
+const CategoryView = () => import('../views/reader/CategoryView.vue');
+const VideosView = () => import('../views/reader/VideosView.vue');
+const GalleryView = () => import('../views/reader/GalleryView.vue');
+const PublishedIssuesView = () => import('../views/reader/PublishedIssuesView.vue');
+const PrivacyPolicyView = () => import('../views/reader/PrivacyPolicyView.vue');
+const TermsView = () => import('../views/reader/TermsView.vue');
+const UnsubscribeView = () => import('../views/reader/UnsubscribeView.vue');
+const SearchView = () => import('../views/reader/SearchView.vue');
+const SavedView = () => import('../views/reader/SavedView.vue');
+const NotFoundView = () => import('../views/reader/NotFoundView.vue');
 
 // Auth Views
-import LoginView from '../views/auth/LoginView.vue';
-import SignUpView from '../views/auth/SignUpView.vue';
-import ForgotPasswordView from '../views/auth/ForgotPasswordView.vue';
-import ResetPasswordView from '../views/auth/ResetPasswordView.vue';
-import OtpView from '../views/auth/OtpView.vue';
+const LoginView = () => import('../views/auth/LoginView.vue');
+const SignUpView = () => import('../views/auth/SignUpView.vue');
+const ForgotPasswordView = () => import('../views/auth/ForgotPasswordView.vue');
+const ResetPasswordView = () => import('../views/auth/ResetPasswordView.vue');
+const OtpView = () => import('../views/auth/OtpView.vue');
 
-// Dashboard Views
-import AdminDashboard from '../views/dashboards/AdminDashboard.vue';
-import EditorInChiefDashboard from '../views/dashboards/EditorInChiefDashboard.vue';
-import SectionEditorDashboard from '../views/dashboards/SectionEditorDashboard.vue';
-import StaffWriterDashboard from '../views/dashboards/StaffWriterDashboard.vue';
-import StaffArtistDashboard from '../views/dashboards/StaffArtistDashboard.vue';
-import StaffBroadcasterDashboard from '../views/dashboards/StaffBroadcasterDashboard.vue';
-import MonitoringSheetView from '../views/dashboards/MonitoringSheetView.vue';
-import FileStorageView from '../views/dashboards/FileStorageView.vue';
-import ProfileView from '../views/ProfileView.vue';
-import BookletViewer from '../views/BookletViewer.vue';
+// Staff pages: a reader's browser never downloads the dashboards' code at all.
+const AdminDashboard = () => import('../views/dashboards/AdminDashboard.vue');
+const EditorInChiefDashboard = () => import('../views/dashboards/EditorInChiefDashboard.vue');
+const SectionEditorDashboard = () => import('../views/dashboards/SectionEditorDashboard.vue');
+const StaffWriterDashboard = () => import('../views/dashboards/StaffWriterDashboard.vue');
+const StaffArtistDashboard = () => import('../views/dashboards/StaffArtistDashboard.vue');
+const StaffBroadcasterDashboard = () => import('../views/dashboards/StaffBroadcasterDashboard.vue');
+const MonitoringSheetView = () => import('../views/dashboards/MonitoringSheetView.vue');
+const FileStorageView = () => import('../views/dashboards/FileStorageView.vue');
+const ProfileView = () => import('../views/ProfileView.vue');
+const BookletViewer = () => import('../views/BookletViewer.vue');
 
-// Staff roles that can access dashboards
-const STAFF_ROLES = ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'];
+// A dashboard belongs to exactly one role: `roles` lists who may open it.
+const dashboard = (path, name, component, roles) => ({ path, name, component, meta: { requiresStaff: true, roles } });
 
 const routes = [
   // Reader Portal (accessible to everyone)
@@ -41,8 +46,11 @@ const routes = [
   { path: '/videos', name: 'VideosView', component: VideosView },
   { path: '/gallery', name: 'GalleryView', component: GalleryView },
   { path: '/issues', name: 'PublishedIssuesView', component: PublishedIssuesView },
+  { path: '/search', name: 'SearchView', component: SearchView },
+  { path: '/saved', name: 'SavedView', component: SavedView, meta: { requiresAuth: true } },
   { path: '/privacy-policy', name: 'PrivacyPolicyView', component: PrivacyPolicyView },
   { path: '/terms', name: 'TermsView', component: TermsView },
+  { path: '/unsubscribe/:token', name: 'UnsubscribeView', component: UnsubscribeView },
 
   // Authentication
   { path: '/login', name: 'LoginView', component: LoginView },
@@ -51,13 +59,15 @@ const routes = [
   { path: '/reset-password', name: 'ResetPasswordView', component: ResetPasswordView },
   { path: '/otp', name: 'OtpView', component: OtpView },
 
-  // Dashboards (staff only — protected by navigation guard below)
-  { path: '/admin',   name: 'AdminDashboard',          component: AdminDashboard,          meta: { requiresStaff: true } },
-  { path: '/eic',     name: 'EditorInChiefDashboard',  component: EditorInChiefDashboard,  meta: { requiresStaff: true } },
-  { path: '/editor',  name: 'SectionEditorDashboard',  component: SectionEditorDashboard,  meta: { requiresStaff: true } },
-  { path: '/writer',  name: 'StaffWriterDashboard',    component: StaffWriterDashboard,    meta: { requiresStaff: true } },
-  { path: '/artist',  name: 'StaffArtistDashboard',    component: StaffArtistDashboard,    meta: { requiresStaff: true } },
-  { path: '/broadcaster', name: 'StaffBroadcasterDashboard', component: StaffBroadcasterDashboard, meta: { requiresStaff: true } },
+  // Dashboards: one role each, checked against the server (see the guard below)
+  dashboard('/admin', 'AdminDashboard', AdminDashboard, ['admin']),
+  dashboard('/eic', 'EditorInChiefDashboard', EditorInChiefDashboard, ['eic']),
+  dashboard('/editor', 'SectionEditorDashboard', SectionEditorDashboard, ['section_editor']),
+  dashboard('/writer', 'StaffWriterDashboard', StaffWriterDashboard, ['staff_writer']),
+  dashboard('/artist', 'StaffArtistDashboard', StaffArtistDashboard, ['staff_artist']),
+  dashboard('/broadcaster', 'StaffBroadcasterDashboard', StaffBroadcasterDashboard, ['staff_broadcaster']),
+
+  // Shared staff tools (any publication staff)
   { path: '/monitoring-sheet', name: 'MonitoringSheetView', component: MonitoringSheetView, meta: { requiresStaff: true } },
   { path: '/monitoring-sheet/:monitoringSheet', name: 'MonitoringSheetDetailView', component: MonitoringSheetView, meta: { requiresStaff: true } },
   { path: '/monitoring_sheet_fullscreen.html', redirect: '/monitoring-sheet' },
@@ -68,6 +78,9 @@ const routes = [
 
   // Booklet viewer (public — readers open published issues from the Published Issues pages)
   { path: '/booklet/:id', name: 'BookletViewer', component: BookletViewer },
+
+  // Anything else
+  { path: '/:pathMatch(.*)*', name: 'NotFoundView', component: NotFoundView },
 ];
 
 const router = createRouter({
@@ -79,32 +92,67 @@ const router = createRouter({
 });
 
 // ── Navigation Guard ──────────────────────────────────────────────────────────
-router.beforeEach((to) => {
-  const raw = localStorage.getItem('sparky_user');
-  const user = raw ? JSON.parse(raw) : null;
-  const role = user?.role || null;
+// Protected pages ask the server who is signed in instead of believing the copy in localStorage, which
+// anyone can edit. Someone who isn't allowed is sent somewhere they are allowed: a staff member who types
+// another role's address lands on their own dashboard.
+router.beforeEach(async (to) => {
+  const isAuthPage = to.name === 'LoginView' || to.name === 'SignUpView';
+  const isProtected = Boolean(to.meta.requiresAuth || to.meta.requiresStaff);
+  if (!isProtected && !isAuthPage) return true;
 
-  // Route requires any logged-in user
-  if (to.meta.requiresAuth && !user) {
+  const user = await verifiedUser();
+
+  if (isProtected && !user) {
     return { name: 'LoginView' };
   }
 
-  // Route requires staff access
-  if (to.meta.requiresStaff) {
-    if (!user) return { name: 'LoginView' };
-    if (!STAFF_ROLES.includes(role)) return { name: 'ReaderHome' };
+  if (to.meta.requiresStaff && !STAFF_ROLES.includes(user.role)) {
+    return { name: 'ReaderHome' };
   }
 
-  // Logged-in staff visiting /login or /signup → redirect to dashboard
-  if ((to.name === 'LoginView' || to.name === 'SignUpView') && user && STAFF_ROLES.includes(role)) {
-    const dashMap = {
-      admin: 'AdminDashboard', eic: 'EditorInChiefDashboard',
-      section_editor: 'SectionEditorDashboard',
-      staff_writer: 'StaffWriterDashboard', staff_artist: 'StaffArtistDashboard',
-      staff_broadcaster: 'StaffBroadcasterDashboard',
-    };
-    return { name: dashMap[role] };
+  if (to.meta.roles && !to.meta.roles.includes(user.role)) {
+    return { path: dashboardFor(user.role) };
   }
+
+  // Logged-in staff visiting /login or /signup → straight to their dashboard
+  if (isAuthPage && user && STAFF_ROLES.includes(user.role)) {
+    return { path: dashboardFor(user.role) };
+  }
+
+  return true;
+});
+
+// ── Page titles (the browser tab, history and bookmarks) ─────────────────────
+// Article pages set their own title once the article has loaded.
+const SITE = 'TheSPARK';
+const TITLES = {
+  ReaderHome: null, // just the site name
+  CategoryView: 'Categories',
+  VideosView: 'Videos',
+  GalleryView: 'Gallery',
+  PublishedIssuesView: 'Published Issues',
+  PrivacyPolicyView: 'Privacy Policy',
+  TermsView: 'Terms & Conditions',
+  SearchView: 'Search',
+  SavedView: 'Saved Articles',
+  UnsubscribeView: 'Unsubscribe',
+  LoginView: 'Sign In',
+  SignUpView: 'Sign Up',
+  ForgotPasswordView: 'Reset Password',
+  ResetPasswordView: 'Reset Password',
+  OtpView: 'Verify Your Email',
+  ProfileView: 'My Profile',
+  NotFoundView: 'Page not found',
+};
+
+router.afterEach((to) => {
+  if (to.name === 'ArticleView') return;
+
+  let title = TITLES[to.name];
+  if (to.name === 'CategoryView' && to.query.category) title = String(to.query.category);
+  if (title === undefined) title = 'Dashboard'; // staff pages
+
+  document.title = title ? `${title} | ${SITE}` : 'The Spark - Official Publication';
 });
 
 export default router;

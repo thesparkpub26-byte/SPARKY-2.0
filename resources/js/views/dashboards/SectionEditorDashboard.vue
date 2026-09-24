@@ -99,7 +99,7 @@
             <header class="top-header">
                 <div class="search-bar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" v-model="searchQuery" placeholder="Search">
+                    <input type="search" v-model="searchInput" :placeholder="searchPlaceholder" aria-label="Search current view">
                 </div>
                 <div class="top-header-right">
                     <button class="assign-task-btn" id="main-action-btn" @click.prevent="isAssignTaskModalOpen = true">
@@ -209,7 +209,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="activity in seOverview.activities" :key="activity.id">
+                    <tr v-for="activity in shownOverviewActivities" :key="activity.id">
                         <td>{{ activity.action }}<span v-if="activity.subject">: {{ activity.subject }}</span></td>
                         <td>{{ activity.user }}</td>
                         <td><span class="role-pill">{{ formatRoleSE(activity.role) }}</span></td>
@@ -264,9 +264,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-if="seArticlesLoading">
-                        <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">Loading {{ isBroadcastHeadUser ? 'videos' : 'articles' }}…</td>
-                    </tr>
+                    <SkeletonRows v-if="seArticlesLoading" :columns="4" />
                     <tr v-else-if="seArticlesPaged.length === 0">
                         <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">No {{ isBroadcastHeadUser ? 'videos' : 'articles' }} found.</td>
                     </tr>
@@ -396,9 +394,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-if="seAssignedLoading">
-                                <td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">Loading assignments…</td>
-                            </tr>
+                            <SkeletonRows v-if="seAssignedLoading" :columns="6" />
                             <tr v-else-if="seAssignedPaged.length === 0">
                                 <td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">No assignments found. Use "Assign Task" to create one.</td>
                             </tr>
@@ -474,16 +470,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-if="seSubmissionsLoading">
-                                <td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">Loading submissions…</td>
-                            </tr>
-                            <tr v-else-if="seSubmissions.length === 0">
+                            <SkeletonRows v-if="seSubmissionsLoading" :columns="5" />
+                            <tr v-else-if="shownSubmissions.length === 0">
                                 <td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">No submitted {{ isBroadcastHeadUser ? 'videos' : 'articles' }} awaiting review.</td>
                             </tr>
                             <template v-else>
-                                <tr v-for="(sub, idx) in seSubmissions" :key="sub.id">
-                                    <td :style="idx === seSubmissions.length-1 ? 'padding-left:24px;border-bottom:none;font-weight:600;' : 'padding-left:24px;font-weight:600;'">{{ sub.title }}</td>
-                                    <td :style="idx === seSubmissions.length-1 ? 'border-bottom:none;' : ''">
+                                <tr v-for="(sub, idx) in shownSubmissions" :key="sub.id">
+                                    <td :style="idx === shownSubmissions.length-1 ? 'padding-left:24px;border-bottom:none;font-weight:600;' : 'padding-left:24px;font-weight:600;'">{{ sub.title }}</td>
+                                    <td :style="idx === shownSubmissions.length-1 ? 'border-bottom:none;' : ''">
                                         <div style="display:flex;align-items:center;gap:8px;">
                                             <img
                                                 v-if="sub.author?.profile_picture || sub.author?.profile_picture_url"
@@ -494,11 +488,11 @@
                                             <span>{{ sub.author?.name || '—' }}</span>
                                         </div>
                                     </td>
-                                    <td :style="idx === seSubmissions.length-1 ? 'border-bottom:none;color:#64748b;' : 'color:#64748b;'">{{ formatDateSE(sub.submitted_at || sub.created_at) }}</td>
-                                    <td :style="idx === seSubmissions.length-1 ? 'border-bottom:none;' : ''">
+                                    <td :style="idx === shownSubmissions.length-1 ? 'border-bottom:none;color:#64748b;' : 'color:#64748b;'">{{ formatDateSE(sub.submitted_at || sub.created_at) }}</td>
+                                    <td :style="idx === shownSubmissions.length-1 ? 'border-bottom:none;' : ''">
                                         <span class="status-badge status-for-review">For Review</span>
                                     </td>
-                                    <td :style="idx === seSubmissions.length-1 ? 'padding-right:24px;border-bottom:none;' : 'padding-right:24px;'">
+                                    <td :style="idx === shownSubmissions.length-1 ? 'padding-right:24px;border-bottom:none;' : 'padding-right:24px;'">
                                         <button class="review-btn" @click="openSEReview(sub)">Review</button>
                                     </td>
                                 </tr>
@@ -511,7 +505,7 @@
     </div>
 
     <!-- Gallery (Art Editor only) -->
-    <GalleryManager v-if="isArtEditorUser" v-show="activeTab === 'gallery'" />
+    <GalleryManager v-if="isArtEditorUser" v-show="activeTab === 'gallery'" :search="searchQuery" />
 
     <div v-show="activeTab === 'contributors'" class="pinned-pagination-tab">
         <div class="pinned-fill" style="display: flex; flex-direction: column; gap: 12px;">
@@ -751,17 +745,19 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { lazyModal } from '../../utils/lazyModal';
+import { useDebouncedSearch } from '../../utils/dashboardSearch';
 import { useRouter } from 'vue-router';
-import AssignTaskModal from '../../components/AssignTaskModal.vue';
-import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
-import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
-import EditTaskModal from '../../components/EditTaskModal.vue';
-import SEReviewModal from '../../components/SEReviewModal.vue';
-import VideoReviewModal from '../../components/VideoReviewModal.vue';
-import VideoWorkspaceModal from '../../components/VideoWorkspaceModal.vue';
-import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
-import DirectPublishModal from '../../components/DirectPublishModal.vue';
-import DirectVideoPublishModal from '../../components/DirectVideoPublishModal.vue';
+const AssignTaskModal = lazyModal(() => import('../../components/AssignTaskModal.vue'));
+const AssignedTaskModal = lazyModal(() => import('../../components/AssignedTaskModal.vue'));
+const AssignmentWorkspaceModal = lazyModal(() => import('../../components/AssignmentWorkspaceModal.vue'));
+const EditTaskModal = lazyModal(() => import('../../components/EditTaskModal.vue'));
+const SEReviewModal = lazyModal(() => import('../../components/SEReviewModal.vue'));
+const VideoReviewModal = lazyModal(() => import('../../components/VideoReviewModal.vue'));
+const VideoWorkspaceModal = lazyModal(() => import('../../components/VideoWorkspaceModal.vue'));
+const ArticlePreviewModal = lazyModal(() => import('../../components/ArticlePreviewModal.vue'));
+const DirectPublishModal = lazyModal(() => import('../../components/DirectPublishModal.vue'));
+const DirectVideoPublishModal = lazyModal(() => import('../../components/DirectVideoPublishModal.vue'));
 import { isBroadcastHead, isVideoTask, fetchCreditedVideos, buildVideoPreviewData } from '../../utils/video';
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import GalleryManager from '../../components/GalleryManager.vue';
@@ -770,13 +766,24 @@ import { signOut as performSignOut } from '../../utils/auth';
 const router = useRouter();
 const token = localStorage.getItem('sparky_token');
 const activeTab = ref('overview');
-const searchQuery = ref('');
+const { input: searchInput, query: searchQuery } = useDebouncedSearch();
 
 const matchesSearch = (...fields) => {
     if (!searchQuery.value || !searchQuery.value.trim()) return true;
     const query = searchQuery.value.toLowerCase().trim();
     return fields.some(field => String(field || '').toLowerCase().includes(query));
 };
+
+const searchPlaceholder = computed(() => ({
+    overview: 'Search recent activities',
+    articles: 'Search articles',
+    assignments: 'Search assignments',
+    submissions: 'Search submissions',
+    contributors: 'Search contributors',
+    gallery: 'Search gallery photos',
+    'press-works': 'Search press works',
+    pressWorks: 'Search press works',
+}[activeTab.value] || 'Search'));
 
 // ── Articles Tab State ────────────────────────────────────────────────────────
 const seArticles = ref([]);
@@ -887,6 +894,19 @@ const formatDeadline = (dateStr, dueTimeStr) => {
 
     return timePart ? `${datePart} • ${timePart}` : datePart;
 };
+
+const shownOverviewActivities = computed(() => (seOverview.value.activities || []).filter(activity => matchesSearch(
+    activity.action,
+    activity.subject,
+    activity.user,
+    activity.role,
+)));
+
+const shownSubmissions = computed(() => seSubmissions.value.filter(sub => matchesSearch(
+    sub.title,
+    sub.authorName,
+    typeof sub.section === 'object' ? sub.section?.name : sub.section,
+)));
 
 const seArticlesFiltered = computed(() => {
     let list = seArticles.value;

@@ -647,23 +647,6 @@ const confirmSendToWriter = async () => {
 
         if (response.ok) {
             // Also notify writer if writer ID is available
-            const writerId = writerInfo.value?.id;
-            if (writerId) {
-                await fetch('/api/notifications', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        user_id: writerId,
-                        title: 'Visual Assets Submitted',
-                        message: `Visual assets have been submitted for "${task.value.title}". Check your Artist's Submissions tab.`
-                    })
-                }).catch(() => {});
-            }
-
             emit('task-submitted', {
                 ...task.value,
                 notes: updatedNotes,

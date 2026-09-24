@@ -35,7 +35,7 @@
 
     <!-- Right Action Buttons -->
     <div class="reader-actions">
-      <button class="btn-icon-search" title="Search" @click="toggleSearch">
+      <button class="btn-icon-search" title="Search" @click="openSearch">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -62,6 +62,15 @@
         </svg>
       </button>
     </div>
+
+    <!-- Site links: the top capsule is hidden on phones, so they live here instead -->
+    <nav class="menu-mobile-nav" aria-label="Site sections">
+      <router-link to="/" :class="{ active: currentRoute === '/' }" @click="closeMenu">Home</router-link>
+      <router-link to="/categories" :class="{ active: currentRoute === '/categories' }" @click="closeMenu">Categories</router-link>
+      <router-link to="/videos" :class="{ active: currentRoute === '/videos' }" @click="closeMenu">Videos</router-link>
+      <router-link to="/gallery" :class="{ active: currentRoute === '/gallery' }" @click="closeMenu">Gallery</router-link>
+      <router-link to="/issues" :class="{ active: currentRoute === '/issues' }" @click="closeMenu">Published Issues</router-link>
+    </nav>
 
     <!-- State 1: Logged In -->
     <div v-if="isLoggedIn" class="menu-state-content">
@@ -92,6 +101,12 @@
           </svg>
         </router-link>
       </div>
+      <router-link to="/saved" class="btn-menu-saved" @click="closeMenu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+        Saved Articles
+      </router-link>
       <button class="btn-menu-signout" @click="signOut">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -119,12 +134,17 @@
     </div>
 
   </div>
+
+  <SearchModal :open="isSearchOpen" @close="closeSearch" />
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { signOut as performSignOut } from '../utils/auth';
+import { lazyModal } from '../utils/lazyModal';
+
+const SearchModal = lazyModal(() => import('./SearchModal.vue'), 'open');
 
 const route  = useRoute();
 const router = useRouter();
@@ -133,17 +153,31 @@ const currentRoute = computed(() => route.path);
 const CATEGORIES = ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary'];
 
 const isMenuOpen = ref(false);
+const isSearchOpen = ref(false);
 
 // ── Real auth state from localStorage ────────────────────────────────────────
 const rawUser    = localStorage.getItem('sparky_user');
 const currentUser = ref(rawUser ? JSON.parse(rawUser) : null);
 const isLoggedIn  = computed(() => !!currentUser.value);
 
+// Ctrl/Cmd+K, or "/" outside a text field, opens the search; Esc closes it
+const onKeydown = (e) => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName) || e.target?.isContentEditable;
+  if ((e.key === 'k' && (e.ctrlKey || e.metaKey)) || (e.key === '/' && !typing)) {
+    e.preventDefault();
+    openSearch();
+  } else if (e.key === 'Escape' && isSearchOpen.value) {
+    closeSearch();
+  }
+};
+
 // Re-read user from localStorage on mount (picks up profile_picture_url set after upload)
 onMounted(() => {
   const stored = localStorage.getItem('sparky_user');
   if (stored) currentUser.value = JSON.parse(stored);
+  window.addEventListener('keydown', onKeydown);
 });
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
 
 const userInitials = computed(() => {
   const name = currentUser.value?.name || '';
@@ -166,7 +200,8 @@ const staffDashboardPath = computed(() => dashMap[currentUser.value?.role] || '/
 // ── Actions ───────────────────────────────────────────────────────────────────
 const toggleMenu   = () => { isMenuOpen.value = !isMenuOpen.value; };
 const closeMenu    = () => { isMenuOpen.value = false; };
-const toggleSearch = () => { /* expand search overlay */ };
+const openSearch   = () => { isMenuOpen.value = false; isSearchOpen.value = true; };
+const closeSearch  = () => { isSearchOpen.value = false; };
 
 const signOut = async () => {
   currentUser.value = null;

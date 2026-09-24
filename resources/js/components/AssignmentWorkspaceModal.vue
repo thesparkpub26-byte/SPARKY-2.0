@@ -502,6 +502,7 @@
 </template>
 
 <script setup>
+import { requireOk, followUp, followUpNote } from '../utils/http';
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 
 const props = defineProps({
@@ -703,7 +704,7 @@ const copyreaderNotes = computed(() => {
 
 const eicNotes = computed(() => {
     if (returnedByRole.value === 'eic' && taskRevisionNotes.value) return taskRevisionNotes.value;
-    return task.value?.eicNotes || task.value?.eic_notes || null;
+    return task.value?.eicNotes || null;
 });
 
 // Live Word Count calculation
@@ -1341,14 +1342,15 @@ const confirmCopyreaderAction = async () => {
                 throw new Error(d.message || 'Failed to submit to the Editor-in-Chief.');
             }
 
+            const problems = [];
             if (editingTaskId) {
-                await fetch(`/api/tasks/${editingTaskId}/complete`, {
+                problems.push(await followUp('Your copyreading task could not be marked complete.', () => fetch(`/api/tasks/${editingTaskId}/complete`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
-                }).catch(() => {});
+                })));
             }
 
-            copyreaderSuccessMessage.value = `"${articleHeadline.value || task.value.title}" has been sent to the Editor-in-Chief for final approval.`;
+            copyreaderSuccessMessage.value = `"${articleHeadline.value || task.value.title}" has been sent to the Editor-in-Chief for final approval.` + followUpNote(problems);
         } else {
             // Find the writer's original writing task via the article's tasks
             let writingTaskId = null;
@@ -1362,8 +1364,9 @@ const confirmCopyreaderAction = async () => {
                 }
             }
 
+            // Sending the writer's task back is what tells them about the revision, so it must work
             if (writingTaskId) {
-                await fetch(`/api/tasks/${writingTaskId}/return`, {
+                await requireOk(await fetch(`/api/tasks/${writingTaskId}/return`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -1371,11 +1374,11 @@ const confirmCopyreaderAction = async () => {
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({ notes: copyreaderReturnNotes.value.trim() })
-                }).catch(() => {});
+                }), 'Could not return the task to the writer.');
             }
 
             if (articleId) {
-                await fetch(`/api/articles/${articleId}`, {
+                await requireOk(await fetch(`/api/articles/${articleId}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -1383,17 +1386,18 @@ const confirmCopyreaderAction = async () => {
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({ status: 'draft' })
-                }).catch(() => {});
+                }), 'The writer was notified, but the article could not be moved back to draft.');
             }
 
+            const problems = [];
             if (editingTaskId) {
-                await fetch(`/api/tasks/${editingTaskId}/complete`, {
+                problems.push(await followUp('Your copyreading task could not be marked complete.', () => fetch(`/api/tasks/${editingTaskId}/complete`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
-                }).catch(() => {});
+                })));
             }
 
-            copyreaderSuccessMessage.value = `"${articleHeadline.value || task.value.title}" has been returned to the writer with your revision notes.`;
+            copyreaderSuccessMessage.value = `"${articleHeadline.value || task.value.title}" has been returned to the writer with your revision notes.` + followUpNote(problems);
         }
 
         isCopyreaderModalOpen.value = false;

@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Article;
+use App\Models\ArticleBookmark;
 use App\Models\ArticleComment;
+use App\Models\ArticleLike;
+use App\Models\CommentReport;
+use App\Models\Notification;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -33,7 +37,7 @@ class ReaderArticleController extends Controller
         ];
     }
 
-    public function show(Article $article)
+    public function show(Request $request, Article $article)
     {
         $this->readable($article)->loadCount('comments');
         $article->load(['author', 'section']);
@@ -76,7 +80,102 @@ class ReaderArticleController extends Controller
             'shares'         => $article->shares_count,
             'comments_count' => $article->comments_count,
             'related'        => $related,
+        ] + $this->engagement($article, $request->user('sanctum')));
+    }
+
+    /** Likes on the article, and (for a signed-in reader) whether they liked / saved it. */
+    private function engagement(Article $article, ?User $user): array
+    {
+        return [
+            'likes_count' => ArticleLike::where('article_id', $article->id)->count(),
+            'liked'       => $user ? ArticleLike::where('article_id', $article->id)->where('user_id', $user->id)->exists() : false,
+            'bookmarked'  => $user ? ArticleBookmark::where('article_id', $article->id)->where('user_id', $user->id)->exists() : false,
+        ];
+    }
+
+    public function like(Request $request, Article $article)
+    {
+        $this->readable($article);
+        ArticleLike::firstOrCreate(['article_id' => $article->id, 'user_id' => $request->user()->id]);
+
+        return response()->json($this->engagement($article, $request->user()));
+    }
+
+    public function unlike(Request $request, Article $article)
+    {
+        $this->readable($article);
+        ArticleLike::where('article_id', $article->id)->where('user_id', $request->user()->id)->delete();
+
+        return response()->json($this->engagement($article, $request->user()));
+    }
+
+    public function bookmark(Request $request, Article $article)
+    {
+        $this->readable($article);
+        ArticleBookmark::firstOrCreate(['article_id' => $article->id, 'user_id' => $request->user()->id]);
+
+        return response()->json($this->engagement($article, $request->user()));
+    }
+
+    public function unbookmark(Request $request, Article $article)
+    {
+        $this->readable($article);
+        ArticleBookmark::where('article_id', $article->id)->where('user_id', $request->user()->id)->delete();
+
+        return response()->json($this->engagement($article, $request->user()));
+    }
+
+    /** The signed-in reader's saved articles, most recently saved first, nine at a time. */
+    public function bookmarks(Request $request)
+    {
+        $page = ArticleBookmark::where('user_id', $request->user()->id)
+            ->whereHas('article', fn ($q) => $q->where('status', Article::STATUS_PUBLISHED)->where('type', '!=', Article::TYPE_VIDEO))
+            ->with('article.section:id,name')
+            ->latest()->latest('id')
+            ->paginate(9);
+
+        $cards = app(ArticleController::class);
+
+        return response()->json([
+            'data'         => $page->getCollection()->map(fn (ArticleBookmark $b) => $cards->toCard($b->article))->values(),
+            'current_page' => $page->currentPage(),
+            'last_page'    => $page->lastPage(),
+            'total'        => $page->total(),
         ]);
+    }
+
+    /** A signed-in reader flags a comment; every Editor-in-Chief is told so it can be reviewed and removed. */
+    public function reportComment(Request $request, ArticleComment $comment)
+    {
+        $user = $request->user();
+        if ($comment->user_id === $user->id) {
+            return response()->json(['message' => "You can't report your own comment."], 422);
+        }
+
+        $validated = $request->validate([
+            'reason'  => 'required|in:' . implode(',', CommentReport::REASONS),
+            'details' => 'nullable|string|max:300',
+        ]);
+
+        $report = CommentReport::firstOrCreate(
+            ['article_comment_id' => $comment->id, 'user_id' => $user->id],
+            ['reason' => $validated['reason'], 'details' => $validated['details'] ?? null],
+        );
+
+        if ($report->wasRecentlyCreated) {
+            $article = $comment->article;
+            foreach (User::where('role', User::ROLE_EIC)->where('is_active', true)->get() as $eic) {
+                Notification::create([
+                    'user_id' => $eic->id,
+                    'title'   => 'Comment reported',
+                    'message' => "A reader comment on '{$article->title}' was reported as {$validated['reason']}.",
+                    'type'    => Notification::TYPE_GENERAL,
+                    'data'    => ['article_id' => $article->id, 'comment_id' => $comment->id],
+                ]);
+            }
+        }
+
+        return response()->json(['message' => 'Thank you. The editors will take a look.']);
     }
 
     /** Counts one open of the article page. */

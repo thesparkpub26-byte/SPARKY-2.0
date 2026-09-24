@@ -44,6 +44,7 @@
             <router-link to="/forgot-password">Forgot Password?</router-link>
           </div>
           
+          <div v-if="justReset" class="success-msg">Your password has been updated. Sign in with your new password.</div>
           <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
 
           <button type="submit" class="submit-btn" :disabled="loading">
@@ -59,7 +60,10 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+
+// Sent here by ResetPasswordView right after a successful reset
+const justReset = useRoute().query.reset === '1';
 
 const email = ref('');
 const password = ref('');
@@ -120,6 +124,17 @@ const handleLogin = async () => {
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.4);
   color: #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.success-msg {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
   border-radius: 8px;
   padding: 10px 14px;
   font-size: 0.875rem;

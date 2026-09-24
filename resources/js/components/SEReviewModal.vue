@@ -222,6 +222,7 @@
 </template>
 
 <script setup>
+import { requireOk, followUp, followUpNote } from '../utils/http';
 import { ref, computed, watch, nextTick } from 'vue';
 
 const props = defineProps({
@@ -376,7 +377,7 @@ const confirmReturn = async () => {
 
         // Save the section editor's edits and reset article status back to draft
         if (articleId) {
-            await fetch(`/api/articles/${articleId}`, {
+            await requireOk(await fetch(`/api/articles/${articleId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -389,7 +390,7 @@ const confirmReturn = async () => {
                     word_count: liveWordCount.value,
                     status: 'draft',
                 })
-            }).catch(() => {});
+            }), 'The writer was notified, but the article could not be moved back to draft.');
         }
 
         if (!taskId && !success) throw new Error('Could not find task to return.');
@@ -473,7 +474,7 @@ const confirmEndorse = async () => {
         }
 
         // Save the section editor's edits and move the article into copyediting
-        await fetch(`/api/articles/${articleId}`, {
+        await requireOk(await fetch(`/api/articles/${articleId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -486,22 +487,23 @@ const confirmEndorse = async () => {
                 word_count: liveWordCount.value,
                 status: 'under_review',
             })
-        }).catch(() => {});
+        }), 'The copyreader was assigned, but the article could not be moved to copyediting.');
 
         // Also complete the linked writing task
+        const problems = [];
         const taskId = submissionData.value.taskId;
         if (taskId) {
-            await fetch(`/api/tasks/${taskId}/complete`, {
+            problems.push(await followUp("The writer's task could not be marked complete.", () => fetch(`/api/tasks/${taskId}/complete`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 }
-            }).catch(() => {});
+            })));
         }
 
         successTitle.value = 'Sent to Copyreader!';
-        successMessage.value = `"${editableTitle.value || submissionData.value.title}" has been sent to ${selectedCopyreader.value?.name || 'the Copyreader'} for copyediting. The writer has been notified.`;
+        successMessage.value = `"${editableTitle.value || submissionData.value.title}" has been sent to ${selectedCopyreader.value?.name || 'the Copyreader'} for copyediting. The writer has been notified.` + followUpNote(problems);
         step.value = 'success';
         emit('reviewed', { action: 'endorsed' });
     } catch (e) {

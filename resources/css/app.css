@@ -27,3 +27,4 @@ html, body {
     align-self: center !important;
     text-align: center !important;
 }
+@import './skeleton.css';

@@ -191,7 +191,7 @@ function persist() {
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({ has_files: files.value.length > 0 })
-            }).catch(() => {});
+            }).catch((error) => console.warn('Could not update the monitoring sheet file flag:', error));
         }
     } catch {}
 }

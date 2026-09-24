@@ -449,8 +449,9 @@
 
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue';
+import { lazyModal } from '../../utils/lazyModal';
 import { useRoute, useRouter } from 'vue-router';
-import MonitoringSheetAddTaskModal from '../../components/MonitoringSheetAddTaskModal.vue';
+const MonitoringSheetAddTaskModal = lazyModal(() => import('../../components/MonitoringSheetAddTaskModal.vue'));
 
 const router = useRouter();
 const route = useRoute();

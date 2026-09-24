@@ -72,7 +72,7 @@
             <header class="top-header">
                 <div class="search-bar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="search" v-model="searchQuery" placeholder="Search tasks or videos..." aria-label="Search">
+                    <input type="search" v-model="searchInput" :placeholder="searchPlaceholder" aria-label="Search current view">
                 </div>
                 <div class="top-header-right">
                     <NotificationsPopover />
@@ -204,7 +204,7 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div v-for="yearGroup in staffAcademicYears" :key="yearGroup.academic_year" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;">
+                        <div v-for="yearGroup in shownAcademicYears" :key="yearGroup.academic_year" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;">
                             <div class="folder-header-btn" @click="toggleStaffYear(yearGroup.academic_year)" style="padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; user-select: none;">
                                 <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                                 <span class="folder-title" style="font-weight: 700; flex: 1; color: #0f172a;">{{ yearGroup.academic_year }}</span>
@@ -222,8 +222,8 @@
                         </div>
                     </div>
 
-                    <div v-if="staffAcademicYears.length === 0" style="padding: 40px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
-                        No press works available yet. New press works will appear here once they're created.
+                    <div v-if="shownAcademicYears.length === 0" style="padding: 40px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                        {{ noPressWorksText(searchQuery.trim() !== '') }}
                     </div>
                 </div>
 
@@ -258,18 +258,26 @@
 </template>
 
 <script setup>
+import { makeMatcher, searchAcademicYears, noPressWorksText, useDebouncedSearch } from '../../utils/dashboardSearch';
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { lazyModal } from '../../utils/lazyModal';
 import { useRouter } from 'vue-router';
-import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
-import VideoWorkspaceModal from '../../components/VideoWorkspaceModal.vue';
-import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
+const AssignedTaskModal = lazyModal(() => import('../../components/AssignedTaskModal.vue'));
+const VideoWorkspaceModal = lazyModal(() => import('../../components/VideoWorkspaceModal.vue'));
+const ArticlePreviewModal = lazyModal(() => import('../../components/ArticlePreviewModal.vue'));
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 import { parseNotesField, VIDEO_SECTION, VIDEO_CREDIT_LABELS, buildVideoPreviewData } from '../../utils/video';
 
 const router = useRouter();
 const activeTab = ref('tasks');
-const searchQuery = ref('');
+const { input: searchInput, query: searchQuery } = useDebouncedSearch();
+const matches = makeMatcher(searchQuery);
+const searchPlaceholder = computed(() => ({
+    tasks: 'Search my tasks',
+    videos: 'Search my videos',
+    pressWorks: 'Search press works',
+}[activeTab.value] || 'Search'));
 const user = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 const token = localStorage.getItem('sparky_token');
 const authHeaders = { Authorization: `Bearer ${token}`, Accept: 'application/json' };
@@ -572,6 +580,7 @@ const handleOpenWorkspace = (taskData) => {
 
 // ── Press Works ──────────────────────────────────────────────────────────────
 const staffAcademicYears = ref([]);
+const shownAcademicYears = computed(() => searchAcademicYears(staffAcademicYears.value, matches));
 const staffExpandedYears = ref({});
 
 const fetchPressWorks = async () => {

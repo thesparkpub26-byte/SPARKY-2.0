@@ -3,7 +3,12 @@
     <Navbar />
 
     <main class="main-container">
-      <p v-if="loading" class="section-empty" style="margin-top: 60px;">Loading article…</p>
+      <div v-if="loading" class="skeleton-article" role="status" aria-label="Loading article">
+        <span class="skeleton skeleton-line skeleton-line--title"></span>
+        <span class="skeleton skeleton-line skeleton-line--medium"></span>
+        <div class="skeleton skeleton-image"></div>
+        <span v-for="n in 6" :key="n" class="skeleton skeleton-line" :class="n % 3 === 0 ? 'skeleton-line--medium' : 'skeleton-line--wide'"></span>
+      </div>
       <div v-else-if="notFound" class="article-not-found">
         <h1 class="section-headline">Article not found</h1>
         <p class="section-subtext">It may have been removed or isn't published yet.</p>
@@ -87,6 +92,18 @@
                   </svg>
                   {{ commentsCount }} {{ commentsCount === 1 ? 'Comment' : 'Comments' }}
                 </button>
+                <button type="button" class="stat-item stat-button" :class="{ active: liked }" :title="liked ? 'Remove your like' : 'Like this article'" :aria-pressed="liked" @click="toggleLike">
+                  <svg width="16" height="16" viewBox="0 0 24 24" :fill="liked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                  {{ likesCount }} {{ likesCount === 1 ? 'Like' : 'Likes' }}
+                </button>
+                <button type="button" class="stat-item stat-button" :class="{ active: bookmarked }" :title="bookmarked ? 'Remove from saved articles' : 'Save for later'" :aria-pressed="bookmarked" @click="toggleBookmark">
+                  <svg width="16" height="16" viewBox="0 0 24 24" :fill="bookmarked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  {{ bookmarked ? 'Saved' : 'Save' }}
+                </button>
                 <button type="button" class="stat-item stat-button" title="Copy the link to this article" @click="shareArticle">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
@@ -132,6 +149,25 @@
                     <button type="button" class="comment-delete-cancel" @click="editingId = null">Cancel</button>
                   </form>
                   <p v-else class="comment-body">{{ c.body }}</p>
+
+                  <!-- Anyone signed in can flag someone else's comment for the editors -->
+                  <div v-if="isLoggedIn && !isOwn(c) && editingId !== c.id" class="comment-moderation">
+                    <span v-if="reportedIds.includes(c.id)" class="comment-delete-ask">Reported. Thank you.</span>
+                    <template v-else-if="reportingId === c.id">
+                      <select v-model="reportReason" class="comment-report-select" aria-label="Reason">
+                        <option value="spam">Spam</option>
+                        <option value="abusive">Abusive or hateful</option>
+                        <option value="misleading">Misleading</option>
+                        <option value="other">Something else</option>
+                      </select>
+                      <button type="button" class="comment-delete-confirm" :disabled="reporting" @click="reportComment(c)">{{ reporting ? 'Sending…' : 'Report' }}</button>
+                      <button type="button" class="comment-delete-cancel" @click="reportingId = null">Cancel</button>
+                    </template>
+                    <button v-else type="button" class="comment-delete-btn" @click="reportingId = c.id; reportReason = 'spam'">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                      Report
+                    </button>
+                  </div>
 
                   <!-- The author can edit / delete their own comment; the EIC (or an admin) can delete any -->
                   <div v-if="editingId !== c.id && (isOwn(c) || canModerate)" class="comment-moderation">
@@ -186,8 +222,9 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import Navbar from '../../components/Navbar.vue';
+import SkeletonCards from '../../components/SkeletonCards.vue';
 import Footer from '../../components/Footer.vue';
 import NewsletterCard from '../../components/NewsletterCard.vue';
 import ArticleCard from '../../components/ArticleCard.vue';
@@ -195,6 +232,7 @@ import PopularSidebar from '../../components/PopularSidebar.vue';
 import { buildArticleBody } from '../../utils/articleContent';
 
 const route = useRoute();
+const router = useRouter();
 const jsonHeaders = { Accept: 'application/json' };
 
 const article = ref(null);
@@ -202,6 +240,9 @@ const loading = ref(true);
 const notFound = ref(false);
 const reads = ref(0);
 const shares = ref(0);
+const likesCount = ref(0);
+const liked = ref(false);
+const bookmarked = ref(false);
 const commentsCount = ref(0);
 
 // ── Article ──────────────────────────────────────────────────────────────────
@@ -226,17 +267,23 @@ const loadArticle = async () => {
   commentsHasMore.value = false;
   commentError.value = '';
   try {
-    const res = await fetch(`/api/reader/articles/${route.params.id}`, { headers: jsonHeaders });
+    // The token (when there is one) lets the server say whether this reader already liked / saved it
+    const res = await fetch(`/api/reader/articles/${route.params.id}`, { headers: authJson() });
     if (!res.ok) throw new Error('not found');
     article.value = await res.json();
     reads.value = article.value.reads;
     shares.value = article.value.shares;
+    likesCount.value = article.value.likes_count || 0;
+    liked.value = Boolean(article.value.liked);
+    bookmarked.value = Boolean(article.value.bookmarked);
     commentsCount.value = article.value.comments_count;
     document.querySelector('.reader-page')?.scrollTo({ top: 0 });
+    document.title = `${article.value.title} | TheSPARK`;
     recordOpen();
   } catch {
     article.value = null;
     notFound.value = true;
+    document.title = 'Article not found | TheSPARK';
   } finally {
     loading.value = false;
   }
@@ -318,6 +365,56 @@ const posting = ref(false);
 
 const token = () => localStorage.getItem('sparky_token');
 const isLoggedIn = computed(() => Boolean(token() && localStorage.getItem('sparky_user')));
+const authJson = () => (token() ? { ...jsonHeaders, Authorization: `Bearer ${token()}` } : jsonHeaders);
+
+// ── Likes and saved articles (signed-in readers) ─────────────────────────────
+const applyEngagement = (body) => {
+  likesCount.value = body.likes_count;
+  liked.value = body.liked;
+  bookmarked.value = body.bookmarked;
+};
+
+const toggleEngagement = async (path, isOn) => {
+  if (!isLoggedIn.value) { router.push('/login'); return; }
+
+  try {
+    const res = await fetch(`/api/reader/articles/${article.value.id}/${path}`, { method: isOn ? 'DELETE' : 'POST', headers: authJson() });
+    if (res.ok) applyEngagement(await res.json());
+    else commentError.value = 'Could not update that. Please try again.';
+  } catch {
+    commentError.value = 'Could not connect to the server. Please try again.';
+  }
+};
+const toggleLike = () => toggleEngagement('like', liked.value);
+const toggleBookmark = () => toggleEngagement('bookmark', bookmarked.value);
+
+// ── Reporting a comment ──────────────────────────────────────────────────────
+const reportingId = ref(null);
+const reportReason = ref('spam');
+const reporting = ref(false);
+const reportedIds = ref([]);
+
+const reportComment = async (comment) => {
+  reporting.value = true;
+  try {
+    const res = await fetch(`/api/reader/comments/${comment.id}/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authJson() },
+      body: JSON.stringify({ reason: reportReason.value }),
+    });
+    if (res.ok) {
+      reportedIds.value.push(comment.id);
+      reportingId.value = null;
+    } else {
+      const body = await res.json().catch(() => ({}));
+      commentError.value = body.message || 'Could not send your report. Please try again.';
+    }
+  } catch {
+    commentError.value = 'Could not connect to the server. Please try again.';
+  } finally {
+    reporting.value = false;
+  }
+};
 
 // The Editor-in-Chief (and admins) can delete any comment while browsing the reader site
 const canModerate = computed(() => {

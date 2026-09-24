@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\GalleryPhoto;
 use App\Models\User;
+use App\Support\PublicCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -49,24 +50,56 @@ class GalleryController extends Controller
         return response()->json(GalleryPhoto::with(['uploader', 'artist'])->latest()->get());
     }
 
-    /** Public: gallery photos for the reader site, newest first. Optional ?limit= (home page uses 3). */
+    /**
+     * Public: gallery photos for the reader site, newest first. Optional ?limit= (home page uses 3);
+     * with ?page= the list is paginated (12 a page) and wrapped with the paging info.
+     */
     public function latest(Request $request)
     {
-        $query = GalleryPhoto::with('artist:id,name')->latest();
+        return response()->json(PublicCache::remember($request, 'gallery', ['limit', 'page'], fn () => $this->latestList($request)));
+    }
+
+    private function latestList(Request $request): array
+    {
+        $query = GalleryPhoto::with('artist:id,name')->latest('created_at')->latest('id');
+        $toPhoto = fn (GalleryPhoto $p) => [
+            'id'     => $p->id,
+            'title'  => $p->title,
+            'image'  => $p->image_path ? '/storage/' . $p->image_path : null,
+            'artist' => $p->artist?->name,
+            'date'   => $p->created_at?->toIso8601String(),
+        ];
+
+        if ($request->filled('page')) {
+            $page = $query->paginate(12);
+
+            return [
+                'data'         => $page->getCollection()->map($toPhoto)->values()->all(),
+                'current_page' => $page->currentPage(),
+                'last_page'    => $page->lastPage(),
+                'total'        => $page->total(),
+            ];
+        }
+
         if ($request->filled('limit')) {
             $query->limit(max(1, min(50, $request->integer('limit'))));
         }
 
-        return response()->json(
-            $query->get(['id', 'title', 'image_path', 'artist_id', 'created_at'])
-                ->map(fn (GalleryPhoto $p) => [
-                    'id'     => $p->id,
-                    'title'  => $p->title,
-                    'image'  => $p->image_path ? '/storage/' . $p->image_path : null,
-                    'artist' => $p->artist?->name,
-                    'date'   => $p->created_at?->toIso8601String(),
-                ])
-        );
+        return $query->get()->map($toPhoto)->all();
+    }
+
+    /** Public: one photo, so a search result can open it in the gallery lightbox. */
+    public function publicShow(GalleryPhoto $photo)
+    {
+        $photo->load('artist:id,name');
+
+        return response()->json([
+            'id'     => $photo->id,
+            'title'  => $photo->title,
+            'image'  => $photo->image_path ? '/storage/' . $photo->image_path : null,
+            'artist' => $photo->artist?->name,
+            'date'   => $photo->created_at?->toIso8601String(),
+        ]);
     }
 
     public function store(Request $request)

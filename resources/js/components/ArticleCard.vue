@@ -2,7 +2,7 @@
   <article class="article-card" @click="navigateToArticle">
     <div class="article-thumb-wrapper">
       <span v-if="article.badge" class="article-badge">{{ article.badge }}</span>
-      <img :src="article.image || '/images/hero_banner.jpg'" :alt="article.title">
+      <img :src="article.image || '/images/hero_banner.jpg'" :alt="article.title" loading="lazy" decoding="async">
     </div>
     <div class="article-body">
       <h3 class="article-title">{{ article.title }}</h3>

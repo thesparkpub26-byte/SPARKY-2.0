@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\PublishedIssue;
+use App\Support\PublicCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,23 +15,41 @@ class PublishedIssueController extends Controller
         return response()->json(PublishedIssue::with('uploader')->latest()->get());
     }
 
-    /** Public: published issues for the reader site, newest first. Optional ?limit= (home page uses 3). */
+    /**
+     * Public: published issues for the reader site, newest first. Optional ?limit= (home page uses 3);
+     * with ?page= the list is paginated (6 a page) and wrapped with the paging info.
+     */
     public function latest(Request $request)
     {
-        $query = PublishedIssue::latest();
+        return response()->json(PublicCache::remember($request, 'issues', ['limit', 'page'], fn () => $this->latestList($request)));
+    }
+
+    private function latestList(Request $request): array
+    {
+        $query = PublishedIssue::latest('created_at')->latest('id');
+        $toIssue = fn (PublishedIssue $i) => [
+            'id'         => $i->id,
+            'title'      => $i->title,
+            'pdf_url'    => $i->pdf_path ? '/storage/' . $i->pdf_path : null,
+            'created_at' => $i->created_at?->toIso8601String(),
+        ];
+
+        if ($request->filled('page')) {
+            $page = $query->paginate(6);
+
+            return [
+                'data'         => $page->getCollection()->map($toIssue)->values()->all(),
+                'current_page' => $page->currentPage(),
+                'last_page'    => $page->lastPage(),
+                'total'        => $page->total(),
+            ];
+        }
+
         if ($request->filled('limit')) {
             $query->limit(max(1, min(50, $request->integer('limit'))));
         }
 
-        return response()->json(
-            $query->get(['id', 'title', 'pdf_path', 'created_at'])
-                ->map(fn (PublishedIssue $i) => [
-                    'id'         => $i->id,
-                    'title'      => $i->title,
-                    'pdf_url'    => $i->pdf_path ? '/storage/' . $i->pdf_path : null,
-                    'created_at' => $i->created_at?->toIso8601String(),
-                ])
-        );
+        return $query->get()->map($toIssue)->all();
     }
 
     /** Public: a single issue (no uploader details) so readers can open the booklet. */

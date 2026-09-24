@@ -10,10 +10,11 @@
 
         <!-- Full-Width Responsive Hero Carousel -->
         <div class="hero-carousel-container" @mouseenter="stopAutoPlay" @mouseleave="startAutoPlay">
-          <div v-if="!slides.length" class="carousel-empty">No published articles yet.</div>
+          <div v-if="!slidesLoaded" class="carousel-skeleton skeleton skeleton-dark" role="status" aria-label="Loading"></div>
+          <div v-else-if="!slides.length" class="carousel-empty">No published articles yet.</div>
           <div v-else class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-            <router-link v-for="slide in slides" :key="slide.id" :to="`/article/${slide.id}`" class="carousel-slide">
-              <img :src="slide.image || fallbackImage" :alt="slide.title" draggable="false">
+            <router-link v-for="(slide, idx) in slides" :key="slide.id" :to="`/article/${slide.id}`" class="carousel-slide">
+              <img :src="slide.image || fallbackImage" :alt="slide.title" draggable="false" :loading="idx === 0 ? 'eager' : 'lazy'" :fetchpriority="idx === 0 ? 'high' : 'auto'" decoding="async">
               <div class="carousel-caption">
                 <h3 class="carousel-caption-title">{{ slide.title }}</h3>
                 <div class="carousel-caption-meta">
@@ -53,7 +54,8 @@
         <h2 class="section-headline">Popular now</h2>
         <p class="section-subtext">The most read from TheSPARK</p>
 
-        <p v-if="!popularArticles.length" class="section-empty">No published articles yet.</p>
+        <SkeletonCards v-if="!articlesLoaded" :count="3" />
+        <p v-else-if="!popularArticles.length" class="section-empty">No published articles yet.</p>
         <div v-else class="articles-grid">
           <ArticleCard v-for="art in popularArticles" :key="art.id" :article="art" />
         </div>
@@ -69,7 +71,8 @@
         <h2 class="section-headline">Check out our Videos</h2>
         <p class="section-subtext">Watch what our broadcasting team made</p>
 
-        <p v-if="!homeVideos.length" class="section-empty">No videos published yet.</p>
+        <SkeletonCards v-if="!videosLoaded" :count="3" />
+        <p v-else-if="!homeVideos.length" class="section-empty">No videos published yet.</p>
         <div v-else class="articles-grid">
           <ArticleCard v-for="video in homeVideos" :key="video.id" :article="video" />
         </div>
@@ -85,7 +88,8 @@
         <h2 class="section-headline">Published Issues</h2>
         <p class="section-subtext">The latest issues from TheSPARK</p>
 
-        <p v-if="!homeIssues.length" class="section-empty">No published issues yet.</p>
+        <SkeletonCards v-if="!issuesLoaded" variant="issue" :count="3" />
+        <p v-else-if="!homeIssues.length" class="section-empty">No published issues yet.</p>
         <div v-else class="issues-grid">
           <IssueCard v-for="item in homeIssues" :key="item.id" :issue="item" @explore="openIssue" />
         </div>
@@ -101,12 +105,13 @@
         <h2 class="section-headline">Artists Gallery</h2>
         <p class="section-subtext">Check out what our artists made!</p>
 
-        <p v-if="!galleryPhotos.length" class="section-empty">No photos uploaded yet.</p>
+        <SkeletonCards v-if="!galleryLoaded" variant="strip" :count="3" />
+        <p v-else-if="!galleryPhotos.length" class="section-empty">No photos uploaded yet.</p>
         <template v-else>
           <div class="gallery-carousel-wrapper">
             <div class="gallery-cards-row">
               <div v-for="photo in galleryPhotos" :key="photo.id" class="gallery-card" @click="openModal(photo)">
-                <img :src="photo.image" :alt="photo.title">
+                <img :src="photo.image" :alt="photo.title" loading="lazy" decoding="async">
                 <div class="photo-hover-title"><span>{{ photo.title }}</span></div>
               </div>
             </div>
@@ -142,6 +147,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import Navbar from '../../components/Navbar.vue';
 import Footer from '../../components/Footer.vue';
 import NewsletterCard from '../../components/NewsletterCard.vue';
+import SkeletonCards from '../../components/SkeletonCards.vue';
 import ArticleCard from '../../components/ArticleCard.vue';
 import IssueCard from '../../components/IssueCard.vue';
 import LightboxModal from '../../components/LightboxModal.vue';
@@ -152,6 +158,7 @@ let timer = null;
 
 const fallbackImage = '/images/hero_banner.jpg';
 const slides = ref([]);
+const slidesLoaded = ref(false);
 
 const formatDate = (iso) => iso
   ? new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -163,6 +170,8 @@ const loadSlides = async () => {
     if (res.ok) slides.value = await res.json();
   } catch {
     // The carousel just stays empty if the request fails.
+  } finally {
+    slidesLoaded.value = true;
   }
 };
 
@@ -170,6 +179,12 @@ const popularArticles = ref([]);
 const homeVideos = ref([]);
 const homeIssues = ref([]);
 const galleryPhotos = ref([]);
+
+// Each section shows placeholders until its request has finished (so "No … yet" never flashes while loading)
+const articlesLoaded = ref(false);
+const videosLoaded = ref(false);
+const issuesLoaded = ref(false);
+const galleryLoaded = ref(false);
 
 const getJson = async (url) => {
   try {
@@ -182,19 +197,23 @@ const getJson = async (url) => {
 
 const loadArticles = async () => {
   popularArticles.value = await getJson('/api/reader/articles');
+  articlesLoaded.value = true;
 };
 
 const loadVideos = async () => {
   homeVideos.value = await getJson('/api/reader/videos?limit=3');
+  videosLoaded.value = true;
 };
 
 const loadGallery = async () => {
   galleryPhotos.value = await getJson('/api/reader/gallery?limit=3');
+  galleryLoaded.value = true;
 };
 
 const loadIssues = async () => {
   const issues = await getJson('/api/reader/issues?limit=3');
   homeIssues.value = issues.map((i) => ({ ...i, image: null, date: formatDate(i.created_at) }));
+  issuesLoaded.value = true;
   // Issues are PDFs, so the cover is the rendered first page (fills in as each one finishes).
   homeIssues.value.forEach(async (issue) => {
     if (!issue.pdf_url) return;
@@ -234,7 +253,8 @@ const goToSlide = (idx) => {
 
 const startAutoPlay = () => {
   stopAutoPlay();
-  timer = setInterval(nextSlide, 4500);
+  // No point re-rendering the page every few seconds while the tab is in the background
+  timer = setInterval(() => { if (!document.hidden) nextSlide(); }, 4500);
 };
 
 const stopAutoPlay = () => {

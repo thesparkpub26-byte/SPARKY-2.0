@@ -117,6 +117,7 @@
 </template>
 
 <script setup>
+import { followUp } from '../utils/http';
 import { ref, reactive, watch, computed } from 'vue';
 import MultiUserSelect from './MultiUserSelect.vue';
 import SectionSelect from './SectionSelect.vue';
@@ -319,7 +320,8 @@ const confirmSend = async () => {
             }
         }
         if (taskId) {
-            await fetch(`/api/tasks/${taskId}/complete`, { method: 'POST', headers }).catch(() => {});
+            // The video is already with the EIC; if the presenter's task can't be closed, say so in the log
+            await followUp("The presenter's task could not be marked complete.", () => fetch(`/api/tasks/${taskId}/complete`, { method: 'POST', headers }));
         }
 
         step.value = 'success';

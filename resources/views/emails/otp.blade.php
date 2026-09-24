@@ -25,7 +25,11 @@
             <td style="padding:40px 44px 32px;">
               <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1e293b;">Hi, {{ $recipientName }}! 👋</h2>
               <p style="margin:0 0 28px;font-size:15px;color:#475569;line-height:1.7;">
-                You're almost there! Use the 6-digit verification code below to confirm your email address and complete your <strong style="color:#1e40af;">TheSPARK</strong> account setup.
+                @if (($purpose ?? 'signup') === 'reset')
+                  We received a request to reset the password of your <strong style="color:#1e40af;">TheSPARK</strong> account. Enter the 6-digit code below to continue.
+                @else
+                  You're almost there! Use the 6-digit verification code below to confirm your email address and complete your <strong style="color:#1e40af;">TheSPARK</strong> account setup.
+                @endif
               </p>
 
               <!-- OTP Box -->
@@ -53,7 +57,11 @@
               </table>
 
               <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;line-height:1.6;">
-                If you didn't create a TheSPARK account, you can safely ignore this email.<br>No action is needed.
+                @if (($purpose ?? 'signup') === 'reset')
+                  If you didn't ask to reset your password, you can safely ignore this email. Your password won't change.
+                @else
+                  If you didn't create a TheSPARK account, you can safely ignore this email.<br>No action is needed.
+                @endif
               </p>
             </td>
           </tr>

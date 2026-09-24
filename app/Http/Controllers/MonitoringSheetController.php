@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MonitoringSheet;
 use App\Models\MonitoringSheetEntry;
+use App\Support\Html;
 use Illuminate\Http\Request;
 
 class MonitoringSheetController extends Controller
@@ -24,7 +25,6 @@ class MonitoringSheetController extends Controller
             'media_type' => 'nullable|string|max:50',
             'artist_assigned' => 'nullable|string|max:255',
             'interview_completed' => 'boolean',
-            'storage_url' => 'nullable|string|max:500',
             'has_files' => 'boolean',
             'current_status' => 'nullable|string|max:100',
             'description' => 'nullable|string',
@@ -35,6 +35,10 @@ class MonitoringSheetController extends Controller
             'article_author' => 'nullable|string|max:255',
             'article_content' => 'nullable|string',
         ]);
+
+        if (array_key_exists('article_content', $validated)) {
+            $validated['article_content'] = Html::clean($validated['article_content']);
+        }
 
         $entry = $monitoringSheet->entries()->create($validated);
         
@@ -105,7 +109,6 @@ class MonitoringSheetController extends Controller
             'media_type' => 'nullable|string|max:50',
             'artist_assigned' => 'nullable|string|max:255',
             'interview_completed' => 'nullable|boolean',
-            'storage_url' => 'nullable|string|max:500',
             'has_files' => 'nullable|boolean',
             'current_status' => 'nullable|string|max:100',
             'description' => 'nullable|string',
@@ -116,6 +119,10 @@ class MonitoringSheetController extends Controller
             'article_author' => 'nullable|string|max:255',
             'article_content' => 'nullable|string',
         ]);
+
+        if (array_key_exists('article_content', $validated)) {
+            $validated['article_content'] = Html::clean($validated['article_content']);
+        }
 
         $oldStatus = $entry->current_status;
         $entry->update($validated);
@@ -166,7 +173,7 @@ class MonitoringSheetController extends Controller
         $entry->update([
             'article_headline' => $validated['headline'],
             'article_author' => $validated['author'],
-            'article_content' => $validated['content'],
+            'article_content' => Html::clean($validated['content']),
         ]);
         
         try {

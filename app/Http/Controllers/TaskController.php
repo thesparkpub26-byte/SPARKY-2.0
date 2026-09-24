@@ -6,6 +6,7 @@ use App\Models\Task;
 use App\Models\Article;
 use App\Models\Activity;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -15,24 +16,12 @@ class TaskController extends Controller
     {
         $query = Task::with(['assignee', 'assignedBy', 'section', 'article']);
 
-        if ($request->has('assignee_id')) {
-            $query->where('assignee_id', $request->assignee_id);
-        }
-        if ($request->has('assigned_by')) {
-            $query->where('assigned_by', $request->assigned_by);
-        }
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->has('section_id')) {
-            $query->where('section_id', $request->section_id);
-        }
-        if ($request->has('priority')) {
-            $query->where('priority', $request->priority);
-        }
-        if ($request->has('type')) {
-            $query->where('type', $request->type);
-        }
+        $this->filterBy(
+            $query,
+            $request,
+            ['status' => 'status', 'priority' => 'priority', 'type' => 'type'],
+            ['assignee_id' => 'assignee_id', 'assigned_by' => 'assigned_by', 'section_id' => 'section_id'],
+        );
 
         return response()->json($query->orderByDesc('created_at')->get());
     }
@@ -56,8 +45,6 @@ class TaskController extends Controller
             'priority'             => 'nullable|in:low,medium,high,urgent',
             'deadline'             => 'nullable|date',
             'notes'                => 'nullable|string',
-            'monitoring_sheet_url' => 'nullable|url',
-            'word_count_target'    => 'nullable|integer|min:0',
         ]);
 
         $validated['assigned_by'] = $request->user()->id;
@@ -79,6 +66,7 @@ class TaskController extends Controller
     /** Update task details */
     public function update(Request $request, Task $task)
     {
+        $user = $request->user();
         $validated = $request->validate([
             'title'                => 'sometimes|string|max:500',
             'description'          => 'nullable|string',
@@ -90,9 +78,15 @@ class TaskController extends Controller
             'status'               => 'nullable|in:pending,in_progress,submitted,returned,completed',
             'deadline'             => 'nullable|date',
             'notes'                => 'nullable|string',
-            'monitoring_sheet_url' => 'nullable|url',
-            'word_count_target'    => 'nullable|integer|min:0',
         ]);
+
+        // Staff also link crew tasks to their article, so edits stay open; handing a task to someone
+        // else or marking it complete belongs to whoever set it or reviews work.
+        $reassigns = isset($validated['assignee_id']) && (int) $validated['assignee_id'] !== (int) $task->assignee_id;
+        $completes = ($validated['status'] ?? null) === Task::STATUS_COMPLETED && $task->status !== Task::STATUS_COMPLETED;
+        if (($reassigns || $completes) && !$this->isReviewerOf($user, $task)) {
+            return response()->json(['message' => 'Only the person who assigned this task or an editor can do that.'], 403);
+        }
 
         $task->update($validated);
         Activity::record($request->user(), 'Updated a task', $task);
@@ -103,6 +97,11 @@ class TaskController extends Controller
     /** Delete a task */
     public function destroy(Task $task)
     {
+        $user = request()->user();
+        if ($task->assigned_by !== $user->id && !$user->isEditor()) {
+            return response()->json(['message' => 'Only the person who assigned this task or an editor can delete it.'], 403);
+        }
+
         Activity::record(request()->user(), 'Deleted a task', $task);
 
         $articleId = $task->article_id;
@@ -149,6 +148,11 @@ class TaskController extends Controller
     /** Staff submits completed task */
     public function submit(Request $request, Task $task)
     {
+        $user = $request->user();
+        if ($task->assignee_id !== $user->id && !$this->isReviewerOf($user, $task)) {
+            return response()->json(['message' => 'Only the person this task is assigned to can submit it.'], 403);
+        }
+
         $request->validate(['notes' => 'nullable|string']);
 
         $task->update([
@@ -172,6 +176,10 @@ class TaskController extends Controller
     /** Editor returns task for revision */
     public function return(Request $request, Task $task)
     {
+        if (!$this->isReviewerOf($request->user(), $task)) {
+            return response()->json(['message' => 'Only the person who assigned this task or a reviewer can return it.'], 403);
+        }
+
         $request->validate(['notes' => 'required|string']);
 
         $task->update([
@@ -195,6 +203,10 @@ class TaskController extends Controller
     /** Editor marks task as completed */
     public function complete(Task $task)
     {
+        if (!$this->isReviewerOf(request()->user(), $task)) {
+            return response()->json(['message' => 'Only the person who assigned this task or a reviewer can complete it.'], 403);
+        }
+
         $task->update([
             'status'       => Task::STATUS_COMPLETED,
             'completed_at' => now(),
@@ -210,6 +222,12 @@ class TaskController extends Controller
         ]);
 
         return response()->json($task->load(['assignee', 'assignedBy', 'section', 'article']));
+    }
+
+    /** The person who assigned the task, or an editor / copyreader (who review submitted work). */
+    private function isReviewerOf(User $user, Task $task): bool
+    {
+        return $task->assigned_by === $user->id || $user->isReviewer();
     }
 
     /**

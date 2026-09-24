@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Rules\NotCommonPassword;
 
 class RegisterController extends Controller
 {
@@ -29,7 +30,7 @@ class RegisterController extends Controller
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'string', ...NotCommonPassword::rules(), 'confirmed'],
         ]);
 
         // Remove any previous pending OTPs for this email
@@ -76,7 +77,13 @@ class RegisterController extends Controller
             return response()->json(['message' => 'Verification code has expired. Please sign up again.'], 422);
         }
 
-        if ($record->otp !== $request->otp) {
+        if ($record->attempts >= 5) {
+            $record->delete();
+            return response()->json(['message' => 'Too many incorrect attempts. Please sign up again to get a new code.'], 422);
+        }
+
+        if (!hash_equals((string) $record->otp, (string) $request->otp)) {
+            $record->increment('attempts');
             return response()->json(['message' => 'Incorrect verification code. Please try again.'], 422);
         }
 
@@ -130,6 +137,7 @@ class RegisterController extends Controller
 
         $record->update([
             'otp'        => $otp,
+            'attempts'   => 0,
             'expires_at' => now()->addMinutes(10),
         ]);
 

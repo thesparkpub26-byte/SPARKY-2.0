@@ -23,9 +23,28 @@ export default defineConfig({
         strictPort: false,
     },
     resolve: {
+        // No alias to Vue's "full build": every template is compiled at build time, so the browser doesn't
+        // need to download the template compiler.
         alias: {
             '@': '/resources/js',
-            'vue': 'vue/dist/vue.esm-bundler.js'
+        },
+    },
+    // Minification is on for production builds (JS and CSS); this also strips leftover `debugger` statements.
+    esbuild: {
+        drop: ['debugger'],
+        legalComments: 'none',
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                // Vue and the router change rarely, so they get their own file: a new release of the site
+                // doesn't make returning visitors download them again.
+                manualChunks(id) {
+                    if (id.includes('node_modules/vue/') || id.includes('node_modules/@vue/') || id.includes('node_modules/vue-router/')) {
+                        return 'vendor';
+                    }
+                },
+            },
         },
     },
 });

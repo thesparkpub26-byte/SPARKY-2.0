@@ -131,7 +131,7 @@
             <header class="top-header">
                 <div class="search-bar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input v-model="searchQuery" type="search" :placeholder="searchPlaceholder" aria-label="Search current view">
+                    <input v-model="searchInput" type="search" :placeholder="searchPlaceholder" aria-label="Search current view">
                 </div>
                 <div class="top-header-right" style="display: flex; align-items: center; gap: 16px;">
                     <button v-if="activeTab === 'contributors'" class="assign-task-btn" type="button" @click.prevent="openNewContributorModal">
@@ -387,9 +387,10 @@
 
                     <div class="card" style="padding: 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
                         <div v-if="galleryLoading" class="empty-activity" style="text-align: center; padding: 40px;">Loading photos…</div>
+                        <div v-else-if="shownGalleryPhotos.length === 0 && galleryPhotos.length > 0" class="empty-activity" style="text-align: center; padding: 40px;">No photos match your search.</div>
                         <div v-else-if="galleryPhotos.length === 0" class="empty-activity" style="text-align: center; padding: 40px;">No photos yet. Click "Upload Photo" to add one.</div>
                         <div v-else class="gallery-grid">
-                            <div v-for="photo in galleryPhotos" :key="photo.id" class="gallery-card" @click="openGalleryViewModal(photo)" style="cursor: pointer;">
+                            <div v-for="photo in shownGalleryPhotos" :key="photo.id" class="gallery-card" @click="openGalleryViewModal(photo)" style="cursor: pointer;">
                                 <div class="gallery-card-img-wrap">
                                     <img :src="photo.image_url" :alt="photo.title" class="gallery-card-img" />
                                 </div>
@@ -414,9 +415,10 @@
 
                     <div class="card" style="padding: 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
                         <div v-if="issuesLoading" class="empty-activity" style="text-align: center; padding: 40px;">Loading issues…</div>
+                        <div v-else-if="shownPublishedIssues.length === 0 && publishedIssues.length > 0" class="empty-activity" style="text-align: center; padding: 40px;">No issues match your search.</div>
                         <div v-else-if="publishedIssues.length === 0" class="empty-activity" style="text-align: center; padding: 40px;">No published issues yet. Click "Upload Published Issue" to add one.</div>
                         <div v-else class="gallery-grid">
-                            <div v-for="issue in publishedIssues" :key="issue.id" class="gallery-card" @click="openIssueDetailModal(issue)" style="cursor: pointer;">
+                            <div v-for="issue in shownPublishedIssues" :key="issue.id" class="gallery-card" @click="openIssueDetailModal(issue)" style="cursor: pointer;">
                                 <div class="gallery-card-img-wrap">
                                     <img v-if="issueThumbnails[issue.id]" :src="issueThumbnails[issue.id]" :alt="issue.title" class="gallery-card-img" />
                                     <div v-else class="issue-row-icon" style="margin: auto;">
@@ -469,9 +471,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-if="eicMyArticlesLoading">
-                                    <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">Loading articles…</td>
-                                </tr>
+                                <SkeletonRows v-if="eicMyArticlesLoading" :columns="4" />
                                 <tr v-else-if="paginatedEicMyArticles.length === 0">
                                     <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">No articles found.</td>
                                 </tr>
@@ -542,9 +542,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-if="eicAssignedLoading">
-                                    <td colspan="6" class="empty-activity">Loading assignments…</td>
-                                </tr>
+                                <SkeletonRows v-if="eicAssignedLoading" :columns="6" />
                                 <tr v-else-if="eicAssignedPaged.length === 0">
                                     <td colspan="6" class="empty-activity">No assignments found. Use "+ Assign Task" above to create one.</td>
                                 </tr>
@@ -1635,16 +1633,18 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { lazyModal } from '../../utils/lazyModal';
+import { useDebouncedSearch } from '../../utils/dashboardSearch';
 import { useRouter } from 'vue-router';
-import AssignTaskModal from '../../components/AssignTaskModal.vue';
-import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
-import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
-import ArticleDetailsModal from '../../components/ArticleDetailsModal.vue';
-import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
-import VideoManageModal from '../../components/VideoManageModal.vue';
-import DirectPublishModal from '../../components/DirectPublishModal.vue';
+const AssignTaskModal = lazyModal(() => import('../../components/AssignTaskModal.vue'));
+const AssignedTaskModal = lazyModal(() => import('../../components/AssignedTaskModal.vue'));
+const AssignmentWorkspaceModal = lazyModal(() => import('../../components/AssignmentWorkspaceModal.vue'));
+const ArticleDetailsModal = lazyModal(() => import('../../components/ArticleDetailsModal.vue'));
+const ArticlePreviewModal = lazyModal(() => import('../../components/ArticlePreviewModal.vue'));
+const VideoManageModal = lazyModal(() => import('../../components/VideoManageModal.vue'));
+const DirectPublishModal = lazyModal(() => import('../../components/DirectPublishModal.vue'));
 import { VIDEO_CATEGORIES, youtubeThumbnail, fetchCreditedVideos, buildVideoPreviewData } from '../../utils/video';
-import EditTaskModal from '../../components/EditTaskModal.vue';
+const EditTaskModal = lazyModal(() => import('../../components/EditTaskModal.vue'));
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import AuthorSelect from '../../components/AuthorSelect.vue';
 import PeakTimeCard from '../../components/PeakTimeCard.vue';
@@ -1653,7 +1653,7 @@ import { signOut as performSignOut } from '../../utils/auth';
 const router = useRouter();
 const activeTab = ref('overview');
 const openDropdown = ref(null);
-const searchQuery = ref('');
+const { input: searchInput, query: searchQuery } = useDebouncedSearch();
 const eicUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 const eicOverview = ref({
     summary: { articles: 0, endorsements: 0, ready_to_publish: 0, published: 0 },
@@ -1837,6 +1837,9 @@ const searchPlaceholder = computed(() => {
         case 'archive': return 'Search archive folders';
         case 'archive-year': return 'Search archived articles';
         case 'analytics': return 'Search analytics';
+        case 'assignments': return 'Search assignments';
+        case 'gallery': return 'Search gallery photos';
+        case 'published-issues': return 'Search published issues';
         default: return 'Search';
     }
 });
@@ -1846,6 +1849,17 @@ const matchesSearch = (...fields) => {
     const query = searchQuery.value.toLowerCase().trim();
     return fields.some(field => String(field || '').toLowerCase().includes(query));
 };
+
+const shownGalleryPhotos = computed(() => galleryPhotos.value.filter(photo => matchesSearch(
+    photo.title,
+    photo.artist?.name,
+    photo.uploader?.name,
+)));
+
+const shownPublishedIssues = computed(() => publishedIssues.value.filter(issue => matchesSearch(
+    issue.title,
+    issue.uploader?.name,
+)));
 
 const filteredOverviewActivities = computed(() => (eicOverview.value.activities || []).filter(activity => matchesSearch(
     activity.action,
@@ -3144,7 +3158,6 @@ const selectedArchiveArticles = computed(() => selectedArchiveFolder.value
         article.title,
         article.author?.name,
         article.section?.name,
-        article.monitoring_sheet_url,
         articleStatusLabel(article.status),
     ))
     : []);

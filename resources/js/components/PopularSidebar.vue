@@ -6,13 +6,21 @@
         <p class="sidebar-subtitle">You might like to read these posts.</p>
       </div>
 
-      <p v-if="!popular.length" class="section-empty" style="padding: 8px 0;">No published articles yet.</p>
+      <div v-if="loading" role="status" aria-label="Loading">
+        <div v-for="n in 3" :key="n" class="skeleton-sidebar-item" aria-hidden="true">
+          <div v-if="n === 1" class="skeleton skeleton-image"></div>
+          <span class="skeleton skeleton-line skeleton-line--short"></span>
+          <span class="skeleton skeleton-line skeleton-line--title"></span>
+          <span class="skeleton skeleton-line skeleton-line--wide"></span>
+        </div>
+      </div>
+      <p v-else-if="!popular.length" class="section-empty" style="padding: 8px 0;">No published articles yet.</p>
 
       <div v-for="(story, idx) in popular" :key="story.id" class="top-story-item">
         <!-- The newest story is featured with its image -->
         <div v-if="idx === 0" class="top-story-featured-img-wrapper">
           <span v-if="story.badge" class="top-story-badge-overlay badge-category">{{ story.badge }}</span>
-          <img :src="story.image || fallbackImage" :alt="story.title" class="top-story-featured-img">
+          <img :src="story.image || fallbackImage" :alt="story.title" class="top-story-featured-img" loading="lazy" decoding="async">
         </div>
         <span v-else-if="story.badge" class="top-story-badge">{{ story.badge }}</span>
         <router-link :to="`/article/${story.id}`" class="top-story-title">{{ story.title }}</router-link>
@@ -32,6 +40,7 @@ import { ref, onMounted } from 'vue';
 // "Popular Now": the 5 latest published articles (shared by the Categories and Article pages)
 const fallbackImage = '/images/hero_banner.jpg';
 const popular = ref([]);
+const loading = ref(true);
 
 onMounted(async () => {
   try {
@@ -39,6 +48,8 @@ onMounted(async () => {
     if (res.ok) popular.value = await res.json();
   } catch {
     // The sidebar just stays empty if the request fails.
+  } finally {
+    loading.value = false;
   }
 });
 </script>

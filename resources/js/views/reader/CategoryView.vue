@@ -9,7 +9,7 @@
         <div class="category-content-wrapper">
           <h1 class="category-title-header">{{ category || 'Latest Articles' }}</h1>
 
-          <p v-if="loading" class="section-empty">Loading articles…</p>
+          <SkeletonCards v-if="loading" variant="list" :count="5" />
           <p v-else-if="!articles.length" class="section-empty">No published articles in this category yet.</p>
 
           <!-- Horizontal Cards List -->
@@ -21,7 +21,7 @@
               class="category-article-card"
             >
               <div class="category-card-img-wrapper">
-                <img :src="item.image || fallbackImage" :alt="item.title">
+                <img :src="item.image || fallbackImage" :alt="item.title" loading="lazy" decoding="async">
               </div>
               <div class="category-card-body">
                 <h3 class="category-card-title">{{ item.title }}</h3>
@@ -85,6 +85,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Navbar from '../../components/Navbar.vue';
+import SkeletonCards from '../../components/SkeletonCards.vue';
 import Footer from '../../components/Footer.vue';
 import NewsletterCard from '../../components/NewsletterCard.vue';
 import PopularSidebar from '../../components/PopularSidebar.vue';

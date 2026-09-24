@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PublicCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,13 +24,11 @@ class Article extends Model
         'approved_at',
         'rejected_at',
         'rejection_reason',
-        'eic_notes',
         'editor_notes',
         'cover_image',
         'media_files',
         'video_url',
         'video_category',
-        'monitoring_sheet_url',
         'scheduled_at',
         'published_at',
     ];
@@ -71,6 +70,10 @@ class Article extends Model
     // The author's title is remembered as of when the article was written (or when its author changed)
     protected static function booted(): void
     {
+        // Readers' cached lists (home, categories, videos) are rebuilt whenever an article changes
+        static::saved(fn () => PublicCache::forget('articles'));
+        static::deleted(fn () => PublicCache::forget('articles'));
+
         static::creating(function (Article $article) {
             if (blank($article->author_role) && $article->author_id) {
                 $article->author_role = User::find($article->author_id)?->displayRole();
@@ -82,6 +85,19 @@ class Article extends Model
                 $article->author_role = User::find($article->author_id)?->displayRole();
             }
         });
+    }
+
+    /** Publishes every scheduled article whose time has come. Returns how many went live. */
+    public static function publishDue(): int
+    {
+        return static::where('status', self::STATUS_SCHEDULED)
+            ->where('scheduled_at', '<=', now())
+            ->get()
+            ->each(fn (Article $article) => $article->update([
+                'status'       => self::STATUS_PUBLISHED,
+                'published_at' => $article->scheduled_at,
+            ]))
+            ->count();
     }
 
     // Relationships

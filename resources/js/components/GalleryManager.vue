@@ -10,9 +10,9 @@
 
         <div class="card" style="padding: 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
             <div v-if="loading" class="empty-activity" style="text-align: center; padding: 40px;">Loading photos…</div>
-            <div v-else-if="photos.length === 0" class="empty-activity" style="text-align: center; padding: 40px;">No photos yet. Click "Upload Photo" to add one.</div>
+            <div v-else-if="shownPhotos.length === 0" class="empty-activity" style="text-align: center; padding: 40px;">{{ photos.length ? 'No photos match your search.' : 'No photos yet. Click "Upload Photo" to add one.' }}</div>
             <div v-else class="gallery-grid">
-                <div v-for="photo in photos" :key="photo.id" class="gallery-card" @click="openViewModal(photo)" style="cursor: pointer;">
+                <div v-for="photo in shownPhotos" :key="photo.id" class="gallery-card" @click="openViewModal(photo)" style="cursor: pointer;">
                     <div class="gallery-card-img-wrap">
                         <img :src="photo.image_url" :alt="photo.title" class="gallery-card-img" />
                     </div>
@@ -147,7 +147,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import AuthorSelect from './AuthorSelect.vue';
 
 // Gallery management for the Art Editor: view photos, upload new ones, edit and delete existing ones.
@@ -160,7 +160,16 @@ const formatDate = (iso) => iso
     ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '';
 
+const props = defineProps({ search: { type: String, default: '' } });
+
 const photos = ref([]);
+const shownPhotos = computed(() => {
+    const needle = props.search.trim().toLowerCase();
+    if (!needle) return photos.value;
+
+    return photos.value.filter(photo => [photo.title, photo.artist?.name, photo.uploader?.name]
+        .some(value => String(value ?? '').toLowerCase().includes(needle)));
+});
 const loading = ref(true);
 const artists = ref([]);
 

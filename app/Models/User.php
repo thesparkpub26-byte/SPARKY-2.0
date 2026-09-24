@@ -21,8 +21,6 @@ class User extends Authenticatable
         'tertiary_role',
         'program',
         'year_section',
-        'avatar',
-        'bio',
         'is_active',
         'profile_picture',
     ];
@@ -100,6 +98,25 @@ class User extends Authenticatable
             self::ROLE_SECTION_EDITOR, self::ROLE_STAFF_WRITER, self::ROLE_STAFF_ARTIST,
             self::ROLE_STAFF_BROADCASTER,
         ]);
+    }
+
+    /** Section editors, the Editor-in-Chief and admins run the editorial workflow. */
+    public function isEditor(): bool
+    {
+        return in_array($this->role, [self::ROLE_SECTION_EDITOR, self::ROLE_EIC, self::ROLE_ADMIN], true);
+    }
+
+    /** Copyreaders are staff who hold the Copyreader / Copy Editor title. */
+    public function isCopyreader(): bool
+    {
+        return $this->isStaff()
+            && array_intersect(['Copyreader', 'Copy Editor'], [$this->secondary_role, $this->tertiary_role]) !== [];
+    }
+
+    /** Anyone who reviews work: editors and copyreaders. */
+    public function isReviewer(): bool
+    {
+        return $this->isEditor() || $this->isCopyreader();
     }
 
     /**

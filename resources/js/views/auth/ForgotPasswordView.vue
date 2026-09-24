@@ -13,7 +13,7 @@
     <div class="right-section">
       <div class="form-container">
         <h2>Reset Password</h2>
-        <p class="subtitle">Please enter your registered email address to<br>receive a password recovery link.</p>
+        <p class="subtitle">Please enter your registered email address to<br>receive a 6-digit verification code.</p>
         
         <form @submit.prevent="handleForgot">
           <div class="input-group">
@@ -21,7 +21,9 @@
             <input type="email" id="email" v-model="email" placeholder="youremail@thesparkpub.com" required autofocus>
           </div>
           
-          <button type="submit" class="submit-btn">Continue</button>
+          <p v-if="errorMsg" class="form-error">{{ errorMsg }}</p>
+
+          <button type="submit" class="submit-btn" :disabled="loading">{{ loading ? 'Sending…' : 'Continue' }}</button>
         </form>
         
         <p class="spam-notice">Can't find it? Check your spam or junk folder.</p>
@@ -42,9 +44,48 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const email = ref('');
+const loading = ref(false);
+const errorMsg = ref('');
 const router = useRouter();
 
-const handleForgot = () => {
-  router.push('/otp');
+const handleForgot = async () => {
+  errorMsg.value = '';
+  loading.value = true;
+
+  try {
+    const response = await fetch('/api/password/forgot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ email: email.value.trim() }),
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      errorMsg.value = data.errors?.email?.[0] || data.message || 'Something went wrong. Please try again.';
+      return;
+    }
+
+    sessionStorage.setItem('reset_email', email.value.trim());
+    sessionStorage.removeItem('reset_token');
+    router.push({ path: '/otp', query: { mode: 'reset' } });
+  } catch {
+    errorMsg.value = 'Could not connect to the server. Please try again.';
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
+
+<style scoped>
+.form-error {
+  color: #d93025;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 10px 0 0;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

@@ -19,7 +19,6 @@ class MonitoringSheetEntry extends Model
         'media_type',
         'artist_assigned',
         'interview_completed',
-        'storage_url',
         'has_files',
         'current_status',
         'description',

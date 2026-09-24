@@ -23,7 +23,7 @@ class NotificationController extends Controller
             $query->where('type', $request->type);
         }
 
-        $perPage = $request->input('per_page', 50);
+        $perPage = max(1, min(100, $request->integer('per_page', 50)));
         $notifications = $query->paginate($perPage);
 
         return response()->json([

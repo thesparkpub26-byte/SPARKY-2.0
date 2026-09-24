@@ -116,7 +116,7 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="search" v-model="searchQuery" placeholder="Search tasks or articles..." aria-label="Search">
+                    <input type="search" v-model="searchInput" :placeholder="searchPlaceholder" aria-label="Search current view">
                 </div>
                 <div class="top-header-right">
                     <NotificationsPopover />
@@ -401,7 +401,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="submission in artistSubmissions" :key="submission.id" @click="openArtistSubmissionModal(submission)" style="cursor: pointer;">
+                                <tr v-for="submission in shownArtistSubmissions" :key="submission.id" @click="openArtistSubmissionModal(submission)" style="cursor: pointer;">
                                     <td style="padding-left: 28px; font-weight: 700;">{{ submission.articleTitle }}</td>
                                     <td style="color: #64748b;">{{ submission.artistName }}</td>
                                     <td>
@@ -412,9 +412,9 @@
                                     </td>
                                     <td style="padding-right: 28px; color: #64748b;">{{ formatArticleDate(submission.submittedAt) }}</td>
                                 </tr>
-                                <tr v-if="artistSubmissions.length === 0">
+                                <tr v-if="shownArtistSubmissions.length === 0">
                                     <td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">
-                                        No artist submissions found
+                                        {{ searchQuery.trim() ? 'No submissions match your search.' : 'No artist submissions found' }}
                                     </td>
                                 </tr>
                             </tbody>
@@ -431,7 +431,7 @@
                     <!-- Academic Years Folders -->
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         <div
-                            v-for="yearGroup in staffAcademicYears"
+                            v-for="yearGroup in shownAcademicYears"
                             :key="yearGroup.academic_year"
                             style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;"
                         >
@@ -485,8 +485,8 @@
                     </div>
 
                     <!-- No Press Works Message -->
-                    <div v-if="staffAcademicYears.length === 0" style="padding: 40px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
-                        No press works available yet. New press works will appear here once they're created.
+                    <div v-if="shownAcademicYears.length === 0" style="padding: 40px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                        {{ noPressWorksText(searchQuery.trim() !== '') }}
                     </div>
                 </div>
 
@@ -542,19 +542,28 @@
 </template>
 
 <script setup>
+import { makeMatcher, searchAcademicYears, noPressWorksText, useDebouncedSearch } from '../../utils/dashboardSearch';
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { lazyModal } from '../../utils/lazyModal';
 import { useRouter } from 'vue-router';
-import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
-import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
-import ArtistSubmissionModal from '../../components/ArtistSubmissionModal.vue';
-import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
+const AssignedTaskModal = lazyModal(() => import('../../components/AssignedTaskModal.vue'));
+const AssignmentWorkspaceModal = lazyModal(() => import('../../components/AssignmentWorkspaceModal.vue'));
+const ArtistSubmissionModal = lazyModal(() => import('../../components/ArtistSubmissionModal.vue'));
+const ArticlePreviewModal = lazyModal(() => import('../../components/ArticlePreviewModal.vue'));
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 import { fetchCreditedVideos } from '../../utils/video';
 
 const router = useRouter();
 const activeTab = ref('tasks');
-const searchQuery = ref('');
+const { input: searchInput, query: searchQuery } = useDebouncedSearch();
+const matches = makeMatcher(searchQuery);
+const searchPlaceholder = computed(() => ({
+    tasks: 'Search my tasks',
+    articles: 'Search my articles',
+    submissions: 'Search artist submissions',
+    pressWorks: 'Search press works',
+}[activeTab.value] || 'Search'));
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
 const isArtistSubmissionModalOpen = ref(false);
@@ -961,11 +970,27 @@ const submittedTasks = computed(() => {
 
 // ── Articles Pagination ─────────────────────────────────────────────────────────
 const filteredArticles = computed(() => {
-    if (selectedStatusFilter.value === 'all') {
-        return articles.value;
-    }
-    return articles.value.filter(article => article.status === selectedStatusFilter.value);
+    const byStatus = selectedStatusFilter.value === 'all'
+        ? articles.value
+        : articles.value.filter(article => article.status === selectedStatusFilter.value);
+
+    return byStatus.filter(article => matches(
+        article.title,
+        typeof article.section === 'object' ? article.section?.name : article.section,
+        formatStatus(article.status),
+    ));
 });
+
+const shownArtistSubmissions = computed(() => artistSubmissions.value.filter(item => matches(
+    item.articleTitle,
+    item.artistName,
+    item.submissionType,
+    formatStatus(item.status),
+)));
+
+const shownAcademicYears = computed(() => searchAcademicYears(staffAcademicYears.value, matches));
+
+watch(searchQuery, () => { articlesCurrentPage.value = 1; });
 
 const paginatedArticles = computed(() => {
     const start = (articlesCurrentPage.value - 1) * articlesPerPage;

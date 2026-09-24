@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Rules\NotCommonPassword;
 
 class UserController extends Controller
 {
@@ -17,8 +18,10 @@ class UserController extends Controller
         $query = User::withCount('assignedTasks')
             ->with(['assignedTasks.section', 'articles.section']);
 
-        if ($request->has('role')) {
-            $query->where('role', $request->role);
+        $this->filterBy($query, $request, ['role' => 'role']);
+        // Readers are the public's accounts; only admin / EIC manage them
+        if (!in_array($request->user()->role, ['admin', 'eic'], true)) {
+            $query->where('role', '!=', User::ROLE_READER);
         }
         if ($request->has('active')) {
             $query->where('is_active', $request->boolean('active'));
@@ -39,16 +42,17 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
-            'password'   => 'required|string|min:8',
+            'password'   => ['required', 'string', ...NotCommonPassword::rules()],
             'role'       => 'required|in:admin,eic,section_editor,staff_writer,staff_artist,staff_broadcaster,reader',
             'secondary_role' => 'nullable|string|max:255',
             'tertiary_role' => 'nullable|string|max:255|different:secondary_role',
             'program'    => 'nullable|string|max:255',
             'year_section' => 'nullable|string|max:255',
-            'bio'        => 'nullable|string',
             'is_active'  => 'sometimes|boolean',
             'profile_picture' => 'sometimes|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
+
+        $this->guardAdminAccounts($request, null, $validated['role']);
 
         if (($validated['tertiary_role'] ?? null) && $validated['role'] !== 'section_editor') {
             $validated['tertiary_role'] = null;
@@ -70,17 +74,17 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'       => 'sometimes|string|max:255',
             'email'      => 'sometimes|email|unique:users,email,' . $user->id,
-            'password'   => 'sometimes|string|min:8',
+            'password'   => ['sometimes', 'string', ...NotCommonPassword::rules()],
             'role'       => 'sometimes|in:admin,eic,section_editor,staff_writer,staff_artist,staff_broadcaster,reader',
             'secondary_role' => 'nullable|string|max:255',
             'tertiary_role' => 'nullable|string|max:255|different:secondary_role',
             'program'    => 'nullable|string|max:255',
             'year_section' => 'nullable|string|max:255',
-            'bio'        => 'nullable|string',
-            'avatar'     => 'nullable|string',
             'is_active'  => 'sometimes|boolean',
             'profile_picture' => 'sometimes|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
+
+        $this->guardAdminAccounts($request, $user, $validated['role'] ?? null);
 
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
@@ -99,6 +103,9 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        if (isset($validated['password']) || ($validated['is_active'] ?? true) === false) {
+            $user->tokens()->delete();
+        }
         Activity::record($request->user(), 'Updated a user', $user);
 
         return response()->json($user);
@@ -107,9 +114,19 @@ class UserController extends Controller
     /** Delete a user (admin action) */
     public function destroy(User $user)
     {
+        $this->guardAdminAccounts(request(), $user, null);
+
         Activity::record(request()->user(), 'Deleted a user', $user);
         $user->delete();
         return response()->json(['message' => 'User deleted successfully.']);
+    }
+
+    /** Only an admin may create, promote, edit or delete admin accounts. */
+    private function guardAdminAccounts(Request $request, ?User $target, ?string $newRole): void
+    {
+        if ($request->user()->isAdmin()) return;
+
+        abort_if(($target && $target->isAdmin()) || $newRole === User::ROLE_ADMIN, 403, 'Only an admin can manage admin accounts.');
     }
 
     /** Update own profile: name, password, profile picture */
@@ -119,9 +136,11 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name'                  => 'sometimes|string|max:255',
-            'password'              => 'sometimes|string|min:8|confirmed',
+            'current_password'      => 'required_with:password|nullable|current_password:sanctum',
+            'password'              => ['sometimes', 'string', ...NotCommonPassword::rules(), 'confirmed'],
             'profile_picture'       => 'sometimes|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
+        unset($validated['current_password']);
 
         if ($request->hasFile('profile_picture')) {
             // Delete old picture if exists
@@ -137,6 +156,10 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        if (isset($validated['password'])) {
+            // Other devices / stolen tokens are signed out; this session stays
+            $user->tokens()->where('id', '!=', $request->user()->currentAccessToken()?->id)->delete();
+        }
         Activity::record($request->user(), 'Updated profile', $user);
 
         return response()->json([
@@ -149,6 +172,7 @@ class UserController extends Controller
     public function deleteAccount(Request $request)
     {
         $user = $request->user();
+        $request->validate(['password' => 'required|string|current_password:sanctum']);
 
         try {
             DB::transaction(function () use ($user) {
@@ -169,9 +193,7 @@ class UserController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('deleteAccount failed for user '.$user->id.': '.$e->getMessage());
-            return response()->json([
-                'message' => 'Could not delete account: '.$e->getMessage()
-            ], 500);
+            return response()->json(['message' => 'Could not delete your account. Please try again later.'], 500);
         }
     }
 }

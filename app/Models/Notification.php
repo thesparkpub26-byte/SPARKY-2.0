@@ -16,7 +16,6 @@ class Notification extends Model
         'type',
         'data',
         'read_at',
-        'action_url',
     ];
 
     protected function casts(): array

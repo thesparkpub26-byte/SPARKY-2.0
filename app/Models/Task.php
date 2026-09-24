@@ -23,8 +23,6 @@ class Task extends Model
         'deadline',
         'completed_at',
         'notes',
-        'monitoring_sheet_url',
-        'word_count_target',
     ];
 
     protected function casts(): array

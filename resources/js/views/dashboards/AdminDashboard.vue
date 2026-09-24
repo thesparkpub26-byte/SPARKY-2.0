@@ -95,7 +95,7 @@
             <header class="top-header">
                 <div class="search-bar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input v-model="searchQuery" type="search" :placeholder="searchPlaceholder" aria-label="Search current view">
+                    <input v-model="searchInput" type="search" :placeholder="searchPlaceholder" aria-label="Search current view">
                 </div>
                 <div class="top-header-right" style="display: flex; align-items: center; gap: 16px;">
                     <button v-if="activeTab !== 'press-works'" class="new-user-btn" type="button" @click="openNewUserModal">
@@ -1067,16 +1067,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="page in filteredAnalyticsPages" :key="`publication-${page.title}`">
-                                    <td style="border-bottom: none;">{{ page.title }}</td>
-                                    <td style="border-bottom: none;"><span class="section-pill">Web</span></td>
-                                    <td style="border-bottom: none;">{{ analytics.end_date || '—' }}</td>
-                                    <td style="border-bottom: none; font-weight: 600;">{{ formatCount(page.views) }}</td>
+                                <tr v-for="item in recentPublications" :key="item.key">
+                                    <td style="border-bottom: none;">{{ item.title }}</td>
+                                    <td style="border-bottom: none;"><span class="section-pill">{{ item.category }}</span></td>
+                                    <td style="border-bottom: none;">{{ formatDate(item.date) }}</td>
+                                    <td style="border-bottom: none; font-weight: 600;">{{ item.views === null ? '—' : formatCount(item.views) }}</td>
                                 </tr>
-                                <tr v-if="!filteredAnalyticsPages.length"><td colspan="4" class="empty-activity">No publication traffic data.</td></tr>
+                                <tr v-if="!recentPublications.length"><td colspan="4" class="empty-activity">Nothing has been published yet.</td></tr>
                             </tbody>
                         </table>
-                        <a href="#" class="view-all">View All <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="m9 18 6-6-6-6"/></svg></a>
                     </div>
                     
                 </div>
@@ -1400,16 +1399,18 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { lazyModal } from '../../utils/lazyModal';
+import { useDebouncedSearch } from '../../utils/dashboardSearch';
 import { useRouter } from 'vue-router';
-import AssignedTaskModal from '../../components/AssignedTaskModal.vue';
-import AssignmentWorkspaceModal from '../../components/AssignmentWorkspaceModal.vue';
-import ArticlePreviewModal from '../../components/ArticlePreviewModal.vue';
+const AssignedTaskModal = lazyModal(() => import('../../components/AssignedTaskModal.vue'));
+const AssignmentWorkspaceModal = lazyModal(() => import('../../components/AssignmentWorkspaceModal.vue'));
+const ArticlePreviewModal = lazyModal(() => import('../../components/ArticlePreviewModal.vue'));
 import PeakTimeCard from '../../components/PeakTimeCard.vue';
 import { signOut as performSignOut } from '../../utils/auth';
 
 const router = useRouter();
 const activeTab = ref('overview');
-const searchQuery = ref('');
+const { input: searchInput, query: searchQuery } = useDebouncedSearch();
 const adminUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 const overview = ref({
     summary: { articles: 0, users: 0, pending: 0, published: 0 },
@@ -1512,7 +1513,11 @@ const searchPlaceholder = computed(() => activeTab.value === 'archive-year'
                 ? 'Search articles'
                 : ['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab.value)
                     ? 'Search users'
-                    : 'Search');
+                    : activeTab.value === 'overview'
+                        ? 'Search recent activities'
+                        : activeTab.value === 'analytics'
+                            ? 'Search publications and traffic'
+                            : 'Search');
 
 const matchesSearch = (...values) => !normalizedSearch.value
     || values.some(value => String(value ?? '').toLowerCase().includes(normalizedSearch.value));
@@ -1560,6 +1565,45 @@ const loadArchiveExtras = async () => {
     ]);
 };
 
+// The latest things to go live, whatever the kind (article, video, gallery photo or published issue)
+const RECENT_PUBLICATIONS_LIMIT = 3;
+const recentPublications = computed(() => {
+    const live = (item) => item.status === 'published';
+    return [
+        ...articles.value.filter(live).map(article => ({
+            key: `article-${article.id}`,
+            title: article.title,
+            category: article.section?.name || 'Article',
+            date: article.published_at || article.created_at,
+            views: Number(article.reads_count || 0),
+        })),
+        ...archiveVideos.value.filter(live).map(video => ({
+            key: `video-${video.id}`,
+            title: video.title,
+            category: 'Video',
+            date: video.published_at || video.created_at,
+            views: null,
+        })),
+        ...archiveGallery.value.map(photo => ({
+            key: `gallery-${photo.id}`,
+            title: photo.title,
+            category: 'Gallery',
+            date: photo.created_at,
+            views: null,
+        })),
+        ...archiveIssues.value.map(issue => ({
+            key: `issue-${issue.id}`,
+            title: issue.title,
+            category: 'Published Issue',
+            date: issue.created_at,
+            views: null,
+        })),
+    ]
+        .filter(item => matchesSearch(item.title, item.category))
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+        .slice(0, RECENT_PUBLICATIONS_LIMIT);
+});
+
 // An archive row can be an article, a gallery photo, a published issue or a video
 const openArchiveItem = (item = {}) => {
     if (item.archive_kind === 'gallery') {
@@ -1574,7 +1618,7 @@ const openArchiveItem = (item = {}) => {
 };
 
 watch(activeTab, (tab) => {
-    if (tab === 'archive' || tab === 'archive-year') loadArchiveExtras();
+    if (['archive', 'archive-year', 'analytics'].includes(tab)) loadArchiveExtras();
 });
 
 const archiveFolders = computed(() => {
@@ -1835,7 +1879,6 @@ const filteredArticles = computed(() => {
         article.title,
         article.author?.name,
         article.section?.name,
-        article.monitoring_sheet_url,
         articleStatusLabel(article.status),
     ) && (articleFilters.status === 'all' || article.status === articleFilters.status)
         && (articleFilters.section === 'all' || article.section?.name === articleFilters.section));
@@ -1857,7 +1900,6 @@ const selectedArchiveArticles = computed(() => selectedArchiveFolder.value
         article.title,
         article.author?.name,
         article.section?.name,
-        article.monitoring_sheet_url,
         articleStatusLabel(article.status),
     ))
     : []);

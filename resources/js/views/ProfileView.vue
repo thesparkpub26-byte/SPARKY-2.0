@@ -127,6 +127,11 @@
                 <input v-model="form.name" type="text" placeholder="Your full name" required />
               </div>
 
+              <div v-if="form.password" class="form-group">
+                <label>Current Password <span class="optional">(required to change it)</span></label>
+                <input v-model="form.current_password" type="password" placeholder="Your current password" autocomplete="current-password" />
+              </div>
+
               <div class="form-row">
                 <div class="form-group">
                   <label>New Password <span class="optional">(leave blank to keep)</span></label>
@@ -186,9 +191,13 @@
         </div>
         <h3>Delete Account?</h3>
         <p>This action is <strong>permanent</strong> and cannot be undone. All your data will be erased immediately.</p>
+        <div class="form-group" style="margin-bottom: 16px; text-align:left;">
+          <label>Enter your password to confirm</label>
+          <input v-model="deletePassword" type="password" placeholder="Your password" autocomplete="current-password" @keyup.enter="confirmDelete" />
+        </div>
         <div v-if="deleteError" class="alert-error" style="margin-bottom: 16px; text-align:left;">{{ deleteError }}</div>
         <div class="modal-actions">
-          <button class="btn-confirm-delete" :disabled="deleteLoading" @click="confirmDelete">
+          <button class="btn-confirm-delete" :disabled="deleteLoading || !deletePassword" @click="confirmDelete">
             {{ deleteLoading ? 'Deleting…' : 'Yes, Delete My Account' }}
           </button>
           <button class="btn-modal-cancel" @click="showDeleteConfirm = false">Cancel</button>
@@ -265,7 +274,7 @@ const fileInput     = ref(null);
 const showDeleteConfirm = ref(false);
 const deleteLoading     = ref(false);
 
-const form = ref({ name: '', password: '', password_confirmation: '' });
+const form = ref({ name: '', current_password: '', password: '', password_confirmation: '' });
 
 const pwMismatch = computed(() =>
   form.value.password_confirmation.length > 0 &&
@@ -273,7 +282,7 @@ const pwMismatch = computed(() =>
 );
 
 const startEdit = () => {
-  form.value = { name: user.value.name, password: '', password_confirmation: '' };
+  form.value = { name: user.value.name, current_password: '', password: '', password_confirmation: '' };
   errorMsg.value = '';
   successMsg.value = '';
   avatarPreview.value = null;
@@ -306,6 +315,7 @@ const saveProfile = async () => {
     const fd = new FormData();
     if (form.value.name !== user.value.name) fd.append('name', form.value.name);
     if (form.value.password) {
+      fd.append('current_password', form.value.current_password);
       fd.append('password', form.value.password);
       fd.append('password_confirmation', form.value.password_confirmation);
     }
@@ -340,6 +350,7 @@ const saveProfile = async () => {
 
 // ── Delete account ────────────────────────────────────────────────────────────
 const deleteError = ref('');
+const deletePassword = ref('');
 
 const confirmDelete = async () => {
   deleteLoading.value = true;
@@ -347,12 +358,13 @@ const confirmDelete = async () => {
   try {
     const res = await fetch('/api/profile', {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: deletePassword.value }),
     });
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      deleteError.value = data.message || `Server error (${res.status}). Please try again.`;
+      deleteError.value = data.errors?.password?.[0] || data.message || `Server error (${res.status}). Please try again.`;
       deleteLoading.value = false;
       return;
     }

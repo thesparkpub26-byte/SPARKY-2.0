@@ -428,10 +428,15 @@ const getTabLabel = (tab) => {
     return 'All';
 };
 
+// Messages carry text people typed (task and article titles, notes), and they are shown as HTML so the
+// quoted title can be bold. Everything is escaped first; only the bold tags we add ourselves stay.
+const escapeHtml = (text) => String(text)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
 const formatMessage = (msg) => {
     if (!msg) return '';
-    if (msg.includes('<strong') || msg.includes('<b')) return msg;
-    return msg.replace(/'([^']+)'/g, '<strong>$1</strong>');
+    return escapeHtml(msg).replace(/&#39;([^&]+?)&#39;/g, '<strong>$1</strong>');
 };
 
 const formatTime = (dateString) => {

@@ -1,0 +1,32 @@
+/public/hot
+/storage/*.key
+
+# Secrets and machine-specific config: never commit these
+.env
+.env.*
+!.env.example
+
+# Runtime files
+/storage/framework/sessions/*
+/storage/framework/cache/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/storage/logs/*
+/storage/app/purifier/*
+!/storage/framework/sessions/.gitignore
+!/storage/framework/cache/.gitignore
+!/storage/framework/views/.gitignore
+!/storage/logs/.gitignore
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Editors / OS
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+*.log
+
+# Database backups (contain real data)
+/storage/backups/*
+!/storage/backups/.gitignore
