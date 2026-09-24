@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Html;
+use App\Support\Images;
 use App\Support\PublicCache;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -679,7 +680,7 @@ class ArticleController extends Controller
 
         $urls = [];
         foreach ($request->file('files') as $file) {
-            $path = $file->store('article-media', 'public');
+            $path = Images::store($file, 'article-media', Images::PHOTO);
             $urls[] = '/storage/' . $path;
         }
 

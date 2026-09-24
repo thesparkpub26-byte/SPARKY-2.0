@@ -1,5 +1,6 @@
 <?php
 
+use Database\Support\EnumColumn;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         // Add staff_broadcaster to role ENUM
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin','eic','section_editor','staff_writer','staff_artist','staff_broadcaster','reader') NOT NULL DEFAULT 'reader'");
+        EnumColumn::change('users', 'role', ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster', 'reader'], 'reader');
 
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'secondary_role')) {
@@ -27,6 +28,6 @@ return new class extends Migration
             }
         });
 
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin','eic','section_editor','staff_writer','staff_artist','reader') NOT NULL DEFAULT 'reader'");
+        EnumColumn::change('users', 'role', ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'reader'], 'reader');
     }
 };

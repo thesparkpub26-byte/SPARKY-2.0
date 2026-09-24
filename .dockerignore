@@ -1,0 +1,42 @@
+# Not needed in the image, or must never be in it
+
+# Secrets and machine-specific config
+.env
+.env.*
+!.env.example
+
+# Rebuilt inside the image
+vendor
+node_modules
+public/build
+public/hot
+public/storage
+bootstrap/cache/*.php
+
+# Uploads live in the database now; these are local copies and logs
+storage/app
+storage/logs
+storage/framework/cache/data
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Development only
+.git
+.gitignore
+.claude
+.devin
+.idea
+.vscode
+tests
+docker
+sail
+scratch
+Assets
+response.txt
+styles.css
+phpunit.xml
+.phpunit.result.cache
+*.log
+database/*.sqlite
+Dockerfile
+.dockerignore

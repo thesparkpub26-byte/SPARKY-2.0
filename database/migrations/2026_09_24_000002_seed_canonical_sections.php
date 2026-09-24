@@ -16,9 +16,13 @@ return new class extends Migration
 
     public function up(): void
     {
-        foreach ($this->canonicalSections as $name) {
-            Section::firstOrCreate(['name' => $name]);
-        }
+        // Without events: saving a section clears the reader cache, and on a fresh database with
+        // CACHE_STORE=database the cache table is only created by a later migration
+        Section::withoutEvents(function () {
+            foreach ($this->canonicalSections as $name) {
+                Section::firstOrCreate(['name' => $name]);
+            }
+        });
     }
 
     public function down(): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\GalleryPhoto;
 use App\Models\User;
+use App\Support\Images;
 use App\Support\PublicCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -114,7 +115,7 @@ class GalleryController extends Controller
             'artist_id' => ['required', 'integer', Rule::in($this->artistsQuery()->pluck('id')->all())],
         ], ['artist_id.in' => 'Please pick an artist or the Art Editor as the author.']);
 
-        $path = $request->file('photo')->store('gallery', 'public');
+        $path = Images::store($request->file('photo'), 'gallery', Images::PHOTO);
 
         $photo = GalleryPhoto::create([
             'title'       => $validated['title'],
@@ -147,7 +148,7 @@ class GalleryController extends Controller
             if ($photo->image_path) {
                 Storage::disk('public')->delete($photo->image_path);
             }
-            $validated['image_path'] = $request->file('photo')->store('gallery', 'public');
+            $validated['image_path'] = Images::store($request->file('photo'), 'gallery', Images::PHOTO);
             unset($validated['photo']);
         }
 

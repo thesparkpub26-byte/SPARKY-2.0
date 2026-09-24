@@ -9,9 +9,12 @@ use App\Models\ArticleComment;
 use App\Models\ArticleLike;
 use App\Models\CommentReport;
 use App\Models\Notification;
+use App\Models\PageView;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /** Public, reader-facing endpoints for a single published article and its engagement numbers. */
 class ReaderArticleController extends Controller
@@ -39,7 +42,7 @@ class ReaderArticleController extends Controller
 
     public function show(Request $request, Article $article)
     {
-        $this->readable($article)->loadCount('comments');
+        $this->readable($article)->loadCount(['comments', 'likes']);
         $article->load(['author', 'section']);
 
         // The photojournalist / artist assigned to the article
@@ -54,8 +57,8 @@ class ReaderArticleController extends Controller
             ->map(fn (Task $t) => $this->person($t->assignee, $t->assignee_role))
             ->values();
 
-        $related = Article::with('section:id,name')
-            ->where('status', Article::STATUS_PUBLISHED)
+        // Same section as this article, which is already loaded: no need to fetch it again for each card
+        $related = Article::where('status', Article::STATUS_PUBLISHED)
             ->where('type', '!=', Article::TYPE_VIDEO)
             ->where('id', '!=', $article->id)
             ->where('section_id', $article->section_id)
@@ -63,7 +66,7 @@ class ReaderArticleController extends Controller
             ->orderByDesc('id')
             ->limit(3)
             ->get()
-            ->map(fn (Article $a) => app(ArticleController::class)->toCard($a));
+            ->map(fn (Article $a) => app(ArticleController::class)->toCard($a->setRelation('section', $article->section)));
 
         return response()->json([
             'id'             => $article->id,
@@ -87,7 +90,8 @@ class ReaderArticleController extends Controller
     private function engagement(Article $article, ?User $user): array
     {
         return [
-            'likes_count' => ArticleLike::where('article_id', $article->id)->count(),
+            // the page already counted them; the like / unlike answers count again
+            'likes_count' => $article->likes_count ?? ArticleLike::where('article_id', $article->id)->count(),
             'liked'       => $user ? ArticleLike::where('article_id', $article->id)->where('user_id', $user->id)->exists() : false,
             'bookmarked'  => $user ? ArticleBookmark::where('article_id', $article->id)->where('user_id', $user->id)->exists() : false,
         ];
@@ -181,17 +185,33 @@ class ReaderArticleController extends Controller
     /** Counts one open of the article page. */
     public function read(Article $article)
     {
-        $this->readable($article)->increment('reads_count');
+        $this->readable($article);
 
-        return response()->json(['reads' => $article->reads_count]);
+        return response()->json(['reads' => $this->bump($article, 'reads_count')]);
     }
 
-    /** Counts one share (the page copies the link to the clipboard first). */
-    public function share(Article $article)
+    /**
+     * Counts one share (the page copies the link to the clipboard first). Copying the link again, or
+     * pressing the button repeatedly, counts once per visitor per article per day.
+     */
+    public function share(Request $request, Article $article)
     {
-        $this->readable($article)->increment('shares_count');
+        $this->readable($article);
 
-        return response()->json(['shares' => $article->shares_count]);
+        $first = Cache::store(config('cache.limiter'))->add('share:' . $article->id . ':' . PageView::visitorHash($request), 1, now()->addDay());
+
+        return response()->json(['shares' => $first ? $this->bump($article, 'shares_count') : (int) $article->shares_count]);
+    }
+
+    /**
+     * Adds one to a counter with a single UPDATE. It leaves updated_at alone: the sitemap reports that date to
+     * search engines as "last modified", and a reader opening an article is not an edit.
+     */
+    private function bump(Article $article, string $column): int
+    {
+        DB::table('articles')->where('id', $article->id)->increment($column);
+
+        return (int) $article->{$column} + 1;
     }
 
     /** Comments, newest first, three at a time: ?offset= is how many the page has already loaded. */

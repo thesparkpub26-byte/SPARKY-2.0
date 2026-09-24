@@ -1,5 +1,6 @@
 <?php
 
+use Database\Support\EnumColumn;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,11 +11,11 @@ return new class extends Migration
     public function up(): void
     {
         // MySQL requires re-declaring the full ENUM to add a value
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin','eic','section_editor','staff_writer','staff_artist','reader') NOT NULL DEFAULT 'reader'");
+        EnumColumn::change('users', 'role', ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'reader'], 'reader');
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin','eic','section_editor','staff_writer','staff_artist') NOT NULL DEFAULT 'staff_writer'");
+        EnumColumn::change('users', 'role', ['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist'], 'staff_writer');
     }
 };

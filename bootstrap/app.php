@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => \App\Http\Middleware\EnsureActiveAccount::class,
         ]);
 
+        // On a host such as Render the app sits behind the host's load balancer. Without this every visitor
+        // looks like the balancer's address, so the per-visitor request limits, sign-in lockouts and unique
+        // visitor counts would all be shared by everyone, and https links would be built as http.
+        $middleware->trustProxies(at: '*');
+
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
         // Every request to /api is counted (limits are set in AppServiceProvider)

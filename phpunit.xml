@@ -23,6 +23,7 @@
         <env name="DB_DATABASE" value="sparky_test" force="true"/>
         <env name="MAIL_MAILER" value="array" force="true"/>
         <env name="CACHE_STORE" value="array" force="true"/>
+        <env name="CACHE_LIMITER_STORE" value="array" force="true"/>
         <env name="SESSION_DRIVER" value="array" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>
         <env name="APP_URL" value="http://localhost" force="true"/>

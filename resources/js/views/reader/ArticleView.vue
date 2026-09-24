@@ -111,7 +111,7 @@
                   </svg>
                   {{ shares }} {{ shares === 1 ? 'Share' : 'Shares' }}
                 </button>
-                <span v-if="copied" class="copy-toast">Link copied!</span>
+                <span aria-live="polite"><span v-if="copied" class="copy-toast">Link copied!</span></span>
               </div>
 
               <form v-if="isLoggedIn" class="comment-input-form" @submit.prevent="submitComment">
@@ -327,32 +327,57 @@ const closeContributors = (event) => {
 // ── Shares ───────────────────────────────────────────────────────────────────
 const copied = ref(false);
 let copiedTimer = null;
+let sharing = false;
 
+// Resolves to true only if the browser really put the text on the clipboard
 const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text);
+    return true;
   } catch {
+    // Older browsers, or a page that isn't https: try the old way
     const field = document.createElement('textarea');
     field.value = text;
     field.style.position = 'fixed';
     field.style.opacity = '0';
     document.body.appendChild(field);
     field.select();
-    document.execCommand('copy');
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch {
+      ok = false;
+    }
     field.remove();
+    return ok;
   }
 };
 
 const shareArticle = async () => {
-  await copyToClipboard(`${window.location.origin}/article/${article.value.id}`);
-  copied.value = true;
-  clearTimeout(copiedTimer);
-  copiedTimer = setTimeout(() => { copied.value = false; }, 2000);
+  if (sharing) return;
+  sharing = true;
   try {
-    const res = await fetch(`/api/reader/articles/${article.value.id}/share`, { method: 'POST', headers: jsonHeaders });
-    if (res.ok) shares.value = (await res.json()).shares;
-  } catch {
-    // The link is still copied even if the count can't be updated.
+    // The address people paste into Messenger or Facebook: the server puts the title and picture in it
+    const link = `${window.location.origin}/article/${article.value.id}`;
+
+    if (!(await copyToClipboard(link))) {
+      // Nothing could be copied automatically, so let the reader copy it themselves
+      window.prompt('Copy this link:', link);
+      return;
+    }
+
+    copied.value = true;
+    clearTimeout(copiedTimer);
+    copiedTimer = setTimeout(() => { copied.value = false; }, 2000);
+
+    try {
+      const res = await fetch(`/api/reader/articles/${article.value.id}/share`, { method: 'POST', headers: jsonHeaders });
+      if (res.ok) shares.value = (await res.json()).shares;
+    } catch {
+      // The link is still copied even if the count can't be updated.
+    }
+  } finally {
+    sharing = false;
   }
 };
 

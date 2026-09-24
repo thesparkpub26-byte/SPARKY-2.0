@@ -116,6 +116,11 @@ class Article extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function likes()
+    {
+        return $this->hasMany(ArticleLike::class);
+    }
+
     public function comments()
     {
         return $this->hasMany(ArticleComment::class);

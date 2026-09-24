@@ -1,5 +1,6 @@
 <?php
 
+use Database\Support\EnumColumn;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -18,12 +19,12 @@ return new class extends Migration
             }
         });
 
-        DB::statement("ALTER TABLE articles MODIFY status ENUM('draft','submitted','under_review','endorsed','approved','rejected','published','scheduled') DEFAULT 'draft'");
+        EnumColumn::change('articles', 'status', ['draft', 'submitted', 'under_review', 'endorsed', 'approved', 'rejected', 'published', 'scheduled'], 'draft', nullable: true);
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE articles MODIFY status ENUM('draft','submitted','under_review','endorsed','approved','rejected','published') DEFAULT 'draft'");
+        EnumColumn::change('articles', 'status', ['draft', 'submitted', 'under_review', 'endorsed', 'approved', 'rejected', 'published'], 'draft', nullable: true);
 
         Schema::table('articles', function (Blueprint $table) {
             if (Schema::hasColumn('articles', 'published_at')) {

@@ -1,0 +1,107 @@
+# Render Blueprint for TheSPARK. In Render: New > Blueprint > pick this repository.
+# Render then creates the services below and asks for the values marked "sync: false" (the secrets).
+# The database is Supabase (not created here); see DEPLOYMENT.md, section 10, for the steps.
+
+# Settings that are not secret. Both services below use them, so they cannot drift apart.
+envVarGroups:
+  - name: sparky-shared
+    envVars:
+      - key: APP_NAME
+        value: TheSPARK
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stderr               # Render shows what the app writes to stderr in its Logs tab
+      - key: LOG_LEVEL
+        value: warning
+      - key: DB_CONNECTION
+        value: pgsql                # the Supabase connection string is DB_URL (a secret, below)
+      - key: CACHE_STORE
+        value: database             # shared, so the scheduler service can refresh what the site caches
+      - key: CACHE_LIMITER_STORE
+        value: file                 # request-limit counters stay off the database (see DEPLOYMENT.md, section 3)
+      - key: SESSION_DRIVER
+        value: array
+      - key: QUEUE_CONNECTION
+        value: sync                 # the site has no queue table; emails are sent while the request runs
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_ENCRYPTION
+        value: tls
+      - key: MAIL_FROM_NAME
+        value: TheSPARK
+
+services:
+  # ── The website ────────────────────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: sparky
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Choose the region nearest your Supabase project. It cannot be changed later.
+    region: singapore
+    # "free" costs nothing, but the site goes to sleep after a quiet spell and the first visit is slow. When you
+    # are ready, change this to a paid size such as 0.5c-512mb (see Render's pricing) and push.
+    plan: free
+    healthCheckPath: /up
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: sparky-shared
+      # The image listens on 8080; without this Render looks for 10000
+      - key: PORT
+        value: "8080"
+      # Start-up automations of the image: create / update the database tables, then cache config and routes
+      - key: AUTORUN_ENABLED
+        value: "true"
+      - key: AUTORUN_LARAVEL_STORAGE_LINK
+        value: "false"              # uploads are in the database; there is no storage folder to link
+      - key: PHP_OPCACHE_ENABLE
+        value: "1"
+      - key: PHP_OPCACHE_VALIDATE_TIMESTAMPS
+        value: "0"                  # the code never changes inside a running container
+      # ── Secrets: Render asks for these once, when the Blueprint is created ──
+      - key: APP_KEY                # run `php artisan key:generate --show` on your computer; it starts with base64:
+        sync: false
+      - key: APP_URL                # e.g. https://sparky.onrender.com, or your own domain (with https://)
+        sync: false
+      - key: DB_URL                 # the Supabase "Session pooler" connection string
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD          # an app password, never the account password
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+
+  # ── The scheduler: publishes scheduled articles, sends the weekly newsletter, cleans old data ──────────
+  # Render has no cron inside a web service, so this runs the same image with a different command. It is a paid
+  # service type (workers cannot be free). Delete this block to go without it: scheduled articles then only
+  # go live when someone loads a page, and the weekly newsletter is not sent.
+  - type: worker
+    name: sparky-scheduler
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: singapore
+    plan: 0.5c-512mb
+    dockerCommand: php /var/www/html/artisan schedule:work
+    autoDeployTrigger: commit
+    envVars:
+      - fromGroup: sparky-shared
+      # Same values as the website (the newsletter's links and the database)
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: DB_URL
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        sync: false

@@ -303,8 +303,8 @@ class ReaderSearchController extends Controller
             ->where(function ($q) use ($needles) {
                 $this->matchText($q, $needles);
                 foreach ($needles as $n) {
-                    $q->orWhereHas('section', fn ($s) => $s->where('name', 'like', $this->like($n)))
-                      ->orWhereHas('author', fn ($u) => $u->where('name', 'like', $this->like($n)));
+                    $q->orWhereHas('section', fn ($s) => $s->whereLike('name', $this->like($n)))
+                      ->orWhereHas('author', fn ($u) => $u->whereLike('name', $this->like($n)));
                 }
             })
             ->orderByDesc('published_at')->orderByDesc('id')
@@ -343,8 +343,8 @@ class ReaderSearchController extends Controller
         $photos = GalleryPhoto::with('artist:id,name')
             ->where(function ($q) use ($needles) {
                 foreach ($needles as $n) {
-                    $q->orWhere('title', 'like', $this->like($n))
-                      ->orWhereHas('artist', fn ($u) => $u->where('name', 'like', $this->like($n)));
+                    $q->orWhereLike('title', $this->like($n))
+                      ->orWhereHas('artist', fn ($u) => $u->whereLike('name', $this->like($n)));
                 }
             })
             ->latest()->limit(100)->get();
@@ -451,9 +451,9 @@ class ReaderSearchController extends Controller
             $q->orWhereRaw('MATCH(title, excerpt, content) AGAINST (? IN BOOLEAN MODE)', [implode(' ', array_map(fn ($n) => $n . '*', $indexed))]);
         }
         foreach ($plain as $n) {
-            $q->orWhere('title', 'like', $this->like($n))
-              ->orWhere('excerpt', 'like', $this->like($n))
-              ->orWhere('content', 'like', $this->like($n));
+            $q->orWhereLike('title', $this->like($n))
+              ->orWhereLike('excerpt', $this->like($n))
+              ->orWhereLike('content', $this->like($n));
         }
     }
 

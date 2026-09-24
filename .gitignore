@@ -30,3 +30,6 @@ Thumbs.db
 # Database backups (contain real data)
 /storage/backups/*
 !/storage/backups/.gitignore
+
+# Uploads live in the database now (stored_files table); /storage/* is a route, not a folder
+/public/storage

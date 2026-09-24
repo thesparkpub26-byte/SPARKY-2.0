@@ -1,5 +1,6 @@
 <?php
 
+use Database\Support\EnumColumn;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -23,8 +24,8 @@ return new class extends Migration
             }
         });
 
-        DB::statement("ALTER TABLE articles MODIFY type ENUM('article','feature','opinion','photo_essay','illustration','video') NOT NULL DEFAULT 'article'");
-        DB::statement("ALTER TABLE tasks MODIFY type ENUM('writing','illustration','photography','layout','editing','videography','video_editing') NOT NULL DEFAULT 'writing'");
+        EnumColumn::change('articles', 'type', ['article', 'feature', 'opinion', 'photo_essay', 'illustration', 'video'], 'article');
+        EnumColumn::change('tasks', 'type', ['writing', 'illustration', 'photography', 'layout', 'editing', 'videography', 'video_editing'], 'writing');
     }
 
     public function down(): void
@@ -32,8 +33,8 @@ return new class extends Migration
         DB::table('tasks')->whereIn('type', ['videography', 'video_editing'])->update(['type' => 'layout']);
         DB::table('articles')->where('type', 'video')->update(['type' => 'article']);
 
-        DB::statement("ALTER TABLE tasks MODIFY type ENUM('writing','illustration','photography','layout','editing') NOT NULL DEFAULT 'writing'");
-        DB::statement("ALTER TABLE articles MODIFY type ENUM('article','feature','opinion','photo_essay','illustration') NOT NULL DEFAULT 'article'");
+        EnumColumn::change('tasks', 'type', ['writing', 'illustration', 'photography', 'layout', 'editing'], 'writing');
+        EnumColumn::change('articles', 'type', ['article', 'feature', 'opinion', 'photo_essay', 'illustration'], 'article');
 
         Schema::table('articles', function (Blueprint $table) {
             if (Schema::hasColumn('articles', 'video_category')) {

@@ -2,11 +2,15 @@
 
 namespace App\Providers;
 
+use App\Filesystem\DatabaseAdapter;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use League\Flysystem\Filesystem;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +27,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Storage disks with `'driver' => 'database'` keep their files in the database (config/filesystems.php)
+        Storage::extend('database', function ($app, array $config) {
+            $adapter = new DatabaseAdapter('/storage');
+
+            return new FilesystemAdapter(new Filesystem($adapter, $config), $adapter, $config);
+        });
+
         // Debug pages print environment values (including passwords) and file paths. If a live server is
         // ever left with APP_DEBUG=true, switch it off rather than expose them.
         if ($this->app->environment('production') && config('app.debug')) {

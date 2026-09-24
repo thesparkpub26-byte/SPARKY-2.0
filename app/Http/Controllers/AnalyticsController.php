@@ -16,15 +16,9 @@ class AnalyticsController extends Controller
             'article_id' => 'nullable|integer|exists:articles,id',
         ]);
 
-        $visitorHash = hash('sha256', implode('|', [
-            $request->ip(),
-            $request->userAgent(),
-            config('app.key'),
-        ]));
-
         PageView::create([
             ...$validated,
-            'visitor_hash' => $visitorHash,
+            'visitor_hash' => PageView::visitorHash($request),
         ]);
 
         return response()->json(['message' => 'Page view recorded.'], 201);

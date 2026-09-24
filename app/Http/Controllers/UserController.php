@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Activity;
 use App\Models\Notification;
+use App\Support\Images;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -61,7 +62,7 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
         if ($request->hasFile('profile_picture')) {
-            $validated['profile_picture'] = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $validated['profile_picture'] = Images::store($request->file('profile_picture'), 'profile_pictures', Images::AVATAR);
         }
         $user = User::create($validated);
         Activity::record($request->user(), 'Added a user', $user);
@@ -96,7 +97,7 @@ class UserController extends Controller
             if ($user->profile_picture) {
                 Storage::disk('public')->delete($user->profile_picture);
             }
-            $validated['profile_picture'] = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $validated['profile_picture'] = Images::store($request->file('profile_picture'), 'profile_pictures', Images::AVATAR);
         }
 
         $resolvedRole = $validated['role'] ?? $user->role;
@@ -184,7 +185,7 @@ class UserController extends Controller
             if ($user->profile_picture) {
                 Storage::disk('public')->delete($user->profile_picture);
             }
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $path = Images::store($request->file('profile_picture'), 'profile_pictures', Images::AVATAR);
             $validated['profile_picture'] = $path;
         }
 
