@@ -15,7 +15,7 @@
           <p v-if="person.role" class="pam-role">{{ person.role }}</p>
         </header>
 
-        <div class="pam-body">
+        <div ref="bodyEl" class="pam-body" @scroll.passive="loadMoreIfNeeded">
           <h3 class="pam-heading">
             {{ mode === 'contributor' ? 'Contributed to' : 'Articles by ' + firstName }}
             <span v-if="total" class="pam-count">{{ total }}</span>
@@ -40,8 +40,10 @@
             </li>
           </ul>
 
-          <button v-if="hasMore" type="button" class="pam-more" :disabled="loading" @click="load">
-            {{ loading ? 'Loading…' : 'Show more' }}
+          <!-- The next batch loads by itself as you near the bottom; this only appears if that failed -->
+          <p v-if="loading && articles.length" class="pam-state pam-loading">Loading more…</p>
+          <button v-else-if="failed && articles.length" type="button" class="pam-more" @click="load">
+            Couldn't load more. Try again
           </button>
         </div>
       </div>
@@ -50,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 
 // A byline's mini profile: photo, name and the published articles they wrote (mode "author")
@@ -68,6 +70,10 @@ const lastPage = ref(1);
 const total = ref(0);
 const loading = ref(false);
 const failed = ref(false);
+const bodyEl = ref(null);
+
+// How close to the bottom of the list (in px) the next batch starts loading
+const LOAD_AHEAD = 240;
 
 // Only after the first page has arrived (page is 0 until then)
 const hasMore = computed(() => page.value > 0 && page.value < lastPage.value);
@@ -90,7 +96,18 @@ const load = async () => {
     failed.value = true;
   } finally {
     loading.value = false;
+    // A short first batch may not fill the card, so there'd be nothing to scroll: keep going until it does
+    await nextTick();
+    loadMoreIfNeeded();
   }
+};
+
+// Loads the next batch when the list is scrolled near its end (or doesn't fill the card yet).
+// A failed load waits for the "Try again" button instead of retrying in a loop.
+const loadMoreIfNeeded = () => {
+  const el = bodyEl.value;
+  if (!el || !hasMore.value || loading.value || failed.value) return;
+  if (el.scrollHeight - el.scrollTop - el.clientHeight < LOAD_AHEAD) load();
 };
 
 const open = (article) => {
@@ -223,6 +240,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
   background: #eff6ff;
   color: #1d4ed8;
   font-size: 11px;
+}
+
+.pam-loading {
+  padding: 14px 0 0;
+  font-size: 13px;
 }
 
 .pam-state {
