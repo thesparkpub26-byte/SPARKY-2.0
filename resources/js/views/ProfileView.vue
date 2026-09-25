@@ -383,7 +383,10 @@ const confirmDelete = async () => {
 <style scoped>
 /* ── Layout ─────────────────────────────────────────────────────────────── */
 .profile-page {
-  min-height: 100vh;
+  /* html/body never scroll in this app, so the page is its own scroll container */
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
   background: linear-gradient(145deg, #f0f4ff 0%, #e8eeff 50%, #f5f7ff 100%);
   display: flex;
   flex-direction: column;

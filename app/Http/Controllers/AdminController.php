@@ -14,6 +14,7 @@ class AdminController extends Controller
         abort_unless($request->user()->isAdmin(), 403);
 
         $recentActivities = Activity::with('actor:id,name,email,role,profile_picture')
+            ->excludingSessions()
             ->latest('created_at')
             ->limit(10)
             ->get()
@@ -59,6 +60,7 @@ class AdminController extends Controller
         abort_unless($request->user()->isEIC(), 403);
 
         $recentActivities = Activity::with('actor:id,name,email,role,profile_picture')
+            ->excludingSessions()
             ->latest('created_at')
             ->limit(10)
             ->get()
@@ -88,6 +90,7 @@ class AdminController extends Controller
         abort_unless($request->user()->isEIC() || $request->user()->isSectionEditor() || $request->user()->isAdmin(), 403);
 
         $recentActivities = Activity::with('actor:id,name,email,role,profile_picture')
+            ->excludingSessions()
             ->latest('created_at')
             ->limit(10)
             ->get()

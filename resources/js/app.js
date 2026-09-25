@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
+import { enablePullToRefresh } from './utils/pullToRefresh';
 
 // Sign-in tokens expire (and are revoked on password change or deactivation). When the server says the
 // saved one no longer works, clear it and go to sign-in instead of leaving pages half-broken.
@@ -28,3 +29,4 @@ window.fetch = async (input, init) => {
 const app = createApp(App);
 app.use(router);
 app.mount('#app');
+enablePullToRefresh();

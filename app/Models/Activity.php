@@ -11,6 +11,9 @@ class Activity extends Model
 
     public $timestamps = false;
 
+    /** Session noise: not recorded any more, and hidden from the activity lists if an old row exists. */
+    public const SESSION_ACTIONS = ['Logged in', 'Logged out'];
+
     protected $fillable = [
         'actor_id',
         'action',
@@ -37,6 +40,11 @@ class Activity extends Model
             'subject_label' => $subjectLabel ?? ($subject?->name ?? $subject?->title),
             'created_at' => now(),
         ]);
+    }
+
+    public function scopeExcludingSessions($query)
+    {
+        return $query->whereNotIn('action', self::SESSION_ACTIONS);
     }
 
     public function actor()

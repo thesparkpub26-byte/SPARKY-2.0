@@ -11,6 +11,52 @@
     display: none;
 }
 
+/* Our own pull-to-refresh replaces the browser's (see utils/pullToRefresh.js), so switch the native one off */
+html,
+body {
+    overscroll-behavior-y: contain;
+}
+
+.ptr-indicator {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 50%;
+    z-index: 2000;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
+    transform: translate(-50%, -60px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ptr-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #cbd5e1;
+    border-top-color: #1d6bf3;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.ptr-ready .ptr-spinner {
+    border-color: #bfdbfe;
+    border-top-color: #1d6bf3;
+}
+
+.ptr-refreshing .ptr-spinner {
+    animation: ptr-spin 0.7s linear infinite;
+}
+
+@keyframes ptr-spin {
+    to { transform: rotate(360deg); }
+}
+
 /* Wrapper for a table that sits directly in a card, so it can scroll sideways on phones */
 .table-scroll {
     overflow-x: auto;
