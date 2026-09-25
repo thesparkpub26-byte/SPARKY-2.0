@@ -2119,6 +2119,29 @@ body {
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
+/* The whole card opens the profile: the avatar link is stretched over it, and the dashboard button sits above */
+.user-capsule-card {
+    position: relative;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.user-capsule-card:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.user-capsule-card .avatar-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 28px;
+}
+
+.user-capsule-card .user-capsule-icon-btn {
+    position: relative;
+    z-index: 1;
+}
+
 .user-capsule-avatar {
     width: 44px;
     height: 44px;
