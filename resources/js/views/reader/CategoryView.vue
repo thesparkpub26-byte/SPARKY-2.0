@@ -68,7 +68,7 @@
           </div>
         </div>
 
-        <!-- Right Sidebar: Popular Now (5 latest articles) -->
+        <!-- Right Sidebar: Popular Now (the week's 5 most-read articles) -->
         <PopularSidebar />
       </div>
 

@@ -314,7 +314,7 @@ watch(() => props.open, async (isOpen) => {
 
   if (!popular.value.length) {
     try {
-      const res = await fetch('/api/reader/articles?limit=4', { headers: { Accept: 'application/json' } });
+      const res = await fetch('/api/reader/popular?limit=4', { headers: { Accept: 'application/json' } });
       if (res.ok) popular.value = await res.json();
     } catch { /* suggestions are optional */ }
   }

@@ -34,7 +34,15 @@
 
             <!-- Author Info Row -->
             <div class="article-author-card">
-              <div class="author-left-info">
+              <!-- Opens the author's profile card (their photo, name and articles) -->
+              <component
+                :is="article.author ? 'button' : 'div'"
+                class="author-left-info"
+                :class="{ 'is-clickable': article.author }"
+                :type="article.author ? 'button' : undefined"
+                :title="article.author ? 'View articles by ' + article.author.name : undefined"
+                @click="article.author && openPerson(article.author, 'author')"
+              >
                 <img v-if="article.author?.avatar" :src="article.author.avatar" :alt="article.author.name" class="author-avatar-img">
                 <svg v-else width="44" height="44" viewBox="0 0 24 24" fill="#cbd5e1" class="author-avatar-img">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"/>
@@ -43,7 +51,7 @@
                   <h4>{{ article.author?.name || 'TheSPARK' }}</h4>
                   <p>{{ article.author?.role || 'Staff Writer' }}</p>
                 </div>
-              </div>
+              </component>
 
               <!-- View Contributors dropdown: the PJ / artist assigned to the article -->
               <div class="contributors-wrapper" ref="contributorsRoot">
@@ -56,14 +64,14 @@
                 <div v-if="contributorsOpen" class="contributors-popover">
                   <p class="contributors-popover-title">Photojournalist / Artist</p>
                   <p v-if="!article.contributors.length" class="contributors-empty">No contributors credited yet.</p>
-                  <div v-for="person in article.contributors" :key="person.id" class="contributor-row">
+                  <button v-for="person in article.contributors" :key="person.id" type="button" class="contributor-row" :title="'View what ' + person.name + ' contributed to'" @click="openPerson(person, 'contributor')">
                     <img v-if="person.avatar" :src="person.avatar" :alt="person.name" class="contributor-avatar">
                     <span v-else class="contributor-avatar contributor-initials">{{ initialsOf(person.name) }}</span>
                     <div class="contributor-text">
                       <span class="contributor-name">{{ person.name }}</span>
                       <span class="contributor-role">{{ person.role }}</span>
                     </div>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -217,6 +225,13 @@
       <!-- Footer Section -->
       <Footer />
     </main>
+
+    <PersonArticlesModal
+      v-if="personModal"
+      :person="personModal.person"
+      :mode="personModal.mode"
+      @close="personModal = null"
+    />
   </div>
 </template>
 
@@ -229,6 +244,7 @@ import Footer from '../../components/Footer.vue';
 import NewsletterCard from '../../components/NewsletterCard.vue';
 import ArticleCard from '../../components/ArticleCard.vue';
 import PopularSidebar from '../../components/PopularSidebar.vue';
+import PersonArticlesModal from '../../components/PersonArticlesModal.vue';
 import { buildArticleBody } from '../../utils/articleContent';
 
 const route = useRoute();
@@ -266,6 +282,7 @@ const loadArticle = async () => {
   notFound.value = false;
   commentsOpen.value = false;
   contributorsOpen.value = false;
+  personModal.value = null;
   comments.value = [];
   commentsHasMore.value = false;
   commentError.value = '';
@@ -316,6 +333,12 @@ const recordOpen = async () => {
 
 // ── Contributors dropdown ────────────────────────────────────────────────────
 const contributorsOpen = ref(false);
+// The author / contributor whose profile card is open
+const personModal = ref(null);
+const openPerson = (person, mode) => {
+  contributorsOpen.value = false;
+  personModal.value = { person, mode };
+};
 const contributorsRoot = ref(null);
 
 const closeContributors = (event) => {

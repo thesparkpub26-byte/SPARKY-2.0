@@ -8,7 +8,7 @@
           <span>Publication</span>
         </div>
       </div>
-      <button type="button" class="profile-return" @click="returnToDashboard">
+      <button type="button" class="profile-return" @click="returnToLastPage">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="m15 18-6-6 6-6" />
         </svg>
@@ -210,6 +210,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { lastPage } from '../utils/returnTo';
 
 const router = useRouter();
 
@@ -219,7 +220,9 @@ const user = ref({ ...storedUser });
 
 const token = localStorage.getItem('sparky_token');
 
-const returnToDashboard = () => {
+// Back to whatever was open before the profile (an article, the saved list, a dashboard...);
+// the dashboard (or the home page for a reader) only when the profile was opened directly.
+const returnToLastPage = () => {
   const dashboardByRole = {
     admin: '/admin',
     eic: '/eic',
@@ -228,7 +231,7 @@ const returnToDashboard = () => {
     staff_artist: '/artist',
     staff_broadcaster: '/broadcaster',
   };
-  router.push(dashboardByRole[user.value.role] || '/');
+  router.push(lastPage() || dashboardByRole[user.value.role] || '/');
 };
 
 // Refresh user data from server on mount to get the server-computed profile_picture_url

@@ -57,6 +57,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { lastPage } from '../../utils/returnTo';
 
 const otp = ref(['', '', '', '', '', '']);
 const otpRef = ref([]);
@@ -169,8 +170,8 @@ const handleVerify = async () => {
     sessionStorage.removeItem('otp_email');
     sessionStorage.removeItem('otp_name');
 
-    // Redirect to dashboard
-    const destination = roleDashboard[data.user.role] || '/';
+    // Back to the page they were looking at before signing up; their dashboard only if there wasn't one
+    const destination = lastPage() || roleDashboard[data.user.role] || '/';
     router.push(destination);
 
   } catch (err) {

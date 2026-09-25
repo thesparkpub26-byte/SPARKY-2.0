@@ -10,6 +10,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Support\Html;
 use App\Support\Images;
+use App\Support\PopularArticles;
 use App\Support\PublicCache;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -59,13 +60,28 @@ class ArticleController extends Controller
         return response()->json($slides);
     }
 
-    /** Public: the latest published articles for the reader "Popular now" lists (default 6, max 12). */
-    public function latest(Request $request)
+    /**
+     * Public: the reader "Popular now" lists (default 6, max 12): the most-read articles of the week.
+     * See PopularArticles for how the week and the ranking work.
+     */
+    public function popular(Request $request)
     {
         $limit = max(1, min(12, $request->integer('limit', 6)));
 
-        return response()->json(PublicCache::remember($request, 'articles', ['limit'], fn () => $this->publishedArticles()
-            ->limit($limit)->get()->map(fn (Article $a) => $this->toCard($a))->all()));
+        return response()->json(PublicCache::remember($request, 'articles', ['limit'], function () use ($limit) {
+            $this->publishDueSchedules();
+
+            $ids = PopularArticles::ids($limit);
+            $articles = Article::with(['author:id,name', 'section:id,name'])->whereIn('id', $ids)->get()->keyBy('id');
+
+            // Keep the ranking's order
+            return collect($ids)
+                ->map(fn ($id) => $articles->get($id))
+                ->filter()
+                ->map(fn (Article $a) => $this->toCard($a))
+                ->values()
+                ->all();
+        }));
     }
 
     /**

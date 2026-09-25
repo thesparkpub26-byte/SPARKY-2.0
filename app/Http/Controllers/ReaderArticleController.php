@@ -12,6 +12,7 @@ use App\Models\Notification;
 use App\Models\PageView;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\PublicCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -84,6 +85,50 @@ class ReaderArticleController extends Controller
             'comments_count' => $article->comments_count,
             'related'        => $related,
         ] + $this->engagement($article, $request->user('sanctum')));
+    }
+
+    /**
+     * Public: a byline's profile card (photo, name, title) with the published articles they wrote
+     * (?as=author, the default) or contributed artwork / photos to (?as=contributor), six at a time.
+     * Only people with published work are visible here, so this can't be used to look anyone else up.
+     */
+    public function profile(Request $request, User $user)
+    {
+        $as = $request->query('as') === 'contributor' ? 'contributor' : 'author';
+
+        $body = PublicCache::remember($request, 'articles', ['as', 'page'], function () use ($user, $as) {
+            $query = Article::with('section:id,name')
+                ->where('status', Article::STATUS_PUBLISHED)
+                ->where('type', '!=', Article::TYPE_VIDEO)
+                ->orderByDesc('published_at')
+                ->orderByDesc('id');
+
+            $as === 'author'
+                ? $query->where('author_id', $user->id)
+                : $query->whereHas('tasks', fn ($q) => $q
+                    ->whereIn('type', [Task::TYPE_ILLUSTRATION, Task::TYPE_PHOTOGRAPHY])
+                    ->where('assignee_id', $user->id));
+
+            $page = $query->paginate(6);
+            if ($page->total() === 0) {
+                return null;
+            }
+
+            $cards = app(ArticleController::class);
+
+            return [
+                'person'       => $this->person($user),
+                'as'           => $as,
+                'data'         => $page->getCollection()->map(fn (Article $a) => $cards->toCard($a))->values()->all(),
+                'current_page' => $page->currentPage(),
+                'last_page'    => $page->lastPage(),
+                'total'        => $page->total(),
+            ];
+        });
+
+        abort_if($body === null, 404);
+
+        return response()->json($body);
     }
 
     /** Likes on the article, and (for a signed-in reader) whether they liked / saved it. */

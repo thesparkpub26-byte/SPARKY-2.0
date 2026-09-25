@@ -1,3 +1,5 @@
+import { forgetLastPage } from './returnTo';
+
 export const signOut = (router, redirect = '/') => {
     const token = localStorage.getItem('sparky_token');
 
@@ -14,5 +16,6 @@ export const signOut = (router, redirect = '/') => {
         }).catch(() => {});
     }
 
-    return router.push(redirect);
+    // The next person to sign in on this tab should start at their dashboard, not at this user's last page
+    return router.push(redirect).then(forgetLastPage);
 };

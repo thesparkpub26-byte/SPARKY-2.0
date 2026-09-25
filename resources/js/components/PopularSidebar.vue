@@ -37,14 +37,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 
-// "Popular Now": the 5 latest published articles (shared by the Categories and Article pages)
+// "Popular Now": the week's 5 most-read articles (shared by the Categories and Article pages)
 const fallbackImage = '/images/hero_banner.jpg';
 const popular = ref([]);
 const loading = ref(true);
 
 onMounted(async () => {
   try {
-    const res = await fetch('/api/reader/articles?limit=5', { headers: { Accept: 'application/json' } });
+    const res = await fetch('/api/reader/popular?limit=5', { headers: { Accept: 'application/json' } });
     if (res.ok) popular.value = await res.json();
   } catch {
     // The sidebar just stays empty if the request fails.

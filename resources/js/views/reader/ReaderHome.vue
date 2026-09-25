@@ -196,7 +196,7 @@ const getJson = async (url) => {
 };
 
 const loadArticles = async () => {
-  popularArticles.value = await getJson('/api/reader/articles');
+  popularArticles.value = await getJson('/api/reader/popular');
   articlesLoaded.value = true;
 };
 

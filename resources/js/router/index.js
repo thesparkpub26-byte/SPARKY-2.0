@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { STAFF_ROLES, dashboardFor, verifiedUser } from '../utils/session';
+import { rememberPage, trackLastPage } from '../utils/returnTo';
 
 // Reader views: the home page ships with the app, every other page is fetched the first time it is visited
 import ReaderHome from '../views/reader/ReaderHome.vue';
@@ -103,6 +104,8 @@ router.beforeEach(async (to) => {
   const user = await verifiedUser();
 
   if (isProtected && !user) {
+    // They wanted this page: after signing in they should land on it
+    rememberPage(to);
     return { name: 'LoginView' };
   }
 
@@ -121,6 +124,8 @@ router.beforeEach(async (to) => {
 
   return true;
 });
+
+trackLastPage(router);
 
 // ── Page titles (the browser tab, history and bookmarks) ─────────────────────
 // Article pages set their own title once the article has loaded.

@@ -46,7 +46,10 @@ Route::post('/newsletter/unsubscribe', [NewsletterController::class, 'unsubscrib
 
 Route::post('/analytics/page-view', [AnalyticsController::class, 'recordPageView'])->middleware('throttle:120,1,page-view');
 Route::get('/reader/carousel',      [ArticleController::class, 'carousel'])->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
-Route::get('/reader/articles',      [ArticleController::class, 'latest'])->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
+Route::get('/reader/popular',       [ArticleController::class, 'popular'])->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
+// The old URL of the same list, for pages opened before the site was updated
+Route::get('/reader/articles',      [ArticleController::class, 'popular'])->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
+Route::get('/reader/people/{user}', [ReaderArticleController::class, 'profile'])->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
 Route::get('/reader/category-articles', [ArticleController::class, 'categoryArticles'])->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
 Route::get('/reader/articles/{article}',          [ReaderArticleController::class, 'show']);
 Route::post('/reader/articles/{article}/read',    [ReaderArticleController::class, 'read'])->middleware('throttle:120,1,article-read');
