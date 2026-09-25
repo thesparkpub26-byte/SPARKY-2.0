@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\Article;
 use App\Models\ArticleBookmark;
+use App\Models\ArticleCredit;
 use App\Models\ArticleComment;
 use App\Models\ArticleLike;
 use App\Models\CommentReport;
@@ -26,6 +27,48 @@ class ReaderArticleController extends Controller
         abort_unless($article->status === Article::STATUS_PUBLISHED && $article->type !== Article::TYPE_VIDEO, 404);
 
         return $article;
+    }
+
+    /** A published video, for its own page: the player's link, the description, who made it, and a few more videos. */
+    public function video(Article $article)
+    {
+        abort_unless($article->status === Article::STATUS_PUBLISHED && $article->type === Article::TYPE_VIDEO, 404);
+
+        $article->load('credits.user:id,name,profile_picture');
+
+        // Credits in the order the crew is listed everywhere else (Reporter, Scriptwriter, ...), one row per role
+        $credits = collect(ArticleCredit::ROLES)
+            ->map(fn (string $label, string $role) => [
+                'role'   => $label,
+                'people' => $article->credits->where('role', $role)->filter(fn (ArticleCredit $c) => $c->user)
+                    ->map(fn (ArticleCredit $c) => ['id' => $c->user->id, 'name' => $c->user->name])->values()->all(),
+            ])
+            ->filter(fn (array $row) => $row['people'])
+            ->values();
+
+        $cards = app(ArticleController::class);
+        $more = Article::where('status', Article::STATUS_PUBLISHED)
+            ->where('type', Article::TYPE_VIDEO)
+            ->where('id', '!=', $article->id)
+            ->orderByDesc('published_at')->orderByDesc('id')
+            ->limit(3)->get()
+            ->map(fn (Article $a) => $cards->toVideoCard($a));
+
+        $youtubeId = Article::youtubeId($article->video_url);
+
+        return response()->json([
+            'id'           => $article->id,
+            'title'        => $article->title,
+            'category'     => $article->video_category ?: 'Video',
+            'published_at' => ($article->published_at ?? $article->created_at)?->toIso8601String(),
+            // Video details are plain text (see publishDirectVideo); shown with its line breaks
+            'description'  => trim(html_entity_decode(strip_tags((string) ($article->content ?: $article->excerpt)))),
+            'video_url'    => $article->video_url,
+            'youtube_id'   => $youtubeId,
+            'thumbnail'    => $article->cover_image ?: ($youtubeId ? "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg" : null),
+            'credits'      => $credits,
+            'more'         => $more,
+        ]);
     }
 
     /** $role is the title held at the time; without one, the person's current title is used. */

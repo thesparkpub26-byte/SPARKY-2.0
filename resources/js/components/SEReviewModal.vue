@@ -304,7 +304,10 @@ watch(() => [props.isOpen, props.submission], () => {
     if (props.isOpen && props.submission) {
         submissionData.value = {
             articleId: props.submission.id || props.submission.article_id,
-            taskId: props.submission.taskId || props.submission.task_id || props.submission.raw?.tasks?.[0]?.id || null,
+            // Always the writer's task: it is the one that has to go back to "Returned" so they can revise and resubmit
+            taskId: props.submission.taskId || props.submission.task_id
+                || (props.submission.raw?.tasks || []).find(t => t.type === 'writing')?.id
+                || props.submission.raw?.tasks?.[0]?.id || null,
             title: props.submission.title,
             section: props.submission.section?.name || props.submission.section || 'News',
             authorName: props.submission.author?.name || props.submission.authorName || '—',

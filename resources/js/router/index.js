@@ -7,6 +7,7 @@ import ReaderHome from '../views/reader/ReaderHome.vue';
 const ArticleView = () => import('../views/reader/ArticleView.vue');
 const CategoryView = () => import('../views/reader/CategoryView.vue');
 const VideosView = () => import('../views/reader/VideosView.vue');
+const VideoView = () => import('../views/reader/VideoView.vue');
 const GalleryView = () => import('../views/reader/GalleryView.vue');
 const PublishedIssuesView = () => import('../views/reader/PublishedIssuesView.vue');
 const PrivacyPolicyView = () => import('../views/reader/PrivacyPolicyView.vue');
@@ -45,6 +46,7 @@ const routes = [
   { path: '/article', redirect: '/' },
   { path: '/categories', name: 'CategoryView', component: CategoryView },
   { path: '/videos', name: 'VideosView', component: VideosView },
+  { path: '/video/:id', name: 'VideoView', component: VideoView },
   { path: '/gallery', name: 'GalleryView', component: GalleryView },
   { path: '/issues', name: 'PublishedIssuesView', component: PublishedIssuesView },
   { path: '/search', name: 'SearchView', component: SearchView },
@@ -151,7 +153,7 @@ const TITLES = {
 };
 
 router.afterEach((to) => {
-  if (to.name === 'ArticleView') return;
+  if (to.name === 'ArticleView' || to.name === 'VideoView') return; // these set their own title once loaded
 
   let title = TITLES[to.name];
   if (to.name === 'CategoryView' && to.query.category) title = String(to.query.category);

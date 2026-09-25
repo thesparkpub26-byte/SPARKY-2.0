@@ -56,6 +56,7 @@ Route::post('/reader/articles/{article}/read',    [ReaderArticleController::clas
 Route::post('/reader/articles/{article}/share',   [ReaderArticleController::class, 'share'])->middleware('throttle:60,1,article-share');
 Route::get('/reader/articles/{article}/comments', [ReaderArticleController::class, 'comments']);
 Route::get('/reader/search',        [ReaderSearchController::class, 'search'])->middleware('throttle:60,1,search');
+Route::get('/reader/videos/{article}', [ReaderArticleController::class, 'video'])->whereNumber('article')->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
 Route::get('/reader/videos',        [ArticleController::class, 'videos'])->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
 Route::get('/reader/issues',        [PublishedIssueController::class, 'latest'])->middleware('cache.headers:public;max_age=30;s_maxage=60;stale_while_revalidate=120;etag');
 Route::get('/reader/issues/{issue}', [PublishedIssueController::class, 'publicShow']);

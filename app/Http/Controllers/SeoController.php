@@ -40,6 +40,31 @@ class SeoController extends Controller
         ]]);
     }
 
+    /** The app page for /video/{id}: the video's title, description and YouTube thumbnail in the head. */
+    public function video(string $id)
+    {
+        $video = Article::where('status', Article::STATUS_PUBLISHED)
+            ->where('type', Article::TYPE_VIDEO)
+            ->find($id);
+
+        if (!$video) {
+            return response()->view('app', ['meta' => []]);
+        }
+
+        $youtubeId = Article::youtubeId($video->video_url);
+        $image = $video->cover_image ?: ($youtubeId ? "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg" : null);
+
+        return response()->view('app', ['meta' => [
+            'title'       => $video->title . ' | ' . self::SITE_NAME,
+            'description' => Str::limit(trim(strip_tags((string) ($video->excerpt ?: $video->content))), 200) ?: self::DEFAULT_DESCRIPTION,
+            'image'       => $image ? (str_starts_with($image, 'http') ? $image : url($image)) : null,
+            'url'         => url('/video/' . $video->id),
+            'type'        => 'video.other',
+            'published'   => ($video->published_at ?? $video->created_at)?->toIso8601String(),
+            'section'     => $video->video_category,
+        ]]);
+    }
+
     public function robots()
     {
         // Staff pages are for staff; the rest of the site is open to search engines
@@ -79,7 +104,17 @@ class SeoController extends Controller
                 'lastmod' => ($a->updated_at ?? $a->published_at)?->toAtomString(),
             ]);
 
-        $xml = view('sitemap', ['urls' => $pages->concat($articles)])->render();
+        $videos = Article::where('status', Article::STATUS_PUBLISHED)
+            ->where('type', Article::TYPE_VIDEO)
+            ->orderByDesc('published_at')
+            ->limit(5000)
+            ->get(['id', 'published_at', 'updated_at'])
+            ->map(fn (Article $a) => [
+                'loc'     => url('/video/' . $a->id),
+                'lastmod' => ($a->updated_at ?? $a->published_at)?->toAtomString(),
+            ]);
+
+        $xml = view('sitemap', ['urls' => $pages->concat($articles)->concat($videos)])->render();
 
         return response($xml, 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
     }

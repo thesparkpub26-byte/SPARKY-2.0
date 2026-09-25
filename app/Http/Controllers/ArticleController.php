@@ -157,7 +157,7 @@ class ArticleController extends Controller
     /** A video's card: its category as the badge, a YouTube thumbnail when there's no cover, and the link to watch. */
     public function toVideoCard(Article $a): array
     {
-        $youtubeId = preg_match('~(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/|live/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})~i', (string) $a->video_url, $m) ? $m[1] : null;
+        $youtubeId = Article::youtubeId($a->video_url);
 
         return array_merge($this->toCard($a), [
             'badge'     => $a->video_category ?: 'Video',

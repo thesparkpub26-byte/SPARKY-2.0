@@ -109,7 +109,22 @@ class TaskController extends Controller
         $assigneeId = $task->assignee_id;
 
         $wasWritingTask = $task->type === Task::TYPE_WRITING;
+
+        // The writer's task is the assignment itself: cancelling it takes the artist / crew tasks made with it along
+        $crewTasks = $wasWritingTask ? $this->crewTasksOf($task) : collect();
+
         $task->delete();
+
+        foreach ($crewTasks as $crew) {
+            Notification::create([
+                'user_id' => $crew->assignee_id,
+                'title'   => 'Assignment Cancelled',
+                'message' => "The assignment '{$title}' was cancelled, so your task '{$crew->title}' was removed.",
+                'type'    => Notification::TYPE_GENERAL,
+                'data'    => ['task_id' => $crew->id],
+            ]);
+            $crew->delete();
+        }
 
         if ($articleId) {
             $article = Article::find($articleId);
@@ -222,6 +237,36 @@ class TaskController extends Controller
         ]);
 
         return response()->json($task->load(['assignee', 'assignedBy', 'section', 'article']));
+    }
+
+    /**
+     * The artist / crew tasks that belong to an assignment (the writer's task). The assign form creates them
+     * unlinked and names each "<assignment title> (Visuals / Graphics)" and so on, straight after the writer's
+     * task, so those are found by that name; once an article exists they are found through it as well.
+     * Nothing is touched once the article is live: its artwork tasks are then part of the published record.
+     */
+    private function crewTasksOf(Task $assignment)
+    {
+        if ($assignment->article_id && Article::whereKey($assignment->article_id)->where('status', Article::STATUS_PUBLISHED)->exists()) {
+            return collect();
+        }
+
+        $crewTypes = [Task::TYPE_ILLUSTRATION, Task::TYPE_PHOTOGRAPHY, Task::TYPE_VIDEOGRAPHY, Task::TYPE_VIDEO_EDITING];
+        $madeTogether = [$assignment->created_at->copy()->subMinutes(2), $assignment->created_at->copy()->addMinutes(2)];
+
+        return Task::whereIn('type', $crewTypes)
+            ->where('id', '!=', $assignment->id)
+            ->where(function ($q) use ($assignment, $madeTogether) {
+                if ($assignment->article_id) {
+                    $q->orWhere('article_id', $assignment->article_id);
+                }
+                $q->orWhere(fn ($q) => $q
+                    ->whereNull('article_id')
+                    ->where('assigned_by', $assignment->assigned_by)
+                    ->whereBetween('created_at', $madeTogether)
+                    ->whereIn('title', array_map(fn ($suffix) => $assignment->title . $suffix, [' (Visuals / Graphics)', ' (Videography)', ' (Video Editing)'])));
+            })
+            ->get();
     }
 
     /** The person who assigned the task, or an editor / copyreader (who review submitted work). */

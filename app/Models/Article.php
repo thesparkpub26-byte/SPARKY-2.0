@@ -131,6 +131,12 @@ class Article extends Model
         return $this->hasMany(ArticleCredit::class);
     }
 
+    /** The 11-character video id in any common YouTube link (watch?v=, youtu.be/, /embed/, /shorts/, /live/), or null. */
+    public static function youtubeId(?string $url): ?string
+    {
+        return preg_match('~(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/|live/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})~i', (string) $url, $m) ? $m[1] : null;
+    }
+
     // Status helpers
     public function isDraft(): bool { return $this->status === self::STATUS_DRAFT; }
     public function isSubmitted(): bool { return $this->status === self::STATUS_SUBMITTED; }

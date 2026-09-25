@@ -54,12 +54,8 @@ const props = defineProps({
 
 const router = useRouter();
 
-// Videos open on their own link; articles go to the article page
+// Videos open their own page (with the player on it); articles go to the article page
 const navigateToArticle = () => {
-  if (props.article.video_url) {
-    window.open(props.article.video_url, '_blank', 'noopener');
-    return;
-  }
-  router.push(`/article/${props.article.id}`);
+  router.push(props.article.video_url ? `/video/${props.article.id}` : `/article/${props.article.id}`);
 };
 </script>

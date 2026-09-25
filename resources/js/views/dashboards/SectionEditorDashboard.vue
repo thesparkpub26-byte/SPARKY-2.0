@@ -1645,7 +1645,10 @@ const loadSESubmissions = async () => {
         });
 
         const combined = relevantArticles.map(a => {
-            const matched = tasksList.find(t => t.article_id === a.id);
+            // The writer's task, not whichever task on the article comes first: the artist's is newer, so it
+            // is listed first, and returning it would leave the writer's task stuck in "Submitted"
+            const onArticle = tasksList.filter(t => t.article_id === a.id);
+            const matched = onArticle.find(t => t.type === 'writing') || onArticle[0];
             return {
                 ...a,
                 id: a.id,

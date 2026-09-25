@@ -19,6 +19,7 @@ Route::get('/sitemap.xml', [SeoController::class, 'sitemap']);
 
 // Article pages carry their own title / summary / picture so shared links preview properly
 Route::get('/article/{id}', [SeoController::class, 'article'])->where('id', '[0-9]+');
+Route::get('/video/{id}', [SeoController::class, 'video'])->where('id', '[0-9]+');
 
 // Uploaded photos, avatars and issue PDFs are kept in the database (see config/filesystems.php)
 Route::get('/storage/{path}', [StoredFileController::class, 'show'])->where('path', '.+');
