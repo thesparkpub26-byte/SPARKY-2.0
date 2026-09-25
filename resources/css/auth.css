@@ -386,3 +386,14 @@ body {
         right: 16px;
     }
 }
+
+/* Phones: the banner shrinks to fit its content, so the whole sign-in form (down to the Sign Up link) fits on one screen */
+@media (max-width: 600px) {
+    .left-section {
+        /* Its natural height: never squeezed smaller than the logo and title (a short screen scrolls instead) */
+        flex: 0 0 auto;
+        min-height: 0;
+        padding-top: 24px;
+        padding-bottom: 32px;
+    }
+}
