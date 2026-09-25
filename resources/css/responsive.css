@@ -1,0 +1,327 @@
+/*
+ * Responsive layer for the staff dashboards (admin, editor-in-chief, section editor, writer, artist,
+ * broadcaster). Loaded last so it wins over the per-role stylesheets.
+ *
+ * On phones and small tablets the fixed sidebar becomes a slide-in drawer, opened by the hamburger in
+ * MobileNavToggle.vue (which toggles `mobile-nav-open` on <html>).
+ */
+
+.mobile-nav-toggle,
+.mobile-nav-backdrop {
+    display: none;
+}
+
+/* Wrapper for a table that sits directly in a card, so it can scroll sideways on phones */
+.table-scroll {
+    overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+    .dashboard-container {
+        height: 100vh;
+        height: 100dvh;
+    }
+
+    /* ---- Sidebar drawer ---- */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1100;
+        width: min(300px, 86vw);
+        height: 100vh;
+        height: 100dvh;
+        padding: max(20px, env(safe-area-inset-top)) 20px max(16px, env(safe-area-inset-bottom));
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        transform: translateX(-105%);
+        visibility: hidden;
+        transition: transform 0.25s ease, visibility 0s linear 0.25s, box-shadow 0.25s ease;
+    }
+
+    .brand {
+        margin-bottom: 24px;
+    }
+
+    .nav-menu {
+        flex: 1 0 auto;
+        overflow-y: visible;
+    }
+
+    html.mobile-nav-open .sidebar {
+        transform: none;
+        visibility: visible;
+        transition: transform 0.25s ease, visibility 0s, box-shadow 0.25s ease;
+        box-shadow: 0 0 40px rgba(15, 23, 42, 0.28);
+    }
+
+    .mobile-nav-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1090;
+        background: rgba(15, 23, 42, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    html.mobile-nav-open .mobile-nav-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .mobile-nav-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #1e293b;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+    }
+
+    /* ---- Main area ---- */
+    .main-content {
+        width: 100%;
+        min-width: 0;
+        padding: max(14px, env(safe-area-inset-top)) 14px 20px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .top-header {
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    /* The 200px basis lets the action buttons drop onto their own row instead of squeezing the search box */
+    .top-header .search-bar {
+        flex: 1 1 200px;
+        min-width: 0;
+        padding: 11px 16px;
+    }
+
+    .top-header-right {
+        gap: 10px !important;
+        min-width: 0;
+    }
+
+    .page-header {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
+
+    /* Button groups next to a page title (inline-styled flex boxes) */
+    .page-header > div {
+        flex-wrap: wrap;
+    }
+
+    /* !important: the overview grids of some tabs set their columns inline */
+    .overview-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 16px;
+    }
+
+    /* A card that spans 2 columns would create a phantom second column in the single-column grid */
+    .dashboard-grid > *,
+    .overview-grid > * {
+        grid-column: 1 / -1;
+    }
+
+    .summary-cards-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .summary-cards-row > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+
+    .summary-card {
+        padding: 16px;
+        min-height: 110px;
+    }
+
+    .summary-card-icon {
+        top: 12px;
+        right: 12px;
+    }
+
+    .summary-value {
+        font-size: 30px;
+    }
+
+    .analytics-grid-top,
+    .analytics-grid-bottom,
+    .dashboard-grid,
+    .engagement-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .top-header-right {
+        flex-wrap: wrap;
+    }
+
+    .assign-task-btn,
+    .new-user-btn,
+    .view-site-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    /* ---- Cards, grids ---- */
+    .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .metric-card {
+        min-height: 112px;
+        padding: 18px 14px;
+    }
+
+    .metric-icon-circle {
+        top: 12px;
+        right: 12px;
+    }
+
+    .metric-val {
+        font-size: 30px;
+    }
+
+    .activities-card,
+    .articles-card {
+        padding: 12px;
+        border-radius: 16px;
+    }
+
+    .kanban-board {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .kanban-column {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    /* ---- Tables: keep the desktop columns and let the card scroll sideways ---- */
+    .table-container,
+    .table-scroll,
+    .table-wrapper,
+    .activities-card,
+    .articles-card {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .articles-table,
+    .activities-table,
+    .table-container table,
+    .table-scroll table,
+    .table-wrapper table {
+        min-width: 720px;
+    }
+
+    .table-container {
+        padding: 12px !important;
+    }
+
+    /* ---- Pagination ---- */
+    .pagination-pill,
+    .floating-pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px 12px;
+        max-width: 100%;
+        padding: 8px 14px;
+    }
+
+    .floating-pagination {
+        width: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ---- Reader site, phones ---- */
+@media (max-width: 640px) {
+    .main-container {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .article-page-container {
+        padding: 20px 16px 8px;
+    }
+
+    .article-content-wrapper .article-title {
+        font-size: 26px;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    .article-body-content {
+        overflow-wrap: anywhere;
+    }
+
+    .article-body-content img,
+    .article-body-content iframe,
+    .article-body-content video {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .engagement-stats {
+        flex-wrap: wrap;
+        gap: 10px 16px;
+    }
+
+    .newsletter-card {
+        padding: 28px 20px;
+        gap: 24px;
+        border-radius: 22px;
+    }
+
+    .newsletter-right,
+    .newsletter-form {
+        width: 100%;
+    }
+
+    .newsletter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .newsletter-input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .btn-subscribe {
+        width: 100%;
+    }
+}

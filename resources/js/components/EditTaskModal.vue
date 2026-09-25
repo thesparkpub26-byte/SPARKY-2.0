@@ -379,4 +379,8 @@ const saveTask = async () => {
 
 .spin-icon { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 520px) {
+    .et-row { flex-direction: column; gap: 0; }
+}
 </style>

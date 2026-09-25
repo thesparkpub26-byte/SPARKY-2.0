@@ -129,6 +129,7 @@
         <main class="main-content">
             <!-- Top Header -->
             <header class="top-header">
+                <MobileNavToggle />
                 <div class="search-bar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     <input v-model="searchInput" type="search" :placeholder="searchPlaceholder" aria-label="Search current view">
@@ -946,7 +947,8 @@
                             <!-- Recent Publications -->
                             <div class="card">
                                 <h3 class="card-header">Recent Publications</h3>
-                                <table style="margin-top: 10px;">
+                                <div class="table-scroll">
+<table style="margin-top: 10px;">
                                     <thead>
                                         <tr class="table-header-rounded">
                                             <th style="background-color: #f1f5f9;">Title</th>
@@ -965,6 +967,7 @@
                                         <tr v-if="!filteredAnalyticsPages.length"><td colspan="4" class="empty-activity">No publication traffic data.</td></tr>
                                     </tbody>
                                 </table>
+</div>
                                 <a href="#" class="view-all" @click.prevent="activeTab = 'articles'">View All <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="m9 18 6-6-6-6"/></svg></a>
                             </div>
                             
@@ -1653,6 +1656,7 @@
 </template>
 
 <script setup>
+import MobileNavToggle from '../../components/MobileNavToggle.vue';
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { lazyModal } from '../../utils/lazyModal';
 import { useDebouncedSearch } from '../../utils/dashboardSearch';

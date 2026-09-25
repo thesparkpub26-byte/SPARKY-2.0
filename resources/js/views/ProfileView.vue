@@ -905,12 +905,27 @@ const confirmDelete = async () => {
     padding: 9px 12px;
   }
 
+  .profile-main {
+    padding: 24px 12px 48px;
+  }
+
   .profile-card {
     flex-direction: column;
-    width: 90%;
+    width: 100%;
     min-width: unset;
-    padding: 32px 24px;
+    box-sizing: border-box;
+    padding: 28px 18px;
     gap: 32px;
+  }
+
+  .info-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .info-grid > * {
+    overflow-wrap: anywhere;
   }
 
   .profile-left {

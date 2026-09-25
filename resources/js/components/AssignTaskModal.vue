@@ -687,6 +687,7 @@ const submitTask = async () => {
     padding: 0 12px;
     height: 44px;
     flex: 1;
+    min-width: 0;
     box-sizing: border-box;
     background: #ffffff;
     transition: all 0.2s;
@@ -704,6 +705,7 @@ const submitTask = async () => {
     font-size: 13px;
     color: #0f172a;
     width: 100%;
+    min-width: 0;
     font-family: 'Manrope', sans-serif;
 }
 

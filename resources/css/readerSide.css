@@ -1853,7 +1853,7 @@ body {
     }
     .article-main-grid,
     .category-main-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
     .newsletter-card {
         flex-direction: column;

@@ -5,6 +5,7 @@
 @import './sectionEditor.css';
 @import './staffArtist.css';
 @import './staffWriter.css';
+@import './responsive.css';
 
 /* Global Reset Overrides for Vue Application SPA */
 html, body {

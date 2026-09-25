@@ -110,6 +110,7 @@
         <main class="main-content">
             <!-- Top Header -->
             <header class="top-header">
+                <MobileNavToggle />
                 <div class="search-bar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -542,6 +543,7 @@
 </template>
 
 <script setup>
+import MobileNavToggle from '../../components/MobileNavToggle.vue';
 import { makeMatcher, searchAcademicYears, noPressWorksText, useDebouncedSearch } from '../../utils/dashboardSearch';
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { lazyModal } from '../../utils/lazyModal';
