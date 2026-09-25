@@ -233,6 +233,15 @@ class HardeningTest extends TestCase
         $this->assertStringNotContainsString(base_path(), $body);
     }
 
+    public function test_signed_out_callers_get_a_401_not_a_server_error_whatever_headers_they_send(): void
+    {
+        // no "Accept: application/json", as from a script, a crawler or a browser's address bar
+        $this->get('/api/users')->assertStatus(401)->assertJson(['message' => 'Unauthenticated.']);
+        $this->get('/api/tasks', ['Accept' => 'text/html'])->assertStatus(401);
+        $this->post('/api/logout')->assertStatus(401);
+        $this->getJson('/api/users', ['Authorization' => 'Bearer not-a-real-token'])->assertStatus(401);
+    }
+
     public function test_a_disabled_account_can_not_use_an_old_token_on_any_route(): void
     {
         $user = $this->makeUser('reader');
