@@ -11,9 +11,11 @@ class PublishedIssue extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'pdf_path', 'uploaded_by'];
+    protected $fillable = ['title', 'pdf_path', 'uploaded_by', 'published_at'];
 
     protected $appends = ['pdf_url'];
+
+    protected $casts = ['published_at' => 'datetime'];
 
     // Readers' cached issue lists are rebuilt whenever an issue is added, edited or removed
     protected static function booted(): void

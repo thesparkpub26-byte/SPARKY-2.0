@@ -1195,6 +1195,11 @@
                     <AuthorSelect v-model="galleryUploadForm.artist_id" :options="galleryArtists" />
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Date Published</label>
+                    <input v-model="galleryUploadForm.published_at" type="datetime-local" class="form-control" :max="nowLocal">
+                    <p class="date-hint">Set an earlier date to post a past photo under its actual date.</p>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Photo</label>
                     <div class="upload-box">
                         <div class="upload-circle" :class="{ 'has-preview': galleryUploadPreview }">
@@ -1248,6 +1253,11 @@
                 <div class="form-group">
                     <label class="form-label">Author</label>
                     <AuthorSelect v-model="editGalleryForm.artist_id" :options="galleryArtists" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date Published</label>
+                    <input v-model="editGalleryForm.published_at" type="datetime-local" class="form-control" :max="nowLocal">
+                    <p class="date-hint">Set an earlier date to post a past photo under its actual date.</p>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Photo</label>
@@ -1305,6 +1315,11 @@
                     <input v-model="issueUploadForm.title" class="form-control" placeholder="e.g. AY 2025-2026 Issue 1" required>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Date Published</label>
+                    <input v-model="issueUploadForm.published_at" type="datetime-local" class="form-control" :max="nowLocal">
+                    <p class="date-hint">Set an earlier date to post a past issue under its actual date.</p>
+                </div>
+                <div class="form-group">
                     <label class="form-label">PDF File</label>
                     <div class="upload-box">
                         <div class="upload-circle">
@@ -1359,6 +1374,11 @@
                 <div class="form-group">
                     <label class="form-label">Title</label>
                     <input v-model="editIssueForm.title" class="form-control" placeholder="e.g. AY 2025-2026 Issue 1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date Published</label>
+                    <input v-model="editIssueForm.published_at" type="datetime-local" class="form-control" :max="nowLocal">
+                    <p class="date-hint">Set an earlier date to post a past issue under its actual date.</p>
                 </div>
                 <div class="form-group">
                     <label class="form-label">PDF File</label>
@@ -1789,7 +1809,7 @@ const deleteYearError = ref('');
 const galleryPhotos = ref([]);
 const galleryLoading = ref(false);
 const isGalleryUploadModalOpen = ref(false);
-const galleryUploadForm = ref({ title: '', artist_id: '' });
+const galleryUploadForm = ref({ title: '', artist_id: '', published_at: '' });
 const galleryArtists = ref([]);
 const galleryUploadFile = ref(null);
 const galleryUploadPreview = ref('');
@@ -1802,7 +1822,7 @@ const deletePhotoSaving = ref(false);
 const isGalleryViewModalOpen = ref(false);
 const viewingPhoto = ref(null);
 const isEditingGalleryPhoto = ref(false);
-const editGalleryForm = ref({ title: '', artist_id: '' });
+const editGalleryForm = ref({ title: '', artist_id: '', published_at: '' });
 const editGalleryFile = ref(null);
 const editGalleryPreview = ref('');
 const editGalleryFileInput = ref(null);
@@ -1813,7 +1833,7 @@ const editGallerySaving = ref(false);
 const publishedIssues = ref([]);
 const issuesLoading = ref(false);
 const isIssueUploadModalOpen = ref(false);
-const issueUploadForm = ref({ title: '' });
+const issueUploadForm = ref({ title: '', published_at: '' });
 const issueUploadFile = ref(null);
 const issueUploadFileName = ref('');
 const issueFileInput = ref(null);
@@ -1825,7 +1845,7 @@ const deleteIssueSaving = ref(false);
 const isIssueDetailModalOpen = ref(false);
 const viewingIssue = ref(null);
 const isEditingIssue = ref(false);
-const editIssueForm = ref({ title: '' });
+const editIssueForm = ref({ title: '', published_at: '' });
 const editIssueFile = ref(null);
 const editIssueFileName = ref('');
 const editIssueFileInput = ref(null);
@@ -1847,6 +1867,9 @@ const formatRole = (role) => {
 const formatDate = (date) => date
     ? new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
     : '—';
+const pad2 = (n) => String(n).padStart(2, '0');
+const toLocalInput = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+const nowLocal = computed(() => toLocalInput(new Date()));
 const updatedLabel = computed(() => eicOverview.value.updated_at
     ? `Updated ${new Date(eicOverview.value.updated_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
     : 'Loading...');
@@ -2041,7 +2064,7 @@ const loadGalleryArtists = async () => {
 
 const openGalleryUploadModal = () => {
     loadGalleryArtists();
-    galleryUploadForm.value = { title: '', artist_id: '' };
+    galleryUploadForm.value = { title: '', artist_id: '', published_at: toLocalInput(new Date()) };
     galleryUploadFile.value = null;
     galleryUploadPreview.value = '';
     galleryUploadError.value = '';
@@ -2072,12 +2095,17 @@ const submitGalleryUpload = async () => {
         galleryUploadError.value = 'Please choose a photo to upload.';
         return;
     }
+    if (galleryUploadForm.value.published_at && new Date(galleryUploadForm.value.published_at).getTime() > Date.now() + 60 * 1000) {
+        galleryUploadError.value = 'The date published can\'t be in the future.';
+        return;
+    }
 
     galleryUploadSaving.value = true;
     const payload = new FormData();
     payload.append('title', galleryUploadForm.value.title);
     payload.append('artist_id', galleryUploadForm.value.artist_id);
     payload.append('photo', galleryUploadFile.value);
+    if (galleryUploadForm.value.published_at) payload.append('published_at', new Date(galleryUploadForm.value.published_at).toISOString());
 
     try {
         const response = await fetch('/api/gallery', {
@@ -2145,7 +2173,11 @@ const closeGalleryViewModal = () => {
 
 const startEditGalleryPhoto = () => {
     loadGalleryArtists();
-    editGalleryForm.value = { title: viewingPhoto.value?.title || '', artist_id: viewingPhoto.value?.artist_id || '' };
+    editGalleryForm.value = {
+        title: viewingPhoto.value?.title || '',
+        artist_id: viewingPhoto.value?.artist_id || '',
+        published_at: viewingPhoto.value?.created_at ? toLocalInput(new Date(viewingPhoto.value.created_at)) : toLocalInput(new Date()),
+    };
     editGalleryFile.value = null;
     editGalleryPreview.value = viewingPhoto.value?.image_url || '';
     editGalleryError.value = '';
@@ -2173,11 +2205,16 @@ const submitEditGalleryPhoto = async () => {
         editGalleryError.value = 'Please select the author of the photo.';
         return;
     }
+    if (editGalleryForm.value.published_at && new Date(editGalleryForm.value.published_at).getTime() > Date.now() + 60 * 1000) {
+        editGalleryError.value = 'The date published can\'t be in the future.';
+        return;
+    }
 
     editGallerySaving.value = true;
     const payload = new FormData();
     payload.append('title', editGalleryForm.value.title);
     payload.append('artist_id', editGalleryForm.value.artist_id);
+    if (editGalleryForm.value.published_at) payload.append('published_at', new Date(editGalleryForm.value.published_at).toISOString());
     if (editGalleryFile.value) {
         payload.append('photo', editGalleryFile.value);
     }
@@ -2252,7 +2289,7 @@ const loadPublishedIssues = async () => {
 };
 
 const openIssueUploadModal = () => {
-    issueUploadForm.value = { title: '' };
+    issueUploadForm.value = { title: '', published_at: toLocalInput(new Date()) };
     issueUploadFile.value = null;
     issueUploadFileName.value = '';
     issueUploadError.value = '';
@@ -2279,11 +2316,16 @@ const submitIssueUpload = async () => {
         issueUploadError.value = 'Please choose a PDF to upload.';
         return;
     }
+    if (issueUploadForm.value.published_at && new Date(issueUploadForm.value.published_at).getTime() > Date.now() + 60 * 1000) {
+        issueUploadError.value = 'The date published can\'t be in the future.';
+        return;
+    }
 
     issueUploadSaving.value = true;
     const payload = new FormData();
     payload.append('title', issueUploadForm.value.title);
     payload.append('pdf', issueUploadFile.value);
+    if (issueUploadForm.value.published_at) payload.append('published_at', new Date(issueUploadForm.value.published_at).toISOString());
 
     try {
         const response = await fetch('/api/published-issues', {
@@ -2392,7 +2434,10 @@ const closeIssueDetailModal = () => {
 };
 
 const startEditIssue = () => {
-    editIssueForm.value = { title: viewingIssue.value?.title || '' };
+    editIssueForm.value = {
+        title: viewingIssue.value?.title || '',
+        published_at: viewingIssue.value?.created_at ? toLocalInput(new Date(viewingIssue.value.created_at)) : toLocalInput(new Date()),
+    };
     editIssueFile.value = null;
     editIssueFileName.value = '';
     editIssueError.value = '';
@@ -2416,10 +2461,15 @@ const submitEditIssue = async () => {
         editIssueError.value = 'Please provide a title.';
         return;
     }
+    if (editIssueForm.value.published_at && new Date(editIssueForm.value.published_at).getTime() > Date.now() + 60 * 1000) {
+        editIssueError.value = 'The date published can\'t be in the future.';
+        return;
+    }
 
     editIssueSaving.value = true;
     const payload = new FormData();
     payload.append('title', editIssueForm.value.title);
+    if (editIssueForm.value.published_at) payload.append('published_at', new Date(editIssueForm.value.published_at).toISOString());
     if (editIssueFile.value) {
         payload.append('pdf', editIssueFile.value);
     }
@@ -4215,6 +4265,12 @@ const openMonitoringSheet = (sheet) => {
 }
 
 .gallery-card-meta {
+    font-size: 11.5px;
+    color: #94a3b8;
+}
+
+.date-hint {
+    margin: 4px 0 0;
     font-size: 11.5px;
     color: #94a3b8;
 }

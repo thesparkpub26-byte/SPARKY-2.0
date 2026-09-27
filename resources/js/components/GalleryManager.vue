@@ -45,6 +45,11 @@
                         <AuthorSelect v-model="uploadForm.artist_id" :options="artists" />
                     </div>
                     <div class="form-group">
+                        <label class="form-label">Date Published</label>
+                        <input v-model="uploadForm.published_at" type="datetime-local" class="form-control" :max="nowLocal">
+                        <p class="date-hint">Set an earlier date to post a past photo under its actual date.</p>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Photo</label>
                         <div class="upload-box">
                             <div class="upload-circle" :class="{ 'has-preview': uploadPreview }">
@@ -100,6 +105,11 @@
                     <div class="form-group">
                         <label class="form-label">Author</label>
                         <AuthorSelect v-model="editForm.artist_id" :options="artists" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date Published</label>
+                        <input v-model="editForm.published_at" type="datetime-local" class="form-control" :max="nowLocal">
+                        <p class="date-hint">Set an earlier date to post a past photo under its actual date.</p>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Photo</label>
@@ -160,6 +170,10 @@ const formatDate = (iso) => iso
     ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '';
 
+const pad = (n) => String(n).padStart(2, '0');
+const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const nowLocal = computed(() => toLocalInput(new Date()));
+
 const props = defineProps({ search: { type: String, default: '' } });
 
 const photos = ref([]);
@@ -198,7 +212,7 @@ const loadArtists = async () => {
 
 // ── Upload ──────────────────────────────────────────────────────────────────
 const isUploadOpen = ref(false);
-const uploadForm = ref({ title: '', artist_id: '' });
+const uploadForm = ref({ title: '', artist_id: '', published_at: '' });
 const uploadFile = ref(null);
 const uploadPreview = ref('');
 const uploadFileInput = ref(null);
@@ -207,7 +221,7 @@ const uploadSaving = ref(false);
 
 const openUploadModal = () => {
     loadArtists();
-    uploadForm.value = { title: '', artist_id: '' };
+    uploadForm.value = { title: '', artist_id: '', published_at: toLocalInput(new Date()) };
     uploadFile.value = null;
     uploadPreview.value = '';
     uploadError.value = '';
@@ -234,12 +248,17 @@ const submitUpload = async () => {
         uploadError.value = 'Please choose a photo to upload.';
         return;
     }
+    if (uploadForm.value.published_at && new Date(uploadForm.value.published_at).getTime() > Date.now() + 60 * 1000) {
+        uploadError.value = 'The date published can\'t be in the future.';
+        return;
+    }
 
     uploadSaving.value = true;
     const payload = new FormData();
     payload.append('title', uploadForm.value.title);
     payload.append('artist_id', uploadForm.value.artist_id);
     payload.append('photo', uploadFile.value);
+    if (uploadForm.value.published_at) payload.append('published_at', new Date(uploadForm.value.published_at).toISOString());
 
     try {
         const response = await fetch('/api/gallery', { method: 'POST', headers: authHeaders(), body: payload });
@@ -258,7 +277,7 @@ const submitUpload = async () => {
 const isViewOpen = ref(false);
 const viewingPhoto = ref(null);
 const isEditing = ref(false);
-const editForm = ref({ title: '', artist_id: '' });
+const editForm = ref({ title: '', artist_id: '', published_at: '' });
 const editFile = ref(null);
 const editPreview = ref('');
 const editFileInput = ref(null);
@@ -278,7 +297,11 @@ const closeViewModal = () => {
 
 const startEdit = () => {
     loadArtists();
-    editForm.value = { title: viewingPhoto.value?.title || '', artist_id: viewingPhoto.value?.artist_id || '' };
+    editForm.value = {
+        title: viewingPhoto.value?.title || '',
+        artist_id: viewingPhoto.value?.artist_id || '',
+        published_at: viewingPhoto.value?.created_at ? toLocalInput(new Date(viewingPhoto.value.created_at)) : toLocalInput(new Date()),
+    };
     editFile.value = null;
     editPreview.value = viewingPhoto.value?.image_url || '';
     editError.value = '';
@@ -302,12 +325,17 @@ const submitEdit = async () => {
         editError.value = 'Please select the author of the photo.';
         return;
     }
+    if (editForm.value.published_at && new Date(editForm.value.published_at).getTime() > Date.now() + 60 * 1000) {
+        editError.value = 'The date published can\'t be in the future.';
+        return;
+    }
 
     editSaving.value = true;
     const payload = new FormData();
     payload.append('title', editForm.value.title);
     payload.append('artist_id', editForm.value.artist_id);
     if (editFile.value) payload.append('photo', editFile.value);
+    if (editForm.value.published_at) payload.append('published_at', new Date(editForm.value.published_at).toISOString());
 
     try {
         const response = await fetch(`/api/gallery/${viewingPhoto.value.id}`, { method: 'POST', headers: authHeaders(), body: payload });
@@ -415,5 +443,11 @@ onMounted(loadPhotos);
     background: #f1f5f9;
     border-radius: 14px;
     display: block;
+}
+
+.date-hint {
+    margin: 4px 0 0;
+    font-size: 11.5px;
+    color: #94a3b8;
 }
 </style>

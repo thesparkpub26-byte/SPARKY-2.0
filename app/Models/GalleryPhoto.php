@@ -11,9 +11,11 @@ class GalleryPhoto extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'image_path', 'uploaded_by', 'artist_id'];
+    protected $fillable = ['title', 'image_path', 'uploaded_by', 'artist_id', 'published_at'];
 
     protected $appends = ['image_url'];
+
+    protected $casts = ['published_at' => 'datetime'];
 
     // Readers' cached gallery lists are rebuilt whenever a photo is added, edited or removed
     protected static function booted(): void

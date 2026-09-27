@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\PublishedIssue;
 use App\Support\PublicCache;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -69,18 +70,25 @@ class PublishedIssueController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
+            'title'        => 'required|string|max:255',
             // Kept under this server's 40M php.ini upload limit.
-            'pdf'   => 'required|file|mimes:pdf|max:35840',
+            'pdf'          => 'required|file|mimes:pdf|max:35840',
+            'published_at' => 'nullable|date|before_or_equal:now',
         ]);
 
         $path = $request->file('pdf')->store('published-issues', 'public');
+        $publishedAt = isset($validated['published_at']) ? Carbon::parse($validated['published_at']) : now();
 
-        $issue = PublishedIssue::create([
-            'title'       => $validated['title'],
-            'pdf_path'    => $path,
-            'uploaded_by' => $request->user()->id,
+        $issue = new PublishedIssue([
+            'title'        => $validated['title'],
+            'pdf_path'     => $path,
+            'uploaded_by'  => $request->user()->id,
+            'published_at' => $publishedAt,
         ]);
+        // A backdated issue is filed and sorted under its actual date, not the upload time
+        $issue->created_at = $publishedAt;
+        $issue->updated_at = $publishedAt;
+        $issue->save();
 
         Activity::record($request->user(), 'Uploaded a published issue', $issue);
 
@@ -99,9 +107,10 @@ class PublishedIssueController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
+            'title'        => 'sometimes|required|string|max:255',
             // Kept under this server's 40M php.ini upload limit.
-            'pdf'   => 'nullable|file|mimes:pdf|max:35840',
+            'pdf'          => 'nullable|file|mimes:pdf|max:35840',
+            'published_at' => 'nullable|date|before_or_equal:now',
         ]);
 
         if ($request->hasFile('pdf')) {
@@ -110,6 +119,14 @@ class PublishedIssueController extends Controller
             }
             $validated['pdf_path'] = $request->file('pdf')->store('published-issues', 'public');
             unset($validated['pdf']);
+        }
+
+        if (isset($validated['published_at'])) {
+            $publishedAt = Carbon::parse($validated['published_at']);
+            $validated['published_at'] = $publishedAt;
+            // Re-filed under its corrected date, so it sorts correctly for readers
+            $issue->created_at = $publishedAt;
+            $issue->updated_at = $publishedAt;
         }
 
         $issue->update($validated);

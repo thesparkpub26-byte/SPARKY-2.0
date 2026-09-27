@@ -7,6 +7,7 @@ use App\Models\GalleryPhoto;
 use App\Models\User;
 use App\Support\Images;
 use App\Support\PublicCache;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -110,19 +111,26 @@ class GalleryController extends Controller
         }
 
         $validated = $request->validate([
-            'title'     => 'required|string|max:255',
-            'photo'     => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
-            'artist_id' => ['required', 'integer', Rule::in($this->artistsQuery()->pluck('id')->all())],
+            'title'         => 'required|string|max:255',
+            'photo'         => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+            'artist_id'     => ['required', 'integer', Rule::in($this->artistsQuery()->pluck('id')->all())],
+            'published_at'  => 'nullable|date|before_or_equal:now',
         ], ['artist_id.in' => 'Please pick an artist or the Art Editor as the author.']);
 
         $path = Images::store($request->file('photo'), 'gallery', Images::PHOTO);
+        $publishedAt = isset($validated['published_at']) ? Carbon::parse($validated['published_at']) : now();
 
-        $photo = GalleryPhoto::create([
-            'title'       => $validated['title'],
-            'image_path'  => $path,
-            'uploaded_by' => $request->user()->id,
-            'artist_id'   => $validated['artist_id'],
+        $photo = new GalleryPhoto([
+            'title'        => $validated['title'],
+            'image_path'   => $path,
+            'uploaded_by'  => $request->user()->id,
+            'artist_id'    => $validated['artist_id'],
+            'published_at' => $publishedAt,
         ]);
+        // A backdated photo is filed and sorted under its actual date, not the upload time
+        $photo->created_at = $publishedAt;
+        $photo->updated_at = $publishedAt;
+        $photo->save();
 
         Activity::record($request->user(), 'Uploaded a gallery photo', $photo);
 
@@ -139,9 +147,10 @@ class GalleryController extends Controller
         $allowedArtists = $this->artistsQuery()->pluck('id')->push($photo->artist_id)->filter()->values()->all();
 
         $validated = $request->validate([
-            'title'     => 'sometimes|required|string|max:255',
-            'photo'     => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
-            'artist_id' => ['sometimes', 'required', 'integer', Rule::in($allowedArtists)],
+            'title'        => 'sometimes|required|string|max:255',
+            'photo'        => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+            'artist_id'    => ['sometimes', 'required', 'integer', Rule::in($allowedArtists)],
+            'published_at' => 'nullable|date|before_or_equal:now',
         ], ['artist_id.in' => 'Please pick an artist or the Art Editor as the author.']);
 
         if ($request->hasFile('photo')) {
@@ -150,6 +159,14 @@ class GalleryController extends Controller
             }
             $validated['image_path'] = Images::store($request->file('photo'), 'gallery', Images::PHOTO);
             unset($validated['photo']);
+        }
+
+        if (isset($validated['published_at'])) {
+            $publishedAt = Carbon::parse($validated['published_at']);
+            $validated['published_at'] = $publishedAt;
+            // Re-filed under its corrected date, so it sorts correctly for readers
+            $photo->created_at = $publishedAt;
+            $photo->updated_at = $publishedAt;
         }
 
         $photo->update($validated);
