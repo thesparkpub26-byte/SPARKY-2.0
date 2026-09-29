@@ -252,19 +252,23 @@ class TaskController extends Controller
         }
 
         $crewTypes = [Task::TYPE_ILLUSTRATION, Task::TYPE_PHOTOGRAPHY, Task::TYPE_VIDEOGRAPHY, Task::TYPE_VIDEO_EDITING];
-        $madeTogether = [$assignment->created_at->copy()->subMinutes(2), $assignment->created_at->copy()->addMinutes(2)];
+        $titleMatches = array_map(fn ($suffix) => $assignment->title . $suffix, [' (Visuals / Graphics)', ' (Videography)', ' (Video Editing)']);
 
         return Task::whereIn('type', $crewTypes)
             ->where('id', '!=', $assignment->id)
-            ->where(function ($q) use ($assignment, $madeTogether) {
+            ->where(function ($q) use ($assignment, $titleMatches) {
                 if ($assignment->article_id) {
                     $q->orWhere('article_id', $assignment->article_id);
                 }
+                // Fall back to a title + assigner match regardless of the crew task's own article_id —
+                // duplicate saves used to link the writer's and the crew's task to different article
+                // copies, which left the article_id check above unable to find its match.
                 $q->orWhere(fn ($q) => $q
-                    ->whereNull('article_id')
                     ->where('assigned_by', $assignment->assigned_by)
-                    ->whereBetween('created_at', $madeTogether)
-                    ->whereIn('title', array_map(fn ($suffix) => $assignment->title . $suffix, [' (Visuals / Graphics)', ' (Videography)', ' (Video Editing)'])));
+                    ->whereIn('title', $titleMatches)
+                    ->where(fn ($q) => $q
+                        ->whereNull('article_id')
+                        ->orWhereDoesntHave('article', fn ($q) => $q->where('status', Article::STATUS_PUBLISHED))));
             })
             ->get();
     }

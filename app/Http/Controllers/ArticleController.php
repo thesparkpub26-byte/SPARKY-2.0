@@ -524,6 +524,10 @@ class ArticleController extends Controller
             return response()->json(['message' => 'You are not allowed to submit this article.'], 403);
         }
 
+        if ($article->type !== Article::TYPE_VIDEO && (!$article->cover_image || empty($article->media_files))) {
+            return response()->json(['message' => 'A thumbnail and at least one media upload are required before this article can be submitted for review.'], 422);
+        }
+
         $article->update([
             'status'       => Article::STATUS_SUBMITTED,
             'submitted_at' => now(),

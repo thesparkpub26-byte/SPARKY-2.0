@@ -133,12 +133,9 @@
                         <span class="status-hint-text" v-if="task.status">Status: <strong>{{ task.status }}</strong></span>
                     </div>
                     <div class="actions-right">
-                        <button type="button" class="btn-secondary-pill" @click="saveProgress">
+                        <button type="button" class="btn-secondary-pill" @click="saveProgress" :disabled="isSaving">
                             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                            Save
-                        </button>
-                        <button v-if="!allowSectionEdit" type="button" class="btn-outline-pill" @click="saveAsDraft">
-                            Save as Draft
+                            {{ isSaving ? 'Saving...' : 'Save' }}
                         </button>
                         <button type="button" class="btn-blue-pill" @click="currentTab = 'visuals'">
                             Next
@@ -297,15 +294,10 @@
                             Back
                         </button>
                         <div class="actions-right">
-                            <template v-if="allowSectionEdit">
-                                <button type="button" class="btn-blue-pill-action" @click="saveProgress">
-                                    Save
-                                </button>
-                            </template>
-                            <template v-else>
-                                <button type="button" class="btn-outline-pill" @click="saveAsDraft">
-                                    Save as Draft
-                                </button>
+                            <button type="button" class="btn-blue-pill-action" @click="saveProgress" :disabled="isSaving">
+                                {{ isSaving ? 'Saving...' : 'Save' }}
+                            </button>
+                            <template v-if="!allowSectionEdit">
                                 <template v-if="isCopyreader">
                                     <button type="button" class="btn-return-pill-ws" @click="openCopyreaderConfirm('return')" :disabled="copyreaderDone">
                                         Return to Writer
@@ -314,12 +306,15 @@
                                         {{ copyreaderDone ? 'Already Handled' : 'Submit to Editor-In-Chief' }}
                                     </button>
                                 </template>
-                                <button v-else type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true" :disabled="alreadySubmitted">
+                                <button v-else type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true" :disabled="alreadySubmitted || !canSubmitForReview" :title="!alreadySubmitted && !canSubmitForReview ? submitBlockedReason : ''">
                                     {{ alreadySubmitted ? 'Already Submitted' : 'Submit for Review' }}
                                 </button>
                             </template>
                         </div>
                     </div>
+                    <p v-if="!allowSectionEdit && !isCopyreader && !alreadySubmitted && !canSubmitForReview" class="visuals-submit-hint">
+                        {{ submitBlockedReason }}
+                    </p>
                 </div>
             </div>
 
@@ -412,8 +407,8 @@
                             Back to Assets
                         </button>
                         <div class="actions-right">
-                            <button type="button" class="btn-outline-pill" @click="saveAsDraft">
-                                Save as Draft
+                            <button type="button" class="btn-blue-pill-action" @click="saveProgress" :disabled="isSaving">
+                                {{ isSaving ? 'Saving...' : 'Save' }}
                             </button>
                             <template v-if="isCopyreader">
                                 <button type="button" class="btn-return-pill-ws" @click="openCopyreaderConfirm('return')" :disabled="copyreaderDone">
@@ -423,7 +418,7 @@
                                     {{ copyreaderDone ? 'Already Handled' : 'Submit to Editor-In-Chief' }}
                                 </button>
                             </template>
-                            <button v-else type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true" :disabled="alreadySubmitted">
+                            <button v-else type="button" class="btn-blue-pill-action" @click="isSubmitModalOpen = true" :disabled="alreadySubmitted || !canSubmitForReview" :title="!alreadySubmitted && !canSubmitForReview ? submitBlockedReason : ''">
                                 {{ alreadySubmitted ? 'Already Submitted' : 'Submit for Review' }}
                             </button>
                         </div>
@@ -549,6 +544,7 @@ const isCopyreaderActing = ref(false);
 const copyreaderError = ref('');
 const copyreaderSuccessMessage = ref('');
 const saveFeedback = ref('');
+const isSaving = ref(false);
 
 // Editor & Headline State
 const editorRef = ref(null);
@@ -573,6 +569,16 @@ const isMediaFromArtist = (url) => artistMediaUrls.value.has(url);
 const task = computed(() => props.taskData || {});
 
 const alreadySubmitted = computed(() => ['submitted', 'completed'].includes(task.value?.status));
+
+// A thumbnail and at least one media upload must be in place before the article can move on —
+// when an artist/PJ is paired on the task, those come from them, so submission waits on their upload.
+const canSubmitForReview = computed(() => !!thumbnailPreview.value && mediaPreviews.value.length > 0);
+const submitBlockedReason = computed(() => {
+    if (canSubmitForReview.value) return '';
+    return collaboratorArtist.value
+        ? `Waiting for ${collaboratorArtist.value} to submit the thumbnail and media before this can be submitted for review.`
+        : 'Add a thumbnail and at least one media upload before submitting for review.';
+});
 
 // User info from local storage
 const currentUser = computed(() => {
@@ -1061,6 +1067,10 @@ const linkSiblingArtistTask = async (articleId, token) => {
 };
 
 const saveProgress = async () => {
+    // Guards against repeated/rapid clicks firing overlapping requests, which used to create
+    // duplicate articles since each concurrent call independently saw no article_id yet.
+    if (isSaving.value) return;
+    isSaving.value = true;
     try {
         const token = localStorage.getItem('sparky_token');
         if (!token) {
@@ -1078,14 +1088,16 @@ const saveProgress = async () => {
             section_id: props.allowSectionEdit
                 ? selectedSectionId.value
                 : (task.value.section?.id || task.value.raw?.section_id || null),
-            type: 'article'
+            type: 'article',
+            status: 'draft'
         };
 
         let articleId = task.value.article_id || task.value.raw?.article_id || task.value.article?.id;
 
         // Create or update the article
         if (articleId) {
-            // Update existing article
+            // Update existing article — never silently reset a further-along article back to draft
+            const { status, ...updateData } = articleData;
             const updateRes = await fetch(`/api/articles/${articleId}`, {
                 method: 'PUT',
                 headers: {
@@ -1093,7 +1105,7 @@ const saveProgress = async () => {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(articleData)
+                body: JSON.stringify(updateData)
             });
             if (!updateRes.ok) {
                 const errBody = await updateRes.json().catch(() => ({}));
@@ -1126,18 +1138,31 @@ const saveProgress = async () => {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ article_id: articleId })
+                    body: JSON.stringify({ article_id: articleId, status: 'in_progress' })
                 });
             }
-            // Update local task with article_id
+            // Update local task with article_id so the next save updates this same article
+            // instead of creating another one
             if (task.value) {
                 task.value.article_id = articleId;
+                task.value.status = 'in_progress';
             }
         }
 
         await linkSiblingArtistTask(articleId, token);
 
-        saveFeedback.value = '✓ Progress saved';
+        emit('task-saved-as-draft', {
+            ...task.value,
+            title: articleHeadline.value || task.value.title,
+            content: articleContent.value,
+            word_count: wordCount.value,
+            thumbnail: thumbnailPreview.value,
+            media: mediaPreviews.value,
+            status: task.value.status || 'in_progress',
+            article_id: articleId
+        });
+
+        saveFeedback.value = '✓ Saved';
         setTimeout(() => {
             saveFeedback.value = '';
         }, 3000);
@@ -1147,116 +1172,8 @@ const saveProgress = async () => {
         setTimeout(() => {
             saveFeedback.value = '';
         }, 4000);
-    }
-};
-
-const saveAsDraft = async () => {
-    try {
-        const token = localStorage.getItem('sparky_token');
-        if (!token) {
-            console.error('No authentication token found');
-            return;
-        }
-
-        // Prepare article data
-        const articleData = {
-            title: articleHeadline.value || task.value.title,
-            content: articleContent.value,
-            word_count: wordCount.value,
-            cover_image: thumbnailPreview.value,
-            media_files: mediaPreviews.value.map(m => m.url),
-            section_id: props.allowSectionEdit
-                ? selectedSectionId.value
-                : (task.value.section?.id || task.value.raw?.section_id || null),
-            type: 'article'
-        };
-
-        let articleId = task.value.article_id || task.value.raw?.article_id || task.value.article?.id;
-
-        // Create or update the article
-        if (articleId) {
-            // Update existing article
-            const articleResponse = await fetch(`/api/articles/${articleId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(articleData)
-            });
-            if (!articleResponse.ok) {
-                const errBody = await articleResponse.json().catch(() => ({}));
-                throw new Error(errBody.message || `Server error ${articleResponse.status}`);
-            }
-        } else {
-            // Create new article
-            const articleResponse = await fetch('/api/articles', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(articleData)
-            });
-            if (!articleResponse.ok) {
-                const errBody = await articleResponse.json().catch(() => ({}));
-                throw new Error(errBody.message || `Server error ${articleResponse.status}`);
-            }
-            const newArticle = await articleResponse.json();
-            articleId = newArticle.id;
-
-            // Link the article to the task
-            if (task.value.id) {
-                await fetch(`/api/tasks/${task.value.id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        article_id: articleId,
-                        status: 'in_progress'
-                    })
-                });
-            }
-        }
-
-        // Update task status to in_progress
-        if (task.value.id) {
-            await fetch(`/api/tasks/${task.value.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    status: 'in_progress'
-                })
-            });
-        }
-
-        await linkSiblingArtistTask(articleId, token);
-
-        const payload = {
-            ...task.value,
-            title: articleHeadline.value || task.value.title,
-            content: articleContent.value,
-            word_count: wordCount.value,
-            thumbnail: thumbnailPreview.value,
-            media: mediaPreviews.value,
-            status: 'in_progress',
-            article_id: articleId
-        };
-
-        emit('task-saved-as-draft', payload);
-        closeModal();
-    } catch (err) {
-        console.error('Error saving draft:', err);
-        alert('Failed to save draft. Please try again.');
+    } finally {
+        isSaving.value = false;
     }
 };
 
@@ -1854,6 +1771,13 @@ const closeAllModals = (action) => {
 .actions-left {
     display: flex;
     align-items: center;
+}
+
+.visuals-submit-hint {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: #b45309;
+    text-align: right;
 }
 
 .status-hint-text {
