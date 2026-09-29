@@ -147,8 +147,8 @@
                 <p>Delete <strong>"{{ photoToDelete.title }}"</strong>? This action cannot be undone.</p>
                 <p v-if="deleteError" class="new-user-error">{{ deleteError }}</p>
                 <div class="modal-footer">
-                    <button class="btn-back" type="button" @click="photoToDelete = null">Cancel</button>
                     <button class="btn-next btn-danger" type="button" :disabled="deleteSaving" @click="deletePhoto">{{ deleteSaving ? 'Deleting...' : 'Delete Photo' }}</button>
+                    <button class="btn-back" type="button" @click="photoToDelete = null">Cancel</button>
                 </div>
             </div>
         </div>

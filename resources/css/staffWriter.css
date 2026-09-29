@@ -424,17 +424,6 @@
     color: #991b1b;
 }
 
-/* Submission Type Badge */
-.submission-type-badge {
-    background-color: #f1f5f9;
-    color: #475569;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-}
-
 /* Filter Button */
 .status-filter-btn {
     display: inline-flex;
@@ -537,102 +526,10 @@
     color: #1d4ed8;
 }
 
-/* Pagination Pill */
-.pagination-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-    margin-bottom: 20px;
-}
-
-.pagination-pill {
-    background-color: #ffffff;
-    border-radius: 999px;
-    padding: 8px 24px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-    display: inline-flex;
-    align-items: center;
-    gap: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    flex-wrap: wrap;
-}
-
-.page-btn {
-    background: none;
-    border: none;
-    color: #475569;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.15s, opacity 0.15s, background-color 0.15s;
-    padding: 8px 16px;
-    border-radius: 8px;
-    min-height: 36px;
-    min-width: fit-content;
-}
-
-.page-btn:hover:not(:disabled) {
-    color: #1a73e8;
-    background-color: #f1f5f9;
-}
-
-.page-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.page-number {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-decoration: none;
-    flex-shrink: 0;
-}
-
-.page-number:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
-}
-
-.page-number.active {
-    background-color: #1a73e8;
-    color: #ffffff;
-    font-weight: 700;
-}
-
-.page-dots {
-    color: #94a3b8;
-    font-weight: 700;
-}
-
-.page-results-count {
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 500;
-    margin-left: 12px;
-    border-left: 1px solid #e2e8f0;
-    padding-left: 16px;
-    white-space: nowrap;
-}
-
-.page-results-count strong {
-    color: #0f172a;
-    font-weight: 700;
-}
-
+/* Pagination bar styling (.pagination-container, .pagination-pill, .page-btn,
+   .page-number, .page-dots, .page-results-count) now lives as a single
+   canonical block in resources/css/app.css, after the @imports, so it can't
+   be shadowed by CSS import order. See app.css for the source of truth. */
 
 /* Press Works - Publication Type Badges */
 .pub-badge {
@@ -749,5 +646,19 @@
 
 .btn-cancel:hover:not(:disabled) {
     background: #e2e8f0;
+}
+
+/* Delete confirmation: danger action on top, Cancel below, both full width */
+.writer-confirm-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.writer-confirm-actions .btn-confirm-delete,
+.writer-confirm-actions .btn-cancel {
+    width: 100%;
+    text-align: center;
 }
 

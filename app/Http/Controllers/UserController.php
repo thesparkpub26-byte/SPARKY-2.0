@@ -210,6 +210,11 @@ class UserController extends Controller
     public function deleteAccount(Request $request)
     {
         $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Only administrators can delete their account. Please contact an admin if you need your account removed.'], 403);
+        }
+
         $request->validate(['password' => 'required|string|current_password:sanctum']);
 
         try {

@@ -9,11 +9,16 @@
       </div>
       <div class="newsletter-right">
         <h4 class="newsletter-stay-updated">Stay up to date</h4>
-        <form class="newsletter-form" @submit.prevent="handleSubscribe">
-          <input type="email" v-model="email" placeholder="Enter your email" class="newsletter-input" maxlength="255" required>
-          <button type="submit" class="btn-subscribe" :disabled="loading">{{ loading ? 'Subscribing…' : 'Subscribe' }}</button>
-        </form>
-        <p v-if="feedback" :class="['newsletter-feedback', { error: isError }]" role="status">{{ feedback }}</p>
+        <template v-if="isLoggedIn">
+          <p class="newsletter-feedback">You're already getting our latest stories as a member — no need to subscribe separately.</p>
+        </template>
+        <template v-else>
+          <form class="newsletter-form" @submit.prevent="handleSubscribe">
+            <input type="email" v-model="email" placeholder="Enter your email" class="newsletter-input" maxlength="255" required>
+            <button type="submit" class="btn-subscribe">Subscribe</button>
+          </form>
+          <p class="newsletter-feedback">We'll take you to sign up so your stories land straight in your inbox.</p>
+        </template>
       </div>
     </div>
   </section>
@@ -21,35 +26,16 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const email = ref('');
-const loading = ref(false);
-const feedback = ref('');
-const isError = ref(false);
+const isLoggedIn = !!localStorage.getItem('sparky_token');
 
-const handleSubscribe = async () => {
-  if (!email.value.trim() || loading.value) return;
+const handleSubscribe = () => {
+  const trimmed = email.value.trim();
+  if (!trimmed) return;
 
-  loading.value = true;
-  feedback.value = '';
-  try {
-    const res = await fetch('/api/newsletter/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ email: email.value.trim() }),
-    });
-    const body = await res.json().catch(() => ({}));
-
-    isError.value = !res.ok;
-    feedback.value = res.ok
-      ? body.message
-      : (body.errors?.email?.[0] || (res.status === 429 ? 'Too many attempts. Please try again in a minute.' : body.message) || 'Could not subscribe. Please try again.');
-    if (res.ok) email.value = '';
-  } catch {
-    isError.value = true;
-    feedback.value = 'Could not connect to the server. Please try again.';
-  } finally {
-    loading.value = false;
-  }
+  router.push({ path: '/signup', query: { email: trimmed } });
 };
 </script>

@@ -789,56 +789,10 @@ td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 .action-btn.edit:hover { color: #1a73e8; }
 .action-btn.delete:hover { color: #f43f5e; }
 
-/* Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-    gap: 8px;
-}
-
-.page-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: none;
-    background: transparent;
-    font-size: 13px;
-    font-weight: 600;
-    color: #555;
-    cursor: pointer;
-}
-
-.page-btn.active {
-    background-color: #1a73e8;
-    color: white;
-}
-
-.page-btn:hover:not(.active) {
-    background-color: #f1f5f9;
-}
-
-.page-nav {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 13px;
-    font-weight: 600;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0 12px;
-}
-
-.page-info {
-    font-size: 13px;
-    color: #555;
-    margin-left: 20px;
-}
+/* Pagination bar styling (.pagination-container, .pagination-pill, .page-btn,
+   .page-number, .page-dots, .page-results-count) now lives as a single
+   canonical block in resources/css/app.css, after the @imports, so it can't
+   be shadowed by CSS import order. See app.css for the source of truth. */
 
 /* Archive Grid */
 .archive-explorer {
@@ -1066,19 +1020,6 @@ td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
     bottom: 0;
 }
 
-.floating-pagination {
-    background-color: white;
-    border-radius: 40px;
-    padding: 8px 32px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    width: max-content;
-    margin: 16px auto 30px auto;
-    gap: 32px;
-}
-
 /* Analytics Specifics */
 .analytics-list-item {
     background-color: #f1f5f9;
@@ -1145,11 +1086,6 @@ td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
     display: flex;
     flex-direction: column;
     justify-content: center;
-}
-
-.engagement-box.tall {
-    grid-row: span 2;
-    justify-content: flex-start;
 }
 
 .engagement-label {
@@ -1546,6 +1482,19 @@ td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 .new-user-confirm-modal .btn-danger {
     background: #dc2626;
     box-shadow: 0 7px 14px rgba(220, 38, 38, 0.2);
+}
+
+/* Confirmation dialogs: confirm/danger action stacked on top, Cancel below, both full width */
+.new-user-confirm-modal .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.new-user-confirm-modal .modal-footer .btn-back,
+.new-user-confirm-modal .modal-footer .btn-next {
+    width: 100%;
+    justify-content: center;
 }
 
 .presswork-modal-note {

@@ -1823,54 +1823,11 @@ body {
     gap: 6px;
 }
 
-/* Pagination Capsule Bar */
-.pagination-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-top: 36px;
-    margin-bottom: 24px;
-    width: 100%;
-}
-
-.pagination-capsule {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 999px;
-    padding: 6px 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-}
-
-.pagination-btn {
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
-    text-decoration: none;
-    border-radius: 999px;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.pagination-btn:hover:not(.disabled) {
-    color: #0f172a;
-    background-color: #f1f5f9;
-}
-
-.pagination-btn.active {
-    background-color: #1d6bf3;
-    color: #ffffff;
-    font-weight: 700;
-}
-
-.pagination-btn.disabled {
-    color: #cbd5e1;
-    cursor: not-allowed;
-}
+/* Pagination bar styling (.pagination-container, .pagination-pill, .page-btn,
+   .page-number, .page-dots, .page-results-count) now lives as a single
+   canonical block in resources/css/app.css, after the @imports. CategoryView
+   uses those canonical classes instead of the old .pagination-wrapper /
+   .pagination-capsule / .pagination-btn classes that used to live here. */
 
 /* Responsive Grid */
 @media (max-width: 1024px) {

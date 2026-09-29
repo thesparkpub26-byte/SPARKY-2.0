@@ -294,25 +294,20 @@
             </table>
         </div>
         
-        <div class="pagination-container" style="display: flex; justify-content: center; align-items: center; padding-top: 20px; margin-top: 20px; border-top: 1px solid #f1f5f9; gap: 16px;">
-            <button class="page-nav" :disabled="articlesPage <= 1" @click="articlesPage--" style="cursor: pointer;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
-            </button>
-            <div class="page-numbers" style="display: flex; gap: 8px;">
+        <div class="pagination-container" style="padding-top: 20px; margin-top: 20px; border-top: 1px solid #f1f5f9;">
+            <div class="pagination-pill">
+                <button class="page-btn" :disabled="articlesPage <= 1" @click="articlesPage--">Previous</button>
                 <button
                     v-for="p in articlesTotalPages"
                     :key="p"
-                    class="page-num"
+                    class="page-number"
                     :class="{ active: p === articlesPage }"
                     @click="articlesPage = p"
                 >{{ p }}</button>
-            </div>
-            <button class="page-nav" :disabled="articlesPage >= articlesTotalPages" @click="articlesPage++" style="cursor: pointer;">
-                Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </button>
-            
-            <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
-                Showing <b>{{ seArticlesPaged.length }}</b> of <b>{{ seArticlesFiltered.length }}</b> {{ isBroadcastHeadUser ? 'videos' : 'articles' }}
+                <button class="page-btn" :disabled="articlesPage >= articlesTotalPages" @click="articlesPage++">Next</button>
+                <div class="page-results-count">
+                    Showing <strong>{{ seArticlesPaged.length }}</strong> of <strong>{{ seArticlesFiltered.length }}</strong> {{ isBroadcastHeadUser ? 'videos' : 'articles' }}
+                </div>
             </div>
         </div>
     </div>
@@ -436,13 +431,13 @@
                     </table>
                 </div>
 
-                <div class="pagination-container" style="display:flex;justify-content:center;align-items:center;padding-top:20px;margin-top:20px;border-top:1px solid #f1f5f9;gap:16px;">
-                    <button class="page-nav" :disabled="seAssignedPage <= 1" @click="seAssignedPage--" style="cursor:pointer;">Previous</button>
-                    <div class="page-numbers" style="display:flex;gap:8px;">
-                        <button v-for="p in seAssignedTotalPages" :key="p" class="page-num" :class="{ active: p === seAssignedPage }" @click="seAssignedPage = p">{{ p }}</button>
+                <div class="pagination-container" style="padding-top:20px;margin-top:20px;border-top:1px solid #f1f5f9;">
+                    <div class="pagination-pill">
+                        <button class="page-btn" :disabled="seAssignedPage <= 1" @click="seAssignedPage--">Previous</button>
+                        <button v-for="p in seAssignedTotalPages" :key="p" class="page-number" :class="{ active: p === seAssignedPage }" @click="seAssignedPage = p">{{ p }}</button>
+                        <button class="page-btn" :disabled="seAssignedPage >= seAssignedTotalPages" @click="seAssignedPage++">Next</button>
+                        <div class="page-results-count">Showing <strong>{{ seAssignedPaged.length }}</strong> of <strong>{{ seAssignedTasks.length }}</strong></div>
                     </div>
-                    <button class="page-nav" :disabled="seAssignedPage >= seAssignedTotalPages" @click="seAssignedPage++" style="cursor:pointer;">Next</button>
-                    <div class="showing-text" style="color:#64748b;font-size:13px;margin-left:16px;">Showing <b>{{ seAssignedPaged.length }}</b> of <b>{{ seAssignedTasks.length }}</b></div>
                 </div>
             </div>
         </div>
@@ -576,24 +571,18 @@
                     </table>
                 </div>
 
-                <div class="pagination-container" style="display: flex; justify-content: center; align-items: center; padding: 20px 0; gap: 16px;">
-                    <button class="page-nav" :disabled="contributorsPage <= 1" @click="contributorsPage--" style="cursor: pointer;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Previous
-                    </button>
-                    <div class="page-numbers" style="display: flex; gap: 8px;">
+                <div class="pagination-container" style="padding: 20px 0;">
+                    <div class="pagination-pill">
+                        <button class="page-btn" :disabled="contributorsPage <= 1" @click="contributorsPage--">Previous</button>
                         <button
                             v-for="p in contributorsTotalPages"
                             :key="p"
-                            class="page-num"
+                            class="page-number"
                             :class="{ active: p === contributorsPage }"
                             @click="contributorsPage = p"
                         >{{ p }}</button>
-                    </div>
-                    <button class="page-nav" :disabled="contributorsPage >= contributorsTotalPages" @click="contributorsPage++" style="cursor: pointer;">
-                        Next <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                    </button>
-                    <div class="showing-text" style="color: #64748b; font-size: 13px; margin-left: 16px;">
-                        Showing <b>{{ filteredContributors.length }}</b> results
+                        <button class="page-btn" :disabled="contributorsPage >= contributorsTotalPages" @click="contributorsPage++">Next</button>
+                        <div class="page-results-count">Showing <strong>{{ filteredContributors.length }}</strong> results</div>
                     </div>
                 </div>
             </div>
@@ -720,8 +709,8 @@
             <p>Delete <strong>{{ yearToDelete }}</strong>? This will permanently delete all monitoring sheets and their entries for this academic year. This action cannot be undone.</p>
             <p v-if="deleteYearError" class="new-user-error">{{ deleteYearError }}</p>
             <div class="modal-footer">
-                <button class="btn-back" type="button" @click="closeDeleteYearModal">Cancel</button>
                 <button class="btn-next btn-danger" type="button" :disabled="deleteYearSaving" @click="deleteYear">{{ deleteYearSaving ? 'Deleting...' : 'Delete Academic Year' }}</button>
+                <button class="btn-back" type="button" @click="closeDeleteYearModal">Cancel</button>
             </div>
         </div>
     </div>
@@ -737,8 +726,8 @@
             </div>
             <p>Are you sure you want to delete "<strong>{{ deleteTaskTarget?.title }}</strong>"? This will permanently remove the assignment and any associated draft. This action cannot be undone.</p>
             <div class="modal-footer">
-                <button class="btn-back" type="button" @click="deleteTaskTarget = null">Cancel</button>
                 <button class="btn-next btn-danger" type="button" :disabled="deletingTask" @click="doDeleteTask">{{ deletingTask ? 'Deleting...' : 'Delete Assignment' }}</button>
+                <button class="btn-back" type="button" @click="deleteTaskTarget = null">Cancel</button>
             </div>
         </div>
     </div>

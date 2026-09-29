@@ -341,7 +341,7 @@
                         </div>
                     </div>
 
-                    <div class="task-detail-actions">
+                    <div class="task-detail-actions task-detail-actions-split">
                         <button class="task-detail-btn task-detail-btn-cancel" @click="cancelEditTask">
                             Cancel
                         </button>
@@ -382,11 +382,11 @@
             </div>
 
             <div class="delete-confirm-actions">
-                <button class="delete-confirm-btn delete-confirm-btn-cancel" @click="cancelDeleteTask">
-                    Cancel
-                </button>
                 <button class="delete-confirm-btn delete-confirm-btn-delete" @click="confirmDeleteTask" :disabled="deleteConfirmSaving">
                     {{ deleteConfirmSaving ? 'Deleting...' : 'Delete Task' }}
+                </button>
+                <button class="delete-confirm-btn delete-confirm-btn-cancel" @click="cancelDeleteTask">
+                    Cancel
                 </button>
             </div>
             <p v-if="deleteConfirmError" class="delete-confirm-error">{{ deleteConfirmError }}</p>
@@ -432,7 +432,7 @@
                 <div id="articleContentEditable" contenteditable="true" placeholder="Paste article content here..." style="width: 100%; padding: 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: #0f172a; font-family: 'Inter', sans-serif; line-height: 1.6; min-height: 200px; max-height: 300px; overflow-y: auto; resize: vertical; transition: all 0.2s; white-space: pre-wrap;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"></div>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
                 <button onclick="window.closeUploadModal()" style="padding: 12px 24px; background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600; color: #475569; font-size: 15px; font-family: 'Manrope', sans-serif; transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'" onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0'">Cancel</button>
                 <button onclick="window.saveArticle()" id="saveArticleBtn" style="padding: 12px 32px; background: #2563eb; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 15px; font-family: 'Manrope', sans-serif; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); transition: all 0.2s;" onmouseover="this.style.background='#1d4ed8'; this.style.boxShadow='0 6px 18px rgba(37, 99, 235, 0.4)'" onmouseout="this.style.background='#2563eb'; this.style.boxShadow='0 4px 14px rgba(37, 99, 235, 0.3)'">
                     Save Article
@@ -1828,6 +1828,11 @@ body {
         border-top: 2px solid #e2e8f0;
     }
 
+    /* Edit Task form: Cancel pinned bottom-left, Save Changes bottom-right */
+    .task-detail-actions-split {
+        justify-content: space-between;
+    }
+
     .task-detail-btn {
         padding: 14px 28px;
         border-radius: 12px;
@@ -2004,11 +2009,13 @@ body {
 
     .delete-confirm-actions {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: stretch;
         gap: 12px;
     }
 
     .delete-confirm-btn {
+        width: 100%;
         padding: 12px 24px;
         border-radius: 12px;
         cursor: pointer;
@@ -2017,6 +2024,10 @@ body {
         font-family: 'Manrope', sans-serif;
         transition: all 0.2s;
         border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
     }
 
     .delete-confirm-btn-cancel {

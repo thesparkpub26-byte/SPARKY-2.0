@@ -243,7 +243,7 @@
                             <img :src="writerInfo.avatar" :alt="writerInfo.name" class="writer-avatar-large" />
                             <div class="paired-writer-meta">
                                 <h4 class="paired-writer-name">{{ writerInfo.name }}</h4>
-                                <p class="paired-writer-sub">{{ writerInfo.role }} • Receives submitted visuals in Artist's Submissions</p>
+                                <p class="paired-writer-sub">{{ writerInfo.role }} • Your submitted visuals go straight into their article workspace</p>
                             </div>
                         </div>
                     </div>
@@ -292,7 +292,7 @@
                 <h3 class="submodal-title">Send visual assets to writer?</h3>
                 <p class="submodal-desc">
                     Your thumbnail and <strong>{{ mediaPreviews.length }} media file(s)</strong> will be sent directly to <strong>{{ writerInfo?.name || 'the assigned writer' }}</strong>.
-                    The writer will receive these in their <em>Artist's Submissions</em> tab to download and include in the final article.
+                    These will appear automatically in their article workspace, ready to use in the final article.
                 </p>
 
                 <div class="submodal-actions">
@@ -623,6 +623,40 @@ const saveAsDraft = async () => {
     }
 };
 
+// Push the submitted thumbnail/media straight into the linked article, so it shows up
+// in the writer's article workspace immediately instead of sitting in a separate tab.
+const syncToArticleWorkspace = async (token) => {
+    const articleId = task.value?.article_id;
+    if (!articleId) return;
+
+    try {
+        const articleRes = await fetch(`/api/articles/${articleId}`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        if (!articleRes.ok) return;
+        const article = await articleRes.json();
+
+        const existingMedia = Array.isArray(article.media_files) ? article.media_files : [];
+        const artistMedia = mediaPreviews.value.map(m => m.url).filter(Boolean);
+        const mergedMedia = [...existingMedia, ...artistMedia.filter(url => !existingMedia.includes(url))].slice(0, 3);
+
+        await fetch(`/api/articles/${articleId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                cover_image: thumbnailPreview.value || article.cover_image || '',
+                media_files: mergedMedia,
+            })
+        });
+    } catch (e) {
+        console.error('Failed to sync visuals to the article workspace:', e);
+    }
+};
+
 // Confirm and Send to Writer
 const confirmSendToWriter = async () => {
     if (!task.value?.id) return;
@@ -646,6 +680,8 @@ const confirmSendToWriter = async () => {
         });
 
         if (response.ok) {
+            await syncToArticleWorkspace(token);
+
             // Also notify writer if writer ID is available
             emit('task-submitted', {
                 ...task.value,

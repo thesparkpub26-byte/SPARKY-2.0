@@ -52,10 +52,17 @@
             </div>
             <p v-if="isMismatch" style="color: #d93025; font-size: 13px; font-weight: 500; margin-top: 10px;">Passwords do not match.</p>
           </div>
-          
+
+          <div class="input-group agreement-group">
+            <label class="agreement-checkbox">
+              <input type="checkbox" v-model="agreedToTerms" required>
+              <span>I agree to the <router-link to="/terms" target="_blank">Terms of Service</router-link> and <router-link to="/privacy-policy" target="_blank">Privacy Policy</router-link>.</span>
+            </label>
+          </div>
+
           <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
 
-        <button type="submit" class="submit-btn" :disabled="isMismatch || loading">
+        <button type="submit" class="submit-btn" :disabled="!isFormValid || loading">
             {{ loading ? 'Sending code…' : 'Sign Up' }}
           </button>
         </form>
@@ -68,14 +75,16 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
+const route = useRoute();
 const name = ref('');
-const email = ref('');
+const email = ref(typeof route.query.email === 'string' ? route.query.email : '');
 const password = ref('');
 const confirmPassword = ref('');
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+const agreedToTerms = ref(false);
 const errorMsg = ref('');
 const loading = ref(false);
 const router = useRouter();
@@ -84,8 +93,13 @@ const isMismatch = computed(() => {
   return confirmPassword.value.length > 0 && password.value !== confirmPassword.value;
 });
 
+const isFormValid = computed(() => {
+  return name.value.trim() && email.value.trim() && password.value && confirmPassword.value
+    && !isMismatch.value && agreedToTerms.value;
+});
+
 const handleSignUp = async () => {
-  if (isMismatch.value) return;
+  if (!isFormValid.value) return;
 
   errorMsg.value = '';
   loading.value = true;
@@ -129,6 +143,35 @@ const handleSignUp = async () => {
 </script>
 
 <style scoped>
+.agreement-group {
+  margin-bottom: 16px;
+}
+
+.agreement-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #444;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.agreement-checkbox input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.agreement-checkbox a {
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+.agreement-checkbox a:hover {
+  text-decoration: underline;
+}
+
 .error-msg {
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.4);

@@ -434,11 +434,11 @@ const confirmSend = async () => {
 .vr-credits-title { margin-top: 22px; }
 .vr-credits-sub { margin-bottom: 4px; }
 .vr-credits { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; padding-bottom: 150px; }
-.vr-footer-row { display: flex; justify-content: flex-end; gap: 12px; }
+.vr-footer-row { display: flex; justify-content: space-between; gap: 12px; }
 
 .vr-step-title { font-size: 17px; font-weight: 700; color: #0f172a; margin: 0 0 8px; }
 .vr-step-text { font-size: 13.5px; color: #475569; line-height: 1.6; margin: 0 0 4px; }
-.vr-step-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+.vr-step-actions { display: flex; gap: 12px; justify-content: space-between; margin-top: 20px; }
 
 .vr-btn-grey, .vr-btn-green, .vr-btn-blue {
     padding: 10px 22px;

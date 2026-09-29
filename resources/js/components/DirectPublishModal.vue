@@ -451,12 +451,12 @@ const closeModal = () => {
 .dp-link-btn { border: none; background: none; color: #dc2626; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
 
 .dp-error { color: #dc2626; font-size: 13px; margin: 16px 0 0; padding: 8px 12px; background: #fef2f2; border-radius: 10px; border: 1px solid #fecaca; }
-.dp-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px; }
+.dp-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; }
 
 .dp-sub-card { background: #fff; border-radius: 28px; width: 100%; max-width: 440px; padding: 30px; box-sizing: border-box; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3); }
 .dp-sub-title { margin: 0 0 8px; font-size: 18px; font-weight: 800; color: #0f172a; }
 .dp-sub-text { margin: 0 0 20px; font-size: 13.5px; color: #64748b; line-height: 1.6; }
-.dp-sub-actions { display: flex; justify-content: flex-end; gap: 12px; }
+.dp-sub-actions { display: flex; justify-content: space-between; gap: 12px; }
 
 @media (max-width: 860px) {
     .dp-grid { grid-template-columns: 1fr; }

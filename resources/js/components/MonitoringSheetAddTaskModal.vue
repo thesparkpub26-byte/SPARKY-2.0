@@ -881,7 +881,7 @@ onUnmounted(() => {
 /* Actions */
 .ms-modal-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 12px;
     margin-top: 24px;
     padding-top: 18px;

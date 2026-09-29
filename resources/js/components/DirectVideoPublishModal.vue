@@ -314,12 +314,12 @@ const closeModal = () => {
 .dv-btn-blue:disabled, .dv-btn-grey:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .dv-error { color: #dc2626; font-size: 13px; margin: 16px 0 0; padding: 8px 12px; background: #fef2f2; border-radius: 10px; border: 1px solid #fecaca; }
-.dv-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px; padding-bottom: 130px; }
+.dv-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; padding-bottom: 130px; }
 
 .dv-sub-card { background: #fff; border-radius: 28px; width: 100%; max-width: 440px; padding: 30px; box-sizing: border-box; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3); }
 .dv-sub-title { margin: 0 0 8px; font-size: 18px; font-weight: 800; color: #0f172a; }
 .dv-sub-text { margin: 0 0 20px; font-size: 13.5px; color: #64748b; line-height: 1.6; }
-.dv-sub-actions { display: flex; justify-content: flex-end; gap: 12px; }
+.dv-sub-actions { display: flex; justify-content: space-between; gap: 12px; }
 
 @media (max-width: 860px) {
     .dv-grid { grid-template-columns: 1fr; }

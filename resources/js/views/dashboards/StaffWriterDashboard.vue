@@ -40,21 +40,6 @@
                     </div>
                 </a>
 
-                <!-- Artist's Submissions Nav Item -->
-                <a href="#" class="nav-item" :class="{ active: activeTab === 'submissions' }" @click.prevent="activeTab = 'submissions'">
-                    <div class="nav-item-left">
-                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                            <path d="m9 16 2 2 4-4" />
-                        </svg>
-                        Artist's Submissions
-                    </div>
-                </a>
-
                 <!-- Press Works Nav Item -->
                 <a href="#" class="nav-item" :class="{ active: activeTab === 'pressWorks' }" @click.prevent="activeTab = 'pressWorks'">
                     <div class="nav-item-left">
@@ -362,64 +347,14 @@
                     </div>
                     <div class="pagination-container" v-if="filteredArticles.length > 0">
                         <div class="pagination-pill">
-                            <button class="page-btn" @click="changeArticlesPage(articlesCurrentPage - 1)" :disabled="articlesCurrentPage === 1">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="m15 18-6-6 6-6" />
-                                </svg>
-                                Previous
-                            </button>
+                            <button class="page-btn" @click="changeArticlesPage(articlesCurrentPage - 1)" :disabled="articlesCurrentPage === 1">Previous</button>
                             <a v-for="page in Math.min(totalArticlesPages, 5)" :key="page" href="#" class="page-number" :class="{ active: page === articlesCurrentPage }" @click.prevent="changeArticlesPage(page)">{{ page }}</a>
                             <span v-if="totalArticlesPages > 5" class="page-dots">&bull;&bull;&bull;</span>
-                            <button class="page-btn" @click="changeArticlesPage(articlesCurrentPage + 1)" :disabled="articlesCurrentPage === totalArticlesPages">
-                                Next
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="m9 18 6-6-6-6" />
-                                </svg>
-                            </button>
+                            <button class="page-btn" @click="changeArticlesPage(articlesCurrentPage + 1)" :disabled="articlesCurrentPage === totalArticlesPages">Next</button>
                             <div class="page-results-count">
                                 Showing <strong>{{ paginatedArticles.length }}</strong> of {{ filteredArticles.length }} articles
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- ARTIST'S SUBMISSIONS TAB -->
-                <div v-show="activeTab === 'submissions'" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
-                    <div class="page-header" style="margin-bottom: 4px;">
-                        <h1 class="page-title">Artist's Submissions</h1>
-                    </div>
-                    <div class="articles-card">
-                        <table class="articles-table">
-                            <thead>
-                                <tr>
-                                    <th style="padding-left: 28px;">Article Title</th>
-                                    <th>Artist/PJ</th>
-                                    <th>Submission Type</th>
-                                    <th style="text-align: center;">Status</th>
-                                    <th style="padding-right: 28px;">Submitted</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="submission in shownArtistSubmissions" :key="submission.id" @click="openArtistSubmissionModal(submission)" style="cursor: pointer;">
-                                    <td style="padding-left: 28px; font-weight: 700;">{{ submission.articleTitle }}</td>
-                                    <td style="color: #64748b;">{{ submission.artistName }}</td>
-                                    <td>
-                                        <span class="submission-type-badge">{{ submission.submissionType }}</span>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <span class="status-pill" :class="getStatusClass(submission.status)">{{ formatStatus(submission.status) }}</span>
-                                    </td>
-                                    <td style="padding-right: 28px; color: #64748b;">{{ formatArticleDate(submission.submittedAt) }}</td>
-                                </tr>
-                                <tr v-if="shownArtistSubmissions.length === 0">
-                                    <td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">
-                                        {{ searchQuery.trim() ? 'No submissions match your search.' : 'No artist submissions found' }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
 
@@ -513,13 +448,6 @@
         @view-submissions="handleViewSubmissions"
     />
 
-    <!-- Artist Submission Details & Download Modal -->
-    <ArtistSubmissionModal
-        :is-open="isArtistSubmissionModalOpen"
-        :submission-data="selectedArtistSubmission"
-        @close="isArtistSubmissionModalOpen = false"
-    />
-
     <!-- Read-only Article Preview (published articles) -->
     <ArticlePreviewModal
         :is-open="isArticlePreviewOpen"
@@ -534,9 +462,9 @@
             <h3 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#0f172a;">Delete Article?</h3>
             <p style="margin:0 0 20px;font-size:13.5px;color:#64748b;line-height:1.5;">This will permanently delete <strong>"{{ articleToDelete.title }}"</strong>. This cannot be undone.</p>
             <p v-if="deleteArticleError" style="margin:0 0 16px;font-size:13px;color:#dc2626;">{{ deleteArticleError }}</p>
-            <div style="display:flex;gap:12px;justify-content:flex-end;">
-                <button class="btn-cancel" @click="articleToDelete = null" :disabled="deletingArticle">Cancel</button>
+            <div class="writer-confirm-actions">
                 <button class="btn-confirm-delete" @click="doDeleteArticle" :disabled="deletingArticle">{{ deletingArticle ? 'Deleting…' : 'Delete' }}</button>
+                <button class="btn-cancel" @click="articleToDelete = null" :disabled="deletingArticle">Cancel</button>
             </div>
         </div>
     </div>
@@ -550,7 +478,6 @@ import { lazyModal } from '../../utils/lazyModal';
 import { useRouter } from 'vue-router';
 const AssignedTaskModal = lazyModal(() => import('../../components/AssignedTaskModal.vue'));
 const AssignmentWorkspaceModal = lazyModal(() => import('../../components/AssignmentWorkspaceModal.vue'));
-const ArtistSubmissionModal = lazyModal(() => import('../../components/ArtistSubmissionModal.vue'));
 const ArticlePreviewModal = lazyModal(() => import('../../components/ArticlePreviewModal.vue'));
 import NotificationsPopover from '../../components/NotificationsPopover.vue';
 import { signOut as performSignOut } from '../../utils/auth';
@@ -563,15 +490,12 @@ const matches = makeMatcher(searchQuery);
 const searchPlaceholder = computed(() => ({
     tasks: 'Search my tasks',
     articles: 'Search my articles',
-    submissions: 'Search artist submissions',
     pressWorks: 'Search press works',
 }[activeTab.value] || 'Search'));
 const isAssignedTaskModalOpen = ref(false);
 const isWorkspaceModalOpen = ref(false);
-const isArtistSubmissionModalOpen = ref(false);
 const isArticlePreviewOpen = ref(false);
 const selectedTask = ref({});
-const selectedArtistSubmission = ref({});
 const selectedArticlePreview = ref({});
 const isLoadingTasks = ref(false);
 
@@ -679,9 +603,7 @@ const articlesPerPage = 8;
 const activeStatusFilter = ref(false);
 const selectedStatusFilter = ref('all');
 
-// ── Artist Submissions State ─────────────────────────────────────────────────────
-const artistSubmissions = ref([]);
-const allTasks = ref([]); // Store all tasks to find artist submissions
+const allTasks = ref([]); // Store all tasks for cross-referencing
 
 // ── Press Works State ───────────────────────────────────────────────────────
 const staffAcademicYears = ref([]);
@@ -890,62 +812,6 @@ watch(activeTab, (tab) => {
     }
 });
 
-// ── Process Artist Submissions ───────────────────────────────────────────────────
-const processArtistSubmissions = () => {
-    const submissions = [];
-
-    // Get the writer's tasks to find related artist tasks
-    const writerTasks = allTasks.value.filter(t =>
-        t.assignee_id === user.value.id && t.type === 'writing'
-    );
-
-    writerTasks.forEach(writerTask => {
-        const writerClean = (writerTask.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
-
-        // Find related artist tasks by exact base title matching
-        const relatedArtistTasks = allTasks.value.filter(artistTask => {
-            if (artistTask.assignee_id === user.value.id) return false; // Skip writer's own tasks
-            if (artistTask.type === 'writing') return false; // Skip other writing tasks
-
-            // 1. If both tasks share article_id
-            if (artistTask.article_id && writerTask.article_id && artistTask.article_id === writerTask.article_id) {
-                return true;
-            }
-
-            // 2. Strict exact match on base title
-            const artistClean = (artistTask.title || '').replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '').trim().toLowerCase();
-
-            return artistClean && writerClean && artistClean === writerClean;
-        });
-
-        relatedArtistTasks.forEach(artistTask => {
-            const thumbnail = parseNotesField(artistTask.notes, 'Thumbnail') || '';
-            const mediaUploads = parseNotesField(artistTask.notes, 'Media Uploads') || '';
-
-            // Only add if there are actual submissions
-            if (thumbnail || mediaUploads) {
-                submissions.push({
-                    id: artistTask.id,
-                    articleTitle: writerTask.title,
-                    artistName: artistTask.assignee?.name || 'Unknown Artist',
-                    artistRole: artistTask.assignee?.secondary_role || 'Artist/PJ',
-                    submissionType: thumbnail && mediaUploads ? 'Thumbnail + Media' : (thumbnail ? 'Thumbnail' : 'Media Uploads'),
-                    thumbnail: thumbnail,
-                    mediaUploads: mediaUploads,
-                    status: artistTask.status || 'pending',
-                    submittedAt: artistTask.updated_at || artistTask.created_at,
-                    raw: artistTask
-                });
-            }
-        });
-    });
-
-    // Sort by submission date (newest first)
-    submissions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-
-    artistSubmissions.value = submissions;
-};
-
 // ── Computed Filtered Tasks for Kanban ─────────────────────────────────────────
 const filteredTasks = computed(() => {
     const q = searchQuery.value.trim().toLowerCase();
@@ -982,13 +848,6 @@ const filteredArticles = computed(() => {
         formatStatus(article.status),
     ));
 });
-
-const shownArtistSubmissions = computed(() => artistSubmissions.value.filter(item => matches(
-    item.articleTitle,
-    item.artistName,
-    item.submissionType,
-    formatStatus(item.status),
-)));
 
 const shownAcademicYears = computed(() => searchAcademicYears(staffAcademicYears.value, matches));
 
@@ -1256,11 +1115,6 @@ const openArticleModal = (article) => {
     }
 };
 
-const openArtistSubmissionModal = (submission) => {
-    selectedArtistSubmission.value = submission;
-    isArtistSubmissionModalOpen.value = true;
-};
-
 const onProfileUpdated = (e) => {
     if (e.detail) {
         user.value = e.detail;
@@ -1336,7 +1190,6 @@ onMounted(async () => {
     await fetchTasks();
     await fetchArticles(); // Now articles can match with tasks that were just loaded
     await fetchPressWorks(); // Fetch press works for the current user
-    processArtistSubmissions(); // Process artist submissions after tasks are loaded
 
     window.addEventListener('sparky:profile-updated', onProfileUpdated);
     document.addEventListener('click', handleStatusFilterClickOutside);

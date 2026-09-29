@@ -375,50 +375,11 @@ body {
     color: #854d0e;
 }
 
-.page-nav {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: none;
-    border: none;
-    font-size: 13px;
-    font-weight: 600;
-    color: #0f172a;
-    cursor: pointer;
-}
+/* Pagination bar styling (.pagination-container, .pagination-pill, .page-btn,
+   .page-number, .page-dots, .page-results-count) now lives as a single
+   canonical block in resources/css/app.css, after the @imports, so it can't
+   be shadowed by CSS import order. See app.css for the source of truth. */
 
-.page-num {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: none;
-    border-radius: 50%;
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    cursor: pointer;
-}
-
-.page-num.active {
-    background-color: #1a73e8;
-    color: white;
-}
-
-.page-num:hover:not(.active) {
-    background-color: #f1f5f9;
-}
-
-.page-ellipsis {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    color: #94a3b8;
-    font-weight: 600;
-}
 .content-container {
     flex-shrink: 0;
 }
@@ -453,19 +414,6 @@ body {
 }
 .action-menu-btn:hover {
     background: #f8fafc;
-}
-
-.pagination-pill {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: white;
-    border-radius: 30px;
-    padding: 12px 24px;
-    gap: 16px;
-    width: fit-content;
-    margin: 24px auto;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
 /* Staff Writers Grid */

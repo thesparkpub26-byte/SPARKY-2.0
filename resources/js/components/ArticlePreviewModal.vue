@@ -224,11 +224,11 @@
                     Delete "<strong>{{ displayTitle }}</strong>"? This will permanently remove the {{ isVideo ? 'video' : 'article' }} and its linked tasks. This action cannot be undone.
                 </p>
                 <p v-if="deleteError" class="notes-subtext" style="color: #dc2626;">{{ deleteError }}</p>
-                <div class="dialog-actions-row" style="margin-top: 16px;">
-                    <button class="btn-grey-pill" @click="isDeleteConfirmOpen = false" :disabled="isSubmitting">Cancel</button>
+                <div class="dialog-actions-row confirm-delete-actions-row" style="margin-top: 16px;">
                     <button class="btn-danger-pill" @click="confirmDelete" :disabled="isSubmitting">
                         {{ isSubmitting ? 'Deleting...' : (isVideo ? 'Delete Video' : 'Delete Article') }}
                     </button>
+                    <button class="btn-grey-pill" @click="isDeleteConfirmOpen = false" :disabled="isSubmitting">Cancel</button>
                 </div>
             </div>
         </div>
@@ -1078,6 +1078,20 @@ const confirmDelete = async () => {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+}
+
+/* Delete confirmation: danger action on top, Cancel below, both full width */
+.confirm-delete-actions-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.confirm-delete-actions-row .btn-danger-pill,
+.confirm-delete-actions-row .btn-grey-pill {
+    width: 100%;
+    justify-content: center;
 }
 
 @media (max-width: 640px) {

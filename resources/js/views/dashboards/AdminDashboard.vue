@@ -581,47 +581,23 @@
                 </div>
 
                 <!-- Pagination -->
-                <div
-                    style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
-                    <div style="flex: 1; display: flex; justify-content: center;">
-                        <div v-if="['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab)" class="pagination">
-                            <button class="page-nav" :disabled="managementPage === 1" @click="managementPage--">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="m15 18-6-6 6-6" /></svg>
-                                Previous
-                            </button>
-                            <button v-for="page in managementPageCount" :key="page" class="page-btn" :class="{ active: managementPage === page }" @click="managementPage = page">{{ page }}</button>
-                            <button class="page-nav" :disabled="managementPage === managementPageCount" @click="managementPage++">
-                                Next
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m9 18 6-6-6-6" /></svg>
-                            </button>
-                        </div>
-                        <div v-else class="pagination">
-                            <button class="page-nav">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" style="margin-right: 4px;">
-                                    <path d="m15 18-6-6 6-6" />
-                                </svg>
-                                Previous
-                            </button>
-                            <button class="page-btn">1</button>
-                            <button class="page-btn">2</button>
-                            <button class="page-btn active">3</button>
-                            <button class="page-btn">4</button>
-                            <button class="page-btn">5</button>
-                            <span style="margin: 0 4px; color: #555; font-weight: 700;">...</span>
-                            <button class="page-nav">
-                                Next
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" style="margin-left: 4px;">
-                                    <path d="m9 18 6-6-6-6" />
-                                </svg>
-                            </button>
-                        </div>
+                <div class="pagination-container">
+                    <div v-if="['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab)" class="pagination-pill">
+                        <button class="page-btn" :disabled="managementPage === 1" @click="managementPage--">Previous</button>
+                        <button v-for="page in managementPageCount" :key="page" class="page-number" :class="{ active: managementPage === page }" @click="managementPage = page">{{ page }}</button>
+                        <button class="page-btn" :disabled="managementPage === managementPageCount" @click="managementPage++">Next</button>
+                        <div class="page-results-count">Showing <strong>{{ paginatedManagementUsers.length }}</strong> of <strong>{{ filteredManagementUsers.length }}</strong> users</div>
                     </div>
-                    <div class="page-info">
-                        Showing <strong>{{ ['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab) ? paginatedManagementUsers.length : 12 }}</strong> of <strong>{{ ['user-management', 'editorial-board', 'staff-writers', 'readers'].includes(activeTab) ? filteredManagementUsers.length : 61 }}</strong> users
+                    <div v-else class="pagination-pill">
+                        <button class="page-btn">Previous</button>
+                        <button class="page-number">1</button>
+                        <button class="page-number">2</button>
+                        <button class="page-number active">3</button>
+                        <button class="page-number">4</button>
+                        <button class="page-number">5</button>
+                        <span class="page-dots">&bull;&bull;&bull;</span>
+                        <button class="page-btn">Next</button>
+                        <div class="page-results-count">Showing <strong>12</strong> of <strong>61</strong> users</div>
                     </div>
                 </div>
             </div>
@@ -807,37 +783,25 @@
                 </div>
 
                 <!-- Pagination -->
-                <div style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
-                    <div style="flex: 1; display: flex; justify-content: center;">
-                        <div class="pagination">
-                            <button class="page-nav" :disabled="articlePage === 1" @click="articlePage--">Previous</button>
-                            <button v-for="page in articlePageCount" :key="page" class="page-btn" :class="{ active: articlePage === page }" @click="articlePage = page">{{ page }}</button>
-                            <button class="page-nav" :disabled="articlePage === articlePageCount" @click="articlePage++">Next</button>
-                        </div>
+                <div class="pagination-container">
+                    <div class="pagination-pill">
+                        <button class="page-btn" :disabled="articlePage === 1" @click="articlePage--">Previous</button>
+                        <button v-for="page in articlePageCount" :key="page" class="page-number" :class="{ active: articlePage === page }" @click="articlePage = page">{{ page }}</button>
+                        <button class="page-btn" :disabled="articlePage === articlePageCount" @click="articlePage++">Next</button>
+                        <div class="page-results-count">Showing <strong>{{ paginatedArticles.length }}</strong> of <strong>{{ filteredArticles.length }}</strong> articles</div>
                     </div>
-                    <div class="page-info">Showing <strong>{{ paginatedArticles.length }}</strong> of <strong>{{ filteredArticles.length }}</strong> articles</div>
                 </div>
-                <div v-if="false" style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
-                    <div style="flex: 1; display: flex; justify-content: center;">
-                        <div class="pagination">
-                            <button class="page-nav">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="m15 18-6-6 6-6"/></svg>
-                                Previous
-                            </button>
-                            <button class="page-btn">1</button>
-                            <button class="page-btn">2</button>
-                            <button class="page-btn active">3</button>
-                            <button class="page-btn">4</button>
-                            <button class="page-btn">5</button>
-                            <span style="margin: 0 4px; color: #555; font-weight: 700;">...</span>
-                            <button class="page-nav">
-                                Next
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m9 18 6-6-6-6"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="page-info">
-                        Showing <strong>12</strong> of <strong>2,137</strong> articles
+                <div v-if="false" class="pagination-container">
+                    <div class="pagination-pill">
+                        <button class="page-btn">Previous</button>
+                        <button class="page-number">1</button>
+                        <button class="page-number">2</button>
+                        <button class="page-number active">3</button>
+                        <button class="page-number">4</button>
+                        <button class="page-number">5</button>
+                        <span class="page-dots">&bull;&bull;&bull;</span>
+                        <button class="page-btn">Next</button>
+                        <div class="page-results-count">Showing <strong>12</strong> of <strong>2,137</strong> articles</div>
                     </div>
                 </div>
             </div>
@@ -932,22 +896,14 @@
                 </div>
             </div>
 
-            <!-- Floating Pagination -->
-            <div class="floating-pagination">
-                <div class="pagination" style="margin-top: 0;">
-                    <button class="page-nav" :disabled="archivePage === 1" @click="archivePage--">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="m15 18-6-6 6-6"/></svg>
-                        Previous
-                    </button>
-                    <button v-for="page in archivePageNumbers" :key="page" class="page-btn" :class="{ active: archivePage === page }" @click="archivePage = page">{{ page }}</button>
-                    <span v-if="archivePageCount > 5 && archivePage < archivePageCount - 1" style="margin: 0 4px; color: #555; font-weight: 700;">...</span>
-                    <button class="page-nav" :disabled="archivePage === archivePageCount" @click="archivePage++">
-                        Next
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m9 18 6-6-6-6"/></svg>
-                    </button>
-                </div>
-                <div class="page-info" style="margin-left: 0; padding-left: 32px; border-left: 1px solid #eef0f4;">
-                    Showing <strong>{{ paginatedArchiveFolders.length }}</strong> of <strong>{{ filteredArchiveFolders.length }}</strong> folders
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <div class="pagination-pill">
+                    <button class="page-btn" :disabled="archivePage === 1" @click="archivePage--">Previous</button>
+                    <button v-for="page in archivePageNumbers" :key="page" class="page-number" :class="{ active: archivePage === page }" @click="archivePage = page">{{ page }}</button>
+                    <span v-if="archivePageCount > 5 && archivePage < archivePageCount - 1" class="page-dots">&bull;&bull;&bull;</span>
+                    <button class="page-btn" :disabled="archivePage === archivePageCount" @click="archivePage++">Next</button>
+                    <div class="page-results-count">Showing <strong>{{ paginatedArchiveFolders.length }}</strong> of <strong>{{ filteredArchiveFolders.length }}</strong> folders</div>
                 </div>
             </div>
             </section>
@@ -996,15 +952,13 @@
                         </table>
                     </div>
 
-                    <div style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
-                        <div style="flex: 1; display: flex; justify-content: center;">
-                            <div class="pagination">
-                                <button class="page-nav" :disabled="archiveYearPage === 1" @click="archiveYearPage--">Previous</button>
-                                <button v-for="page in archiveYearPageCount" :key="page" class="page-btn" :class="{ active: archiveYearPage === page }" @click="archiveYearPage = page">{{ page }}</button>
-                                <button class="page-nav" :disabled="archiveYearPage === archiveYearPageCount" @click="archiveYearPage++">Next</button>
-                            </div>
+                    <div class="pagination-container">
+                        <div class="pagination-pill">
+                            <button class="page-btn" :disabled="archiveYearPage === 1" @click="archiveYearPage--">Previous</button>
+                            <button v-for="page in archiveYearPageCount" :key="page" class="page-number" :class="{ active: archiveYearPage === page }" @click="archiveYearPage = page">{{ page }}</button>
+                            <button class="page-btn" :disabled="archiveYearPage === archiveYearPageCount" @click="archiveYearPage++">Next</button>
+                            <div class="page-results-count">Showing <strong>{{ paginatedArchiveArticles.length }}</strong> of <strong>{{ selectedArchiveArticles.length }}</strong> articles</div>
                         </div>
-                        <div class="page-info">Showing <strong>{{ paginatedArchiveArticles.length }}</strong> of <strong>{{ selectedArchiveArticles.length }}</strong> articles</div>
                     </div>
                 </div>
             </section>
@@ -1090,20 +1044,20 @@
                     <div class="card">
                         <h3 class="card-header">Engagement Metrics</h3>
                         <div class="engagement-grid">
-                            <div style="display: flex; flex-direction: column; gap: 16px;">
-                                <div class="engagement-box" style="flex: 1;">
-                                    <div class="engagement-label">Total Views</div>
-                                    <div class="engagement-value">{{ formatCount(analytics.metrics.page_views) }}</div>
-                                </div>
-                                <div class="engagement-box" style="flex: 1;">
-                                    <div class="engagement-label">Unique Visitors</div>
-                                    <div class="engagement-value">{{ formatCount(analytics.metrics.active_users) }}</div>
-                                </div>
+                            <div class="engagement-box">
+                                <div class="engagement-label">Total Views</div>
+                                <div class="engagement-value">{{ formatCount(analytics.metrics.page_views) }}</div>
                             </div>
-                            <div class="engagement-box tall">
-                                <div class="engagement-label" style="margin-bottom: 16px;">Tracked Visitors</div>
+                            <div class="engagement-box">
+                                <div class="engagement-label">Tracked Visitors</div>
                                 <div class="engagement-value">{{ formatCount(analytics.metrics.sessions) }}</div>
-                                <div class="engagement-label" style="margin: 16px 0 4px;">Published Articles</div>
+                            </div>
+                            <div class="engagement-box">
+                                <div class="engagement-label">Unique Visitors</div>
+                                <div class="engagement-value">{{ formatCount(analytics.metrics.active_users) }}</div>
+                            </div>
+                            <div class="engagement-box">
+                                <div class="engagement-label">Published Articles</div>
                                 <div class="engagement-value">{{ formatCount(articles.filter(article => article.status === 'published').length) }}</div>
                             </div>
                         </div>
@@ -1201,7 +1155,7 @@
 
                 <div class="modal-footer">
                     <button class="btn-back" type="button" @click="closeNewUserModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back</button>
-                    <button class="btn-next" type="button" @click="newUserStep = 2">Next</button>
+                    <button class="btn-next" type="button" :disabled="!isNewUserStep1Valid" @click="newUserStep = 2">Next</button>
                 </div>
             </div>
 
@@ -1212,7 +1166,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <div class="input-icon-wrap custom-select-wrap">
-                                <select v-model="newUserForm.role" class="form-control select-control" @change="newUserForm.secondary_role = ''; newUserForm.tertiary_role = ''"><option value="" disabled>Role</option><option value="admin">Administrator</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="staff_broadcaster">Staff Broadcaster</option><option value="reader">Reader</option></select>
+                                <select v-model="newUserForm.role" class="form-control select-control" @change="newUserForm.secondary_role = ''; newUserForm.tertiary_role = ''"><option value="" disabled>Role</option><option value="eic">Editor in Chief</option><option value="section_editor">Section Editor</option><option value="staff_writer">Staff Writer</option><option value="staff_artist">Staff Artist</option><option value="staff_broadcaster">Staff Broadcaster</option><option value="reader">Reader</option></select>
                             </div>
                         </div>
                         <div class="form-group">
@@ -1253,7 +1207,7 @@
 
                 <div class="modal-footer">
                     <button class="btn-back" type="button" @click="newUserStep = 1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back</button>
-                    <button class="btn-next" type="button" :disabled="newUserSaving" @click="saveNewUser">{{ newUserSaving ? 'Saving...' : 'Save Details' }}</button>
+                    <button class="btn-next" type="button" :disabled="newUserSaving || !isNewUserStep2Valid" @click="saveNewUser">{{ newUserSaving ? 'Saving...' : 'Save Details' }}</button>
                 </div>
                 <p v-if="newUserError" class="new-user-error">{{ newUserError }}</p>
             </div>
@@ -1329,7 +1283,7 @@
             <div class="new-user-modal-header"><h2>Delete User?</h2><button class="new-user-close" type="button" aria-label="Close" @click="closeDeleteUser"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
             <p>Delete <strong>{{ selectedUser?.name }}</strong>? This action cannot be undone.</p>
             <p v-if="deleteUserError" class="new-user-error">{{ deleteUserError }}</p>
-            <div class="modal-footer"><button class="btn-back" type="button" @click="closeDeleteUser">Cancel</button><button class="btn-next btn-danger" type="button" :disabled="deleteUserSaving" @click="deleteSelectedUser">{{ deleteUserSaving ? 'Deleting...' : 'Delete User' }}</button></div>
+            <div class="modal-footer"><button class="btn-next btn-danger" type="button" :disabled="deleteUserSaving" @click="deleteSelectedUser">{{ deleteUserSaving ? 'Deleting...' : 'Delete User' }}</button><button class="btn-back" type="button" @click="closeDeleteUser">Cancel</button></div>
         </div>
     </div>
     <div v-if="isEditArticleModalOpen" class="new-user-modal-overlay" @click.self="closeEditArticle">
@@ -1349,7 +1303,7 @@
             <div class="new-user-modal-header"><h2>Delete Article?</h2><button class="new-user-close" type="button" aria-label="Close" @click="closeDeleteArticle"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="2" y2="6"></line></svg></button></div>
             <p>Delete <strong>{{ selectedArticle?.title }}</strong>? This action cannot be undone.</p>
             <p v-if="deleteArticleError" class="new-user-error">{{ deleteArticleError }}</p>
-            <div class="modal-footer"><button class="btn-back" type="button" @click="closeDeleteArticle">Cancel</button><button class="btn-next btn-danger" type="button" :disabled="deleteArticleSaving" @click="deleteSelectedArticle">{{ deleteArticleSaving ? 'Deleting...' : 'Delete Article' }}</button></div>
+            <div class="modal-footer"><button class="btn-next btn-danger" type="button" :disabled="deleteArticleSaving" @click="deleteSelectedArticle">{{ deleteArticleSaving ? 'Deleting...' : 'Delete Article' }}</button><button class="btn-back" type="button" @click="closeDeleteArticle">Cancel</button></div>
         </div>
     </div>
     <div v-if="isPressworkModalOpen" class="new-user-modal-overlay" @click.self="closePressworkModal">
@@ -1371,7 +1325,7 @@
             <div class="new-user-modal-header"><h2>Delete Academic Year?</h2><button class="new-user-close" type="button" aria-label="Close" @click="closeDeleteYearModal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
             <p>Delete <strong>{{ yearToDelete }}</strong>? This will permanently delete all monitoring sheets and their entries for this academic year. This action cannot be undone.</p>
             <p v-if="deleteYearError" class="new-user-error">{{ deleteYearError }}</p>
-            <div class="modal-footer"><button class="btn-back" type="button" @click="closeDeleteYearModal">Cancel</button><button class="btn-next btn-danger" type="button" :disabled="deleteYearSaving" @click="deleteYear">{{ deleteYearSaving ? 'Deleting...' : 'Delete Academic Year' }}</button></div>
+            <div class="modal-footer"><button class="btn-next btn-danger" type="button" :disabled="deleteYearSaving" @click="deleteYear">{{ deleteYearSaving ? 'Deleting...' : 'Delete Academic Year' }}</button><button class="btn-back" type="button" @click="closeDeleteYearModal">Cancel</button></div>
         </div>
     </div>
     <!-- Archive Article Preview (read-only) -->
@@ -2151,6 +2105,18 @@ const newUserForm = ref({
     program: '',
     year_section: '',
     image: null,
+});
+
+const isNewUserStep1Valid = computed(() => {
+    return newUserForm.value.name.trim() && newUserForm.value.email.trim();
+});
+
+const isNewUserStep2Valid = computed(() => {
+    return newUserForm.value.role
+        && newUserForm.value.status
+        && newUserForm.value.password
+        && newUserForm.value.passwordConfirmation
+        && newUserForm.value.password === newUserForm.value.passwordConfirmation;
 });
 
 const openNewUserModal = () => {

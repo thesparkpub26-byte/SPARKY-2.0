@@ -181,16 +181,10 @@
 
                     <div class="pagination-container" v-if="filteredVideos.length > 0">
                         <div class="pagination-pill">
-                            <button class="page-btn" @click="videosPage--" :disabled="videosPage === 1">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-                                Previous
-                            </button>
+                            <button class="page-btn" @click="videosPage--" :disabled="videosPage === 1">Previous</button>
                             <a v-for="page in Math.min(totalVideoPages, 5)" :key="page" href="#" class="page-number" :class="{ active: page === videosPage }" @click.prevent="videosPage = page">{{ page }}</a>
                             <span v-if="totalVideoPages > 5" class="page-dots">&bull;&bull;&bull;</span>
-                            <button class="page-btn" @click="videosPage++" :disabled="videosPage === totalVideoPages">
-                                Next
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
-                            </button>
+                            <button class="page-btn" @click="videosPage++" :disabled="videosPage === totalVideoPages">Next</button>
                             <div class="page-results-count">
                                 Showing <strong>{{ paginatedVideos.length }}</strong> of {{ filteredVideos.length }} videos
                             </div>

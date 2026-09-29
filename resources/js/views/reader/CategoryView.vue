@@ -42,29 +42,19 @@
             </router-link>
           </div>
 
-          <!-- Pagination Capsule Bar -->
-          <div v-if="lastPage > 1" class="pagination-wrapper">
-            <nav class="pagination-capsule">
-              <a href="#" :class="['pagination-btn', { disabled: page === 1 }]" @click.prevent="goToPage(page - 1)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="m15 18-6-6 6-6"/>
-                </svg>
-                Previous
-              </a>
+          <!-- Pagination -->
+          <div v-if="lastPage > 1" class="pagination-container">
+            <div class="pagination-pill">
+              <a href="#" :class="['page-btn', { disabled: page === 1 }]" @click.prevent="goToPage(page - 1)">Previous</a>
               <a
                 v-for="p in pageNumbers"
                 :key="p"
                 href="#"
-                :class="['pagination-btn', { active: page === p }]"
+                :class="['page-number', { active: page === p }]"
                 @click.prevent="goToPage(p)"
               >{{ p }}</a>
-              <a href="#" :class="['pagination-btn', { disabled: page === lastPage }]" @click.prevent="goToPage(page + 1)">
-                Next
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="m9 18 6-6-6-6"/>
-                </svg>
-              </a>
-            </nav>
+              <a href="#" :class="['page-btn', { disabled: page === lastPage }]" @click.prevent="goToPage(page + 1)">Next</a>
+            </div>
           </div>
         </div>
 

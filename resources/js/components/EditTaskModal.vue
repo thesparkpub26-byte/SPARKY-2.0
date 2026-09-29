@@ -343,7 +343,7 @@ const saveTask = async () => {
     padding: 16px 28px 24px;
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: space-between;
     border-top: 1px solid #f1f5f9;
 }
 

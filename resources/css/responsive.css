@@ -293,17 +293,12 @@ body {
     }
 
     /* ---- Pagination ---- */
-    .pagination-pill,
-    .floating-pagination {
+    .pagination-pill {
         flex-wrap: wrap;
         justify-content: center;
         gap: 8px 12px;
         max-width: 100%;
         padding: 8px 14px;
-    }
-
-    .floating-pagination {
-        width: auto;
     }
 }
 

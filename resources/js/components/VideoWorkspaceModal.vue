@@ -484,7 +484,7 @@ const closeModal = () => emit('close');
 .vw-sub-card.vw-center { text-align: center; }
 .vw-sub-title { margin: 0 0 8px; font-size: 18px; font-weight: 800; color: #0f172a; }
 .vw-sub-text { margin: 0 0 20px; font-size: 13.5px; color: #64748b; line-height: 1.6; }
-.vw-sub-actions { display: flex; justify-content: flex-end; gap: 12px; }
+.vw-sub-actions { display: flex; justify-content: space-between; gap: 12px; }
 .vw-success-icon {
     width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%;
     background: #f0fdf4; border: 2px solid #bbf7d0;

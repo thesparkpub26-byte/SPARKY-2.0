@@ -173,7 +173,8 @@
                         <div v-if="thumbnailPreview" class="preview-card-container">
                             <div class="thumbnail-preview-box">
                                 <img :src="thumbnailPreview" alt="Thumbnail Preview" class="thumbnail-img" />
-                                <div class="preview-actions-overlay">
+                                <span v-if="isThumbnailFromArtist" class="artist-asset-badge" title="Submitted by the artist — can't be removed here">From Artist</span>
+                                <div v-else class="preview-actions-overlay">
                                     <button type="button" class="preview-action-btn danger" @click="removeThumbnail" title="Remove">Remove</button>
                                 </div>
                             </div>
@@ -228,13 +229,14 @@
 
                         <!-- Media Preview Grid -->
                         <div v-if="mediaPreviews.length > 0" class="media-grid-container">
-                            <div 
-                                v-for="(media, idx) in mediaPreviews" 
-                                :key="idx" 
+                            <div
+                                v-for="(media, idx) in mediaPreviews"
+                                :key="idx"
                                 class="media-preview-card"
                             >
                                 <img :src="media.url" :alt="media.name || 'Media Upload'" class="media-preview-img" />
-                                <button type="button" class="remove-media-circle" @click="removeMedia(idx)" title="Remove Photo">
+                                <span v-if="isMediaFromArtist(media.url)" class="artist-asset-badge" title="Submitted by the artist — can't be removed here">From Artist</span>
+                                <button v-else type="button" class="remove-media-circle" @click="removeMedia(idx)" title="Remove Photo">
                                     &times;
                                 </button>
                                 <span class="media-name-tag">{{ media.name || `Photo ${idx + 1}` }}</span>
@@ -548,6 +550,13 @@ const mediaPreviews = ref([]);
 const isUploadingMedia = ref(false);
 const isUploadingThumbnail = ref(false);
 
+// Visuals the artist submitted for this task are read-only here — the writer can view them
+// but shouldn't remove or replace what the artist provided.
+const artistThumbnailUrl = ref('');
+const artistMediaUrls = ref(new Set());
+const isThumbnailFromArtist = computed(() => !!artistThumbnailUrl.value && thumbnailPreview.value === artistThumbnailUrl.value);
+const isMediaFromArtist = (url) => artistMediaUrls.value.has(url);
+
 const task = computed(() => props.taskData || {});
 
 const alreadySubmitted = computed(() => ['submitted', 'completed'].includes(task.value?.status));
@@ -815,6 +824,15 @@ watch(() => props.isOpen, async (newVal) => {
         } else {
             mediaPreviews.value = [];
         }
+
+        // What the artist submitted for this task (from either task source) is locked — the
+        // writer can see it in the workspace but can't remove or swap it out.
+        const notesToParse = task.value?.notes || task.value?.raw?.notes || '';
+        artistThumbnailUrl.value = parseNotesField(notesToParse, 'Thumbnail');
+        const artistMediaField = parseNotesField(notesToParse, 'Media Uploads');
+        artistMediaUrls.value = new Set(
+            artistMediaField ? artistMediaField.split(',').map(u => u.trim()).filter(Boolean) : []
+        );
 
 
         // Debug: log task data to see what we're working with
@@ -2199,6 +2217,19 @@ const closeAllModals = (action) => {
 
 .remove-media-circle:hover {
     background: #ef4444;
+}
+
+.artist-asset-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(15, 23, 42, 0.75);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.02em;
 }
 
 .media-name-tag {

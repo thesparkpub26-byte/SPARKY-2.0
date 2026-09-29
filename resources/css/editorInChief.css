@@ -697,105 +697,10 @@
     background-color: #1a73e8;
 }
 
-/* Floating Pagination Pill */
-.pagination-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 14px;
-    margin-bottom: 8px;
-}
-
-.pagination-pill {
-    background-color: #ffffff;
-    border-radius: 999px;
-    padding: 8px 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-}
-
-.page-btn {
-    background: none;
-    border: none;
-    color: #475569;
-    font-weight: 600;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    padding: 4px 8px;
-}
-
-.page-btn:hover {
-    color: #1a73e8;
-}
-
-.page-number {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
-    text-decoration: none;
-}
-
-.page-number.active {
-    background-color: #1a73e8;
-    color: #ffffff;
-}
-
-.page-dots {
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-.page-results-count {
-    font-size: 12px;
-    color: #64748b;
-    margin-left: 12px;
-    padding-left: 12px;
-    border-left: 1px solid #e2e8f0;
-}
-
-.eic-endorsement-pagination .pagination-pill {
-    min-height: 44px;
-    padding: 6px 18px;
-    gap: 8px;
-    border: 1px solid #eef2f7;
-    box-shadow: 0 5px 16px rgba(15, 23, 42, 0.07);
-}
-
-.eic-endorsement-pagination .page-btn {
-    min-width: 78px;
-    height: 32px;
-    justify-content: center;
-    padding: 4px 10px;
-    border-radius: 8px;
-    font-size: 13px;
-}
-
-.eic-endorsement-pagination .page-btn:disabled {
-    color: #cbd5e1;
-    cursor: not-allowed;
-    background: transparent;
-}
-
-.eic-endorsement-pagination .page-number {
-    width: 30px;
-    height: 30px;
-}
-
-.eic-endorsement-pagination .page-results-count {
-    margin-left: 8px;
-    padding-left: 16px;
-    white-space: nowrap;
-}
+/* Pagination bar styling (.pagination-container, .pagination-pill, .page-btn,
+   .page-number, .page-dots, .page-results-count) now lives as a single
+   canonical block in resources/css/app.css, after the @imports, so it can't
+   be shadowed by CSS import order. See app.css for the source of truth. */
 
 /* Assign Task Button */
 .assign-task-btn {

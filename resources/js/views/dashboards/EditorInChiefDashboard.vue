@@ -507,10 +507,7 @@
                     </div>
                     <div class="pagination-container" v-if="filteredEicMyArticles.length > 0">
                         <div class="pagination-pill">
-                            <button class="page-btn" :disabled="eicMyArticlesPage <= 1" @click="eicMyArticlesPage--">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                                Previous
-                            </button>
+                            <button class="page-btn" :disabled="eicMyArticlesPage <= 1" @click="eicMyArticlesPage--">Previous</button>
                             <button
                                 v-for="page in eicMyArticlesPageCount"
                                 :key="page"
@@ -518,10 +515,7 @@
                                 :class="{ active: eicMyArticlesPage === page }"
                                 @click="eicMyArticlesPage = page"
                             >{{ page }}</button>
-                            <button class="page-btn" :disabled="eicMyArticlesPage >= eicMyArticlesPageCount" @click="eicMyArticlesPage++">
-                                Next
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                            </button>
+                            <button class="page-btn" :disabled="eicMyArticlesPage >= eicMyArticlesPageCount" @click="eicMyArticlesPage++">Next</button>
                             <div class="page-results-count">
                                 Showing <strong>{{ paginatedEicMyArticles.length }}</strong> of {{ filteredEicMyArticles.length }} articles
                             </div>
@@ -595,10 +589,7 @@
 
                     <div class="pagination-container" v-if="eicAssignedFiltered.length > 0">
                         <div class="pagination-pill">
-                            <button class="page-btn" :disabled="eicAssignedPage <= 1" @click="eicAssignedPage--">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                                Previous
-                            </button>
+                            <button class="page-btn" :disabled="eicAssignedPage <= 1" @click="eicAssignedPage--">Previous</button>
                             <button
                                 v-for="page in eicAssignedTotalPages"
                                 :key="page"
@@ -606,10 +597,7 @@
                                 :class="{ active: eicAssignedPage === page }"
                                 @click="eicAssignedPage = page"
                             >{{ page }}</button>
-                            <button class="page-btn" :disabled="eicAssignedPage >= eicAssignedTotalPages" @click="eicAssignedPage++">
-                                Next
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                            </button>
+                            <button class="page-btn" :disabled="eicAssignedPage >= eicAssignedTotalPages" @click="eicAssignedPage++">Next</button>
                             <div class="page-results-count">
                                 Showing <strong>{{ eicAssignedPaged.length }}</strong> of {{ eicAssignedFiltered.length }} assignments
                             </div>
@@ -820,22 +808,14 @@
                         </div>
                     </div>
 
-                    <!-- Floating Pagination -->
-                    <div class="floating-pagination">
-                        <div class="pagination" style="margin-top: 0;">
-                            <button class="page-nav" :disabled="archivePage === 1" @click="archivePage--">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="m15 18-6-6 6-6"/></svg>
-                                Previous
-                            </button>
-                            <button v-for="page in archivePageNumbers" :key="page" class="page-btn" :class="{ active: archivePage === page }" @click="archivePage = page">{{ page }}</button>
-                            <span v-if="archivePageCount > 5 && archivePage < archivePageCount - 1" style="margin: 0 4px; color: #555; font-weight: 700;">...</span>
-                            <button class="page-nav" :disabled="archivePage === archivePageCount" @click="archivePage++">
-                                Next
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="m9 18 6-6-6-6"/></svg>
-                            </button>
-                        </div>
-                        <div class="page-info" style="margin-left: 0; padding-left: 32px; border-left: 1px solid #eef0f4;">
-                            Showing <strong>{{ paginatedArchiveFolders.length }}</strong> of <strong>{{ filteredArchiveFolders.length }}</strong> folders
+                    <!-- Pagination -->
+                    <div class="pagination-container">
+                        <div class="pagination-pill">
+                            <button class="page-btn" :disabled="archivePage === 1" @click="archivePage--">Previous</button>
+                            <button v-for="page in archivePageNumbers" :key="page" class="page-number" :class="{ active: archivePage === page }" @click="archivePage = page">{{ page }}</button>
+                            <span v-if="archivePageCount > 5 && archivePage < archivePageCount - 1" class="page-dots">&bull;&bull;&bull;</span>
+                            <button class="page-btn" :disabled="archivePage === archivePageCount" @click="archivePage++">Next</button>
+                            <div class="page-results-count">Showing <strong>{{ paginatedArchiveFolders.length }}</strong> of <strong>{{ filteredArchiveFolders.length }}</strong> folders</div>
                         </div>
                     </div>
                 </div>
@@ -885,15 +865,13 @@
                             </table>
                         </div>
 
-                        <div style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background-color: white;">
-                            <div style="flex: 1; display: flex; justify-content: center;">
-                                <div class="pagination">
-                                    <button class="page-nav" :disabled="archiveYearPage === 1" @click="archiveYearPage--">Previous</button>
-                                    <button v-for="page in archiveYearPageCount" :key="page" class="page-btn" :class="{ active: archiveYearPage === page }" @click="archiveYearPage = page">{{ page }}</button>
-                                    <button class="page-nav" :disabled="archiveYearPage === archiveYearPageCount" @click="archiveYearPage++">Next</button>
-                                </div>
+                        <div class="pagination-container">
+                            <div class="pagination-pill">
+                                <button class="page-btn" :disabled="archiveYearPage === 1" @click="archiveYearPage--">Previous</button>
+                                <button v-for="page in archiveYearPageCount" :key="page" class="page-number" :class="{ active: archiveYearPage === page }" @click="archiveYearPage = page">{{ page }}</button>
+                                <button class="page-btn" :disabled="archiveYearPage === archiveYearPageCount" @click="archiveYearPage++">Next</button>
+                                <div class="page-results-count">Showing <strong>{{ paginatedArchiveArticles.length }}</strong> of <strong>{{ selectedArchiveArticles.length }}</strong> articles</div>
                             </div>
-                            <div class="page-info">Showing <strong>{{ paginatedArchiveArticles.length }}</strong> of <strong>{{ selectedArchiveArticles.length }}</strong> articles</div>
                         </div>
                     </div>
                 </div>
@@ -980,20 +958,20 @@
                             <div class="card">
                                 <h3 class="card-header">Engagement Metrics</h3>
                                 <div class="engagement-grid">
-                                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                                        <div class="engagement-box" style="flex: 1;">
-                                            <div class="engagement-label">Total Views</div>
-                                            <div class="engagement-value">{{ formatCount(analytics.metrics.page_views) }}</div>
-                                        </div>
-                                        <div class="engagement-box" style="flex: 1;">
-                                            <div class="engagement-label">Unique Visitors</div>
-                                            <div class="engagement-value">{{ formatCount(analytics.metrics.active_users) }}</div>
-                                        </div>
+                                    <div class="engagement-box">
+                                        <div class="engagement-label">Total Views</div>
+                                        <div class="engagement-value">{{ formatCount(analytics.metrics.page_views) }}</div>
                                     </div>
-                                    <div class="engagement-box tall">
-                                        <div class="engagement-label" style="margin-bottom: 16px;">Tracked Visitors</div>
+                                    <div class="engagement-box">
+                                        <div class="engagement-label">Tracked Visitors</div>
                                         <div class="engagement-value">{{ formatCount(analytics.metrics.sessions) }}</div>
-                                        <div class="engagement-label" style="margin: 16px 0 4px;">Published Articles</div>
+                                    </div>
+                                    <div class="engagement-box">
+                                        <div class="engagement-label">Unique Visitors</div>
+                                        <div class="engagement-value">{{ formatCount(analytics.metrics.active_users) }}</div>
+                                    </div>
+                                    <div class="engagement-box">
+                                        <div class="engagement-label">Published Articles</div>
                                         <div class="engagement-value">{{ formatCount(eicArticles.filter(article => article.status === 'published').length) }}</div>
                                     </div>
                                 </div>
@@ -1170,8 +1148,8 @@
             <p>Delete <strong>{{ yearToDelete }}</strong>? This will permanently delete all monitoring sheets and their entries for this academic year. This action cannot be undone.</p>
             <p v-if="deleteYearError" class="new-user-error">{{ deleteYearError }}</p>
             <div class="modal-footer">
-                <button class="btn-back" type="button" @click="closeDeleteYearModal">Cancel</button>
                 <button class="btn-next btn-danger" type="button" :disabled="deleteYearSaving" @click="deleteYear">{{ deleteYearSaving ? 'Deleting...' : 'Delete Academic Year' }}</button>
+                <button class="btn-back" type="button" @click="closeDeleteYearModal">Cancel</button>
             </div>
         </div>
     </div>
@@ -1293,8 +1271,8 @@
             <p>Delete <strong>"{{ photoToDelete.title }}"</strong>? This action cannot be undone.</p>
             <p v-if="deletePhotoError" class="new-user-error">{{ deletePhotoError }}</p>
             <div class="modal-footer">
-                <button class="btn-back" type="button" @click="photoToDelete = null">Cancel</button>
                 <button class="btn-next btn-danger" type="button" :disabled="deletePhotoSaving" @click="deleteGalleryPhoto">{{ deletePhotoSaving ? 'Deleting...' : 'Delete Photo' }}</button>
+                <button class="btn-back" type="button" @click="photoToDelete = null">Cancel</button>
             </div>
         </div>
     </div>
@@ -1415,8 +1393,8 @@
             <p>Delete <strong>"{{ issueToDelete.title }}"</strong>? This action cannot be undone.</p>
             <p v-if="deleteIssueError" class="new-user-error">{{ deleteIssueError }}</p>
             <div class="modal-footer">
-                <button class="btn-back" type="button" @click="issueToDelete = null">Cancel</button>
                 <button class="btn-next btn-danger" type="button" :disabled="deleteIssueSaving" @click="deleteIssue">{{ deleteIssueSaving ? 'Deleting...' : 'Delete Issue' }}</button>
+                <button class="btn-back" type="button" @click="issueToDelete = null">Cancel</button>
             </div>
         </div>
     </div>
@@ -1515,8 +1493,8 @@
             <p>Delete <strong>{{ selectedUser?.name }}</strong>? This will permanently delete the user and all of their information. This action cannot be undone.</p>
             <p v-if="deleteUserError" class="new-user-error">{{ deleteUserError }}</p>
             <div class="modal-footer">
-                <button class="btn-back" type="button" @click="closeDeleteUser">Cancel</button>
                 <button class="btn-next btn-danger" type="button" :disabled="deleteUserSaving" @click="deleteSelectedUser">{{ deleteUserSaving ? 'Deleting...' : 'Delete Contributor' }}</button>
+                <button class="btn-back" type="button" @click="closeDeleteUser">Cancel</button>
             </div>
         </div>
     </div>
@@ -1532,8 +1510,8 @@
             </div>
             <p>Are you sure you want to delete "<strong>{{ deleteTaskTarget?.title }}</strong>"? This will permanently remove the assignment and any associated draft. This action cannot be undone.</p>
             <div class="modal-footer">
-                <button class="btn-back" type="button" @click="deleteTaskTarget = null">Cancel</button>
                 <button class="btn-next btn-danger" type="button" :disabled="deletingTask" @click="doDeleteTask">{{ deletingTask ? 'Deleting...' : 'Delete Assignment' }}</button>
+                <button class="btn-back" type="button" @click="deleteTaskTarget = null">Cancel</button>
             </div>
         </div>
     </div>
@@ -1590,7 +1568,7 @@
 
                 <div class="modal-footer">
                     <button class="btn-back" type="button" @click="closeNewContributorModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Cancel</button>
-                    <button class="btn-next" type="button" @click="goToNewContributorStep2">Next</button>
+                    <button class="btn-next" type="button" :disabled="!isNewContributorStep1Valid" @click="goToNewContributorStep2">Next</button>
                 </div>
             </div>
 
@@ -1656,7 +1634,7 @@
 
                 <div class="modal-footer">
                     <button class="btn-back" type="button" @click="newContributorStep = 1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back</button>
-                    <button class="btn-next" type="button" :disabled="newContributorSaving" @click="saveNewContributor">{{ newContributorSaving ? 'Saving...' : 'Save Contributor' }}</button>
+                    <button class="btn-next" type="button" :disabled="newContributorSaving || !isNewContributorStep2Valid" @click="saveNewContributor">{{ newContributorSaving ? 'Saving...' : 'Save Contributor' }}</button>
                 </div>
             </div>
 
@@ -2948,6 +2926,18 @@ const newContributorForm = ref({
     program: '',
     year_section: '',
     image: null,
+});
+
+const isNewContributorStep1Valid = computed(() => {
+    return newContributorForm.value.name.trim() && newContributorForm.value.email.trim();
+});
+
+const isNewContributorStep2Valid = computed(() => {
+    return newContributorForm.value.role
+        && newContributorForm.value.status
+        && newContributorForm.value.password
+        && newContributorForm.value.passwordConfirmation
+        && newContributorForm.value.password === newContributorForm.value.passwordConfirmation;
 });
 
 const openNewContributorModal = () => {

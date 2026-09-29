@@ -987,7 +987,7 @@ const confirmEndorse = async () => {
 .review-step-footer {
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 20px;
 }
 

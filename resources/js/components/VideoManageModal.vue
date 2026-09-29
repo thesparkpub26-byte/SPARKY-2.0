@@ -69,9 +69,9 @@
             <div v-else class="new-user-step">
                 <p>Delete <strong>"{{ video.title }}"</strong>? This will permanently remove the video and its linked tasks. This action cannot be undone.</p>
                 <p v-if="errorMessage" class="new-user-error">{{ errorMessage }}</p>
-                <div class="modal-footer">
-                    <button class="btn-back" type="button" @click="mode = 'detail'" :disabled="saving">Cancel</button>
+                <div class="modal-footer vm-confirm-footer">
                     <button class="btn-next btn-danger" type="button" :disabled="saving" @click="confirmDelete">{{ saving ? 'Deleting...' : 'Delete Video' }}</button>
+                    <button class="btn-back" type="button" @click="mode = 'detail'" :disabled="saving">Cancel</button>
                 </div>
             </div>
         </div>
@@ -252,4 +252,17 @@ const closeModal = () => emit('close');
 .vm-credit-line { font-size: 13px; color: #475569; margin: 0 0 4px; line-height: 1.5; }
 
 .vm-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+
+/* Delete confirmation: danger action on top, Cancel below, both full width */
+.vm-confirm-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.vm-confirm-footer .btn-back,
+.vm-confirm-footer .btn-next {
+    width: 100%;
+    justify-content: center;
+}
 </style>
