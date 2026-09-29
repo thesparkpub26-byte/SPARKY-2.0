@@ -184,18 +184,22 @@
                             <span class="upload-spinner"></span>
                             <span>Uploading thumbnail...</span>
                         </div>
-                        <div 
+                        <!-- An artist is paired on this task — the thumbnail is theirs to provide -->
+                        <div v-else-if="!thumbnailPreview && collaboratorArtist" class="dashed-dropzone waiting-on-artist">
+                            <p class="dropzone-text"><strong>Waiting for {{ collaboratorArtist }} to submit a thumbnail</strong><br><span class="sub">It will appear here automatically once submitted.</span></p>
+                        </div>
+                        <div
                             v-else-if="!thumbnailPreview"
-                            class="dashed-dropzone" 
-                            @dragover.prevent 
+                            class="dashed-dropzone"
+                            @dragover.prevent
                             @drop.prevent="handleThumbnailDrop"
                             @click="triggerThumbnailInput"
                         >
-                            <input 
-                                type="file" 
-                                ref="thumbnailInputRef" 
-                                accept="image/*" 
-                                class="hidden-file-input" 
+                            <input
+                                type="file"
+                                ref="thumbnailInputRef"
+                                accept="image/*"
+                                class="hidden-file-input"
                                 @change="onThumbnailSelected"
                             />
                             <button type="button" class="btn-blue-pill-small" @click.stop="triggerThumbnailInput">
@@ -249,12 +253,21 @@
                             <span>Uploading...</span>
                         </div>
 
-                        <!-- Media Dropzone (if < 3) -->
-                        <div 
-                            v-if="mediaPreviews.length < 3 && !isUploadingMedia"
-                            class="dashed-dropzone" 
+                        <!-- An artist is paired on this task — media is theirs to provide -->
+                        <div
+                            v-else-if="mediaPreviews.length < 3 && collaboratorArtist"
+                            class="dashed-dropzone waiting-on-artist"
                             :class="{ 'compact-dropzone': mediaPreviews.length > 0 }"
-                            @dragover.prevent 
+                        >
+                            <p class="dropzone-text"><strong>Waiting for {{ collaboratorArtist }} to submit media</strong><br><span class="sub">Submitted photos will appear here automatically.</span></p>
+                        </div>
+
+                        <!-- Media Dropzone (if < 3) -->
+                        <div
+                            v-else-if="mediaPreviews.length < 3"
+                            class="dashed-dropzone"
+                            :class="{ 'compact-dropzone': mediaPreviews.length > 0 }"
+                            @dragover.prevent
                             @drop.prevent="handleMediaDrop"
                             @click="triggerMediaInput"
                         >
@@ -2076,6 +2089,16 @@ const closeAllModals = (action) => {
 .dashed-dropzone:hover {
     border-color: #1d6bf3;
     background-color: #f8faff;
+}
+
+.dashed-dropzone.waiting-on-artist {
+    cursor: default;
+    background: #f8fafc;
+}
+
+.dashed-dropzone.waiting-on-artist:hover {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
 }
 
 .dashed-dropzone.compact-dropzone {

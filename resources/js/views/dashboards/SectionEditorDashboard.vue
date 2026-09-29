@@ -638,6 +638,14 @@
         @close="isVideoPreviewOpen = false"
     />
 
+    <!-- Read-only article view (published articles — no more editing workspace) -->
+    <ArticlePreviewModal
+        :is-open="isArticlePreviewOpen"
+        :article-data="selectedArticlePreview"
+        read-only
+        @close="isArticlePreviewOpen = false"
+    />
+
     <!-- Video Review Modal (Head / Assistant Head Broadcaster) -->
     <VideoReviewModal
         :is-open="isVideoReviewOpen"
@@ -1220,6 +1228,8 @@ const defaultSection = computed(() => {
 const isVideoPreviewOpen = ref(false);
 const videoPreviewData = ref({});
 const isDirectPublishOpen = ref(false);
+const isArticlePreviewOpen = ref(false);
+const selectedArticlePreview = ref({});
 
 
 const openArticleOrTaskModal = (item) => {
@@ -1229,6 +1239,13 @@ const openArticleOrTaskModal = (item) => {
     if (item.raw?.type === 'video' && !matchedTask) {
         videoPreviewData.value = buildVideoPreviewData(item.raw);
         isVideoPreviewOpen.value = true;
+        return;
+    }
+
+    // A published article is finished — show the read-only article view, not the editing workspace
+    if (item.status === 'published' && item.raw) {
+        selectedArticlePreview.value = item.raw;
+        isArticlePreviewOpen.value = true;
         return;
     }
 
