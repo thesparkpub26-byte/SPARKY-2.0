@@ -73,10 +73,27 @@ class AdminController extends Controller
                 'created_at' => $activity->created_at,
             ]);
 
+        // Matches the Endorsements tab: articles anywhere in the EIC's review pipeline, plus
+        // videos only once a Broadcast Head has already endorsed/approved them.
+        $endorsementsCount = Article::where(function ($q) {
+                $q->where('type', '!=', Article::TYPE_VIDEO)
+                    ->whereIn('status', [
+                        Article::STATUS_SUBMITTED,
+                        Article::STATUS_UNDER_REVIEW,
+                        Article::STATUS_ENDORSED,
+                        Article::STATUS_APPROVED,
+                    ]);
+            })
+            ->orWhere(function ($q) {
+                $q->where('type', Article::TYPE_VIDEO)
+                    ->whereIn('status', [Article::STATUS_ENDORSED, Article::STATUS_APPROVED]);
+            })
+            ->count();
+
         return response()->json([
             'summary' => [
                 'articles' => Article::count(),
-                'endorsements' => Article::where('status', Article::STATUS_ENDORSED)->count(),
+                'endorsements' => $endorsementsCount,
                 'ready_to_publish' => Article::where('status', Article::STATUS_APPROVED)->count(),
                 'published' => Article::where('status', Article::STATUS_PUBLISHED)->count(),
             ],
