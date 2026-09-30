@@ -112,16 +112,17 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/published-issues/{issue}',   [PublishedIssueController::class, 'update']);  // multipart/form-data
         Route::delete('/published-issues/{issue}', [PublishedIssueController::class, 'destroy']);
 
-        // Users: staff can look people up (to assign work); only admin / EIC manage accounts
+        // Users: staff can look people up (to assign work); admin / EIC create and edit accounts, only admin deletes them
         Route::get('/users',        [UserController::class, 'index']);
         Route::get('/users/{user}', [UserController::class, 'show']);
         Route::middleware('role:admin,eic')->group(function () {
             Route::post('/users',          [UserController::class, 'store']);
             Route::match(['put', 'patch'], '/users/{user}', [UserController::class, 'update']);
-            Route::delete('/users/{user}', [UserController::class, 'destroy']);
 
             Route::get('/newsletter/subscribers', [NewsletterController::class, 'index']);
         });
+
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('role:admin');
 
         // Sections: staff read, admin / EIC manage
         Route::get('/sections',           [SectionController::class, 'index']);

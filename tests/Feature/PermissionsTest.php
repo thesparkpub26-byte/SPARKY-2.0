@@ -53,6 +53,19 @@ class PermissionsTest extends TestCase
         $this->assertStringContainsString('private.reader@example.test', $this->getJson('/api/users')->getContent());
     }
 
+    public function test_only_admins_can_delete_users(): void
+    {
+        $target = $this->makeUser('staff_writer');
+
+        Sanctum::actingAs($this->makeUser('eic'));
+        $this->deleteJson("/api/users/{$target->id}")->assertForbidden();
+        $this->assertNotNull($target->fresh());
+
+        Sanctum::actingAs($this->makeUser('admin'));
+        $this->deleteJson("/api/users/{$target->id}")->assertOk();
+        $this->assertNull($target->fresh());
+    }
+
     public function test_only_admins_manage_admin_accounts(): void
     {
         $admin = $this->makeUser('admin');

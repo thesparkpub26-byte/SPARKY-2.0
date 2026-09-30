@@ -534,7 +534,7 @@
 /* Press Works - Publication Type Badges */
 .pub-badge {
     padding: 4px 12px;
-    border-radius: 6px;
+    border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;

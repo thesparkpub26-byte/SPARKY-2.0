@@ -393,7 +393,7 @@
                                     @click="openMonitoringSheet(sheet)"
                                     style="padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;"
                                 >
-                                    <span :class="`pub-badge pub-${(sheet.publication_type || '').toLowerCase()}`" style="padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap;">{{ sheet.publication_type }}</span>
+                                    <span :class="`pub-badge pub-${(sheet.publication_type || '').toLowerCase()}`" style="padding: 4px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;">{{ sheet.publication_type }}</span>
                                     <span style="flex: 1;"></span>
                                     <span style="color: #94a3b8; font-size: 13px;">{{ formatDate(sheet.created_at) }}</span>
                                     <button

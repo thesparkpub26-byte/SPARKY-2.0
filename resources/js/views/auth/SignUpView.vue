@@ -150,21 +150,78 @@ const handleSignUp = async () => {
 .agreement-checkbox {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
   font-size: 13px;
-  color: #444;
+  color: #475569;
   cursor: pointer;
-  line-height: 1.4;
+  line-height: 1.5;
+  margin-bottom: 0;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
+.agreement-checkbox:hover {
+  border-color: #bfdbfe;
+}
+
+.agreement-checkbox:has(input:checked) {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+/* Custom box: also undoes the full-width text-field styling of `.input-group input` (auth.css) */
 .agreement-checkbox input[type="checkbox"] {
-  margin-top: 2px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  margin: 0;
   flex-shrink: 0;
+  border: 2px solid #cbd5e1;
+  border-radius: 7px;
+  background-color: #ffffff;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px 14px;
   cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.agreement-checkbox input[type="checkbox"]:hover {
+  border-color: #1d6bf3;
+}
+
+.agreement-checkbox input[type="checkbox"]:focus-visible {
+  background-color: #ffffff;
+  border-color: #1d6bf3;
+  box-shadow: 0 0 0 4px rgba(29, 107, 243, 0.2);
+}
+
+.agreement-checkbox input[type="checkbox"]:checked {
+  background-color: #1d6bf3;
+  border-color: #1d6bf3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+}
+
+.agreement-checkbox span {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .agreement-checkbox {
+    padding: 14px;
+    font-size: 14px;
+  }
 }
 
 .agreement-checkbox a {
   color: #1a73e8;
+  font-weight: 600;
   text-decoration: none;
 }
 

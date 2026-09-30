@@ -107,7 +107,10 @@
 
                 <!-- Actions -->
                 <div class="ms-modal-actions">
-                    <button type="button" class="ms-btn-cancel" @click="closeModal">Cancel</button>
+                    <button type="button" class="ms-btn-cancel" @click="closeModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        Cancel
+                    </button>
                     <button type="submit" class="ms-btn-submit">
                         Next
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -226,7 +229,10 @@
 
                 <!-- Actions -->
                 <div class="ms-modal-actions">
-                    <button type="button" class="ms-btn-cancel" @click="currentPhase = 1" :disabled="isSubmitting">Back</button>
+                    <button type="button" class="ms-btn-cancel" @click="currentPhase = 1" :disabled="isSubmitting">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        Back
+                    </button>
                     <button type="submit" class="ms-btn-submit" :disabled="isSubmitting">
                         <svg v-if="!isSubmitting" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -888,48 +894,60 @@ onUnmounted(() => {
     border-top: 1px solid #f1f5f9;
 }
 
+/* Same look as the Back / Next buttons of the Assign Task modal */
 .ms-btn-cancel {
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    color: #475569;
-    padding: 10px 18px;
-    border-radius: 12px;
+    background: transparent;
+    border: none;
+    color: #64748b;
     font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
+    font-weight: 600;
     font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: 8px;
     transition: all 0.2s;
 }
 
 .ms-btn-cancel:hover:not(:disabled) {
-    background: #f8fafc;
-    border-color: #cbd5e1;
     color: #0f172a;
+    background: #f1f5f9;
 }
 
 .ms-btn-submit {
-    background: #1d6bf3;
-    border: none;
+    background-color: #1d6bf3;
     color: #ffffff;
-    padding: 10px 22px;
-    border-radius: 12px;
-    font-size: 14px;
+    border: none;
+    padding: 12px 36px;
+    border-radius: 30px;
+    font-size: 15px;
     font-weight: 700;
+    font-family: inherit;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-family: inherit;
+    justify-content: center;
+    gap: 8px;
     box-shadow: 0 4px 14px rgba(29, 107, 243, 0.3);
     transition: all 0.2s;
 }
 
 .ms-btn-submit:hover:not(:disabled) {
-    background: #1557b0;
+    background-color: #1558c6;
+    transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba(29, 107, 243, 0.4);
 }
 
-.ms-btn-submit:disabled,
+.ms-btn-submit:disabled {
+    background-color: #93c5fd;
+    cursor: wait;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
 .ms-btn-cancel:disabled {
     opacity: 0.6;
     cursor: not-allowed;

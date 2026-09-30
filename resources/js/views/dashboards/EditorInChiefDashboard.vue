@@ -744,9 +744,6 @@
                                             <button class="action-btn edit" type="button" aria-label="Edit contributor" @click="openEditUser(user)">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
                                             </button>
-                                            <button v-if="!isDeleteHidden(user)" class="action-btn delete" type="button" aria-label="Delete contributor" @click="openDeleteUser(user)">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 1 2 1 2v2"></path></svg>
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -1479,24 +1476,6 @@
                 </div>
             </div>
         </form>
-    </div>
-
-    <!-- Delete Contributor Modal -->
-    <div v-if="isDeleteUserModalOpen" class="new-user-modal-overlay" @click.self="closeDeleteUser">
-        <div class="new-user-modal new-user-confirm-modal" role="dialog" aria-modal="true">
-            <div class="new-user-modal-header">
-                <h2>Delete Contributor?</h2>
-                <button class="new-user-close" type="button" aria-label="Close" @click="closeDeleteUser">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-            <p>Delete <strong>{{ selectedUser?.name }}</strong>? This will permanently delete the user and all of their information. This action cannot be undone.</p>
-            <p v-if="deleteUserError" class="new-user-error">{{ deleteUserError }}</p>
-            <div class="modal-footer">
-                <button class="btn-next btn-danger" type="button" :disabled="deleteUserSaving" @click="deleteSelectedUser">{{ deleteUserSaving ? 'Deleting...' : 'Delete Contributor' }}</button>
-                <button class="btn-back" type="button" @click="closeDeleteUser">Cancel</button>
-            </div>
-        </div>
     </div>
 
     <!-- Delete Assignment Modal -->
@@ -2771,16 +2750,12 @@ SECONDARY_ROLES.eic = SECONDARY_ROLES.section_editor;
 const selectedUser = ref(null);
 // You can't step down yourself: the Editor-in-Chief you promote changes your position or sets you inactive
 const isEditingSelf = computed(() => !!selectedUser.value && selectedUser.value.id === eicUser.value.id);
-const isDeleteHidden = (user) => user.id === eicUser.value.id;
 const isEditUserModalOpen = ref(false);
-const isDeleteUserModalOpen = ref(false);
 const editUserSaving = ref(false);
 const editUserFileInput = ref(null);
 const editUserImage = ref(null);
 const editUserImagePreview = ref('');
 const editUserError = ref('');
-const deleteUserSaving = ref(false);
-const deleteUserError = ref('');
 const editUserForm = ref({
     name: '',
     email: '',
@@ -2862,47 +2837,6 @@ const saveEditedUser = async () => {
         editUserError.value = e.message || 'Failed to update contributor.';
     } finally {
         editUserSaving.value = false;
-    }
-};
-
-const openDeleteUser = (user) => {
-    selectedUser.value = user;
-    deleteUserError.value = '';
-    isDeleteUserModalOpen.value = true;
-};
-
-const closeDeleteUser = () => {
-    isDeleteUserModalOpen.value = false;
-    selectedUser.value = null;
-    deleteUserError.value = '';
-};
-
-const deleteSelectedUser = async () => {
-    if (!selectedUser.value) return;
-    deleteUserSaving.value = true;
-    deleteUserError.value = '';
-
-    try {
-        const userIdToDelete = selectedUser.value.id;
-        const response = await fetch(`/api/users/${userIdToDelete}`, {
-            method: 'DELETE',
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
-                Accept: 'application/json',
-            },
-        });
-        if (!response.ok) {
-            const data = await response.json();
-            deleteUserError.value = data.message || 'Failed to delete contributor.';
-            return;
-        }
-        eicUsers.value = eicUsers.value.filter(u => u.id !== userIdToDelete);
-        eicArticles.value = eicArticles.value.filter(a => a.author_id !== userIdToDelete && a.author?.id !== userIdToDelete);
-        closeDeleteUser();
-    } catch (e) {
-        deleteUserError.value = e.message || 'Failed to delete contributor.';
-    } finally {
-        deleteUserSaving.value = false;
     }
 };
 
@@ -3321,7 +3255,6 @@ const eicArticleStatusCounts = computed(() => eicArticles.value.reduce((counts, 
 watch(activeTab, () => {
     isNewContributorModalOpen.value = false;
     isEditUserModalOpen.value = false;
-    isDeleteUserModalOpen.value = false;
     eicContributorRole.value = 'all';
     eicContributorSection.value = 'all';
     eicContributorStatus.value = 'all';
