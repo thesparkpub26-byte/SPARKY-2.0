@@ -621,14 +621,14 @@ class ArticleController extends Controller
 
         // Send every linked task (writer, artist, etc.) back to "returned" so it reappears
         // in the assignee's Ongoing column instead of staying stuck under Submitted.
-        // A video's presenter task was already marked completed when the Head Broadcaster sent it
-        // to the EIC, so it has to be reopened here too or the presenter never sees the return.
+        // The writer's (or a video presenter's) task was already marked completed when the article moved on
+        // (the Section Editor sending it to the Copyreader, or the Head Broadcaster sending a video to the EIC),
+        // so it has to be reopened here too or the writer never sees the return and can't revise it.
+        // Other finished crew tasks (artist, layout...) stay completed.
         $tasks = Task::where('article_id', $article->id)
-            ->where(function ($q) use ($article) {
-                $q->where('status', '!=', Task::STATUS_COMPLETED);
-                if ($article->type === Article::TYPE_VIDEO) {
-                    $q->orWhere('type', Task::TYPE_WRITING);
-                }
+            ->where(function ($q) {
+                $q->where('status', '!=', Task::STATUS_COMPLETED)
+                    ->orWhere('type', Task::TYPE_WRITING);
             })
             ->get();
 
@@ -641,6 +641,7 @@ class ArticleController extends Controller
 
             $task->update([
                 'status'           => Task::STATUS_RETURNED,
+                'completed_at'     => null,
                 'notes'            => $this->withRevisionNotes($task->notes, $request->rejection_reason),
                 'returned_by_role' => $this->returnerRoleLabel($request->user()),
             ]);

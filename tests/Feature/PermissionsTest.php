@@ -163,4 +163,32 @@ class PermissionsTest extends TestCase
         $this->assertSame('published', $due->fresh()->status);
         $this->assertSame('scheduled', $later->fresh()->status);
     }
+
+    public function test_returning_an_article_reopens_the_writers_completed_task(): void
+    {
+        $writer = $this->makeUser('staff_writer');
+        $artist = $this->makeUser('staff_artist');
+        $eic = $this->makeUser('eic');
+        $article = $this->makeArticle(['author_id' => $writer->id, 'status' => Article::STATUS_ENDORSED]);
+
+        // The Section Editor's endorsement already completed the writer's task; the artist's work is finished too
+        $writing = $this->makeTask($writer, $eic, ['article_id' => $article->id, 'status' => 'completed', 'completed_at' => now()]);
+        $art = $this->makeTask($artist, $eic, ['article_id' => $article->id, 'type' => 'illustration', 'status' => 'completed', 'completed_at' => now()]);
+
+        Sanctum::actingAs($eic);
+        $this->postJson("/api/articles/{$article->id}/reject", ['rejection_reason' => 'Fix the lede'])->assertOk();
+
+        // Back in the writer's Ongoing column, ready to revise and submit again
+        $this->assertSame('returned', $writing->fresh()->status);
+        $this->assertNull($writing->fresh()->completed_at);
+        $this->assertStringContainsString('Fix the lede', $writing->fresh()->notes);
+        $this->assertSame('completed', $art->fresh()->status);
+
+        // ...and the writer can submit it again
+        Sanctum::actingAs($writer);
+        $this->putJson("/api/articles/{$article->id}", ['cover_image' => '/storage/a.jpg', 'media_files' => ['/storage/a.jpg']])->assertOk();
+        $this->postJson("/api/articles/{$article->id}/submit")->assertOk();
+        $this->postJson("/api/tasks/{$writing->id}/submit", ['notes' => 'Revised'])->assertOk();
+        $this->assertSame('submitted', $writing->fresh()->status);
+    }
 }
