@@ -1,0 +1,25 @@
+# TEMPORARY: pings the Render site so the free web service doesn't fall asleep while data is gathered.
+# It stops pinging by itself after EXPIRES_AT; delete this file afterwards.
+name: keep-alive
+
+on:
+  schedule:
+    # GitHub cannot schedule finer than whole minutes, so this is every 14 minutes (a bit under the 15-minute sleep timer).
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      SITE_URL: https://sparky-6tit.onrender.com/up
+      EXPIRES_AT: '2026-10-01T05:30:00Z'
+    steps:
+      - name: Ping the site until the 24-hour window ends
+        run: |
+          if [ "$(date -u +%s)" -ge "$(date -u -d "$EXPIRES_AT" +%s)" ]; then
+            echo "Keep-alive window ended at $EXPIRES_AT; nothing to do. Delete this workflow."
+            exit 0
+          fi
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 60 -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "$SITE_URL"
