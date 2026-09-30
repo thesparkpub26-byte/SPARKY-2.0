@@ -142,7 +142,7 @@ const handleSignUp = async () => {
 
 <style scoped>
 .terms-note {
-  margin: 14px 0 0;
+  margin: 16px 0 28px;
   font-size: 12.5px;
   line-height: 1.5;
   color: #64748b;

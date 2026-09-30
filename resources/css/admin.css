@@ -375,8 +375,8 @@ body {
 }
 
 .metric-box.light .metric-icon {
-    background-color: #e2e8f0;
-    color: #555;
+    background-color: #111;
+    color: #ffffff;
 }
 
 .metric-value {
