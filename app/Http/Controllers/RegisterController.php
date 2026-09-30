@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Mail\OtpMail;
-use App\Models\NewsletterSubscriber;
 use App\Models\OtpVerification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use App\Rules\NotCommonPassword;
 
 class RegisterController extends Controller
@@ -112,12 +110,6 @@ class RegisterController extends Controller
 
         // Clean up
         $record->delete();
-
-        // Reader accounts receive the newsletter automatically; no separate opt-in needed.
-        $subscriber = NewsletterSubscriber::firstOrNew(['email' => $user->email]);
-        $subscriber->unsubscribe_token = $subscriber->unsubscribe_token ?: Str::random(48);
-        $subscriber->unsubscribed_at = null;
-        $subscriber->save();
 
         // Issue a Sanctum token and log them in
         $token = $user->createToken('sparky-token')->plainTextToken;

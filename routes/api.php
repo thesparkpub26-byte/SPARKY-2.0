@@ -78,6 +78,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::delete('/reader/articles/{article}/bookmark', [ReaderArticleController::class, 'unbookmark'])->middleware('throttle:60,1,article-bookmark');
     Route::get('/reader/bookmarks', [ReaderArticleController::class, 'bookmarks']);
     Route::post('/reader/comments/{comment}/report', [ReaderArticleController::class, 'reportComment'])->middleware('throttle:10,1,comment-report');
+    Route::get('/newsletter/me',              [NewsletterController::class, 'status']);
+    Route::post('/newsletter/me/subscribe',   [NewsletterController::class, 'subscribeMe'])->middleware('throttle:10,1,newsletter-me');
+    Route::post('/newsletter/me/unsubscribe', [NewsletterController::class, 'unsubscribeMe'])->middleware('throttle:10,1,newsletter-me');
     Route::post('/profile',         [UserController::class, 'updateProfile']);   // multipart/form-data
     Route::delete('/profile',       [UserController::class, 'deleteAccount']);
 

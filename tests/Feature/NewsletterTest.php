@@ -30,6 +30,40 @@ class NewsletterTest extends TestCase
         $this->assertSame(1, NewsletterSubscriber::count());
     }
 
+    public function test_a_signed_in_member_subscribes_and_unsubscribes_from_the_card(): void
+    {
+        Mail::fake();
+        $reader = $this->makeUser('reader');
+
+        $this->getJson('/api/newsletter/me')->assertUnauthorized();
+        $this->postJson('/api/newsletter/me/subscribe')->assertUnauthorized();
+
+        Sanctum::actingAs($reader);
+        $this->getJson('/api/newsletter/me')->assertOk()->assertJsonPath('subscribed', false);
+
+        $this->postJson('/api/newsletter/me/subscribe')->assertCreated()->assertJsonPath('subscribed', true);
+        $this->getJson('/api/newsletter/me')->assertJsonPath('subscribed', true);
+        Mail::assertSent(NewsletterWelcomeMail::class, 1);
+
+        $this->postJson('/api/newsletter/me/unsubscribe')->assertOk()->assertJsonPath('subscribed', false);
+        $this->getJson('/api/newsletter/me')->assertJsonPath('subscribed', false);
+
+        // Pressing Subscribe again re-joins the same record
+        $this->postJson('/api/newsletter/me/subscribe')->assertCreated();
+        $this->assertSame(1, NewsletterSubscriber::count());
+        $this->getJson('/api/newsletter/me')->assertJsonPath('subscribed', true);
+    }
+
+    public function test_signing_up_does_not_subscribe_anyone_automatically(): void
+    {
+        Mail::fake();
+        OtpVerification::create(['name' => 'New Reader', 'email' => 'new@example.test', 'password' => bcrypt('Sturdy-pass-88'), 'otp' => '123456', 'expires_at' => now()->addMinutes(10)]);
+
+        $this->postJson('/api/register/verify-otp', ['email' => 'new@example.test', 'otp' => '123456'])->assertCreated();
+
+        $this->assertSame(0, NewsletterSubscriber::count());
+    }
+
     public function test_only_admin_and_eic_can_see_the_subscriber_list(): void
     {
         Sanctum::actingAs($this->makeUser('staff_writer'));
