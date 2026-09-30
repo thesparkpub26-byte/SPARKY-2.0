@@ -1196,12 +1196,12 @@
                 <div class="form-group">
                     <label class="form-label">Set Password</label>
                     <div class="input-icon-wrap" style="margin-bottom: 12px;">
-                        <input v-model="newUserForm.password" type="password" class="form-control" placeholder="Create Password">
-                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <input v-model="newUserForm.password" :type="showNewUserPassword ? 'text' : 'password'" class="form-control" placeholder="Create Password">
+                        <PasswordEyeIcon :visible="showNewUserPassword" @click="showNewUserPassword = !showNewUserPassword" @keydown.enter.prevent="showNewUserPassword = !showNewUserPassword" />
                     </div>
                     <div class="input-icon-wrap">
-                        <input v-model="newUserForm.passwordConfirmation" type="password" class="form-control" placeholder="Retype Password">
-                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <input v-model="newUserForm.passwordConfirmation" :type="showNewUserConfirmation ? 'text' : 'password'" class="form-control" placeholder="Retype Password">
+                        <PasswordEyeIcon :visible="showNewUserConfirmation" @click="showNewUserConfirmation = !showNewUserConfirmation" @keydown.enter.prevent="showNewUserConfirmation = !showNewUserConfirmation" />
                     </div>
                 </div>
 
@@ -1272,7 +1272,7 @@
                     <div class="form-group"><label class="form-label">Program</label><input v-model="editUserForm.program" class="form-control" placeholder="Program"></div>
                     <div class="form-group"><label class="form-label">Year/Section</label><input v-model="editUserForm.year_section" class="form-control" placeholder="Year/Section"></div>
                 </div>
-                <div class="form-group edit-user-password-group"><label class="form-label">New Password <span class="optional">(leave blank to keep)</span></label><input v-model="editUserForm.password" type="password" class="form-control" minlength="8"></div>
+                <div class="form-group edit-user-password-group"><label class="form-label">New Password <span class="optional">(leave blank to keep)</span></label><div class="input-icon-wrap"><input v-model="editUserForm.password" :type="showEditUserPassword ? 'text' : 'password'" class="form-control" minlength="8"><PasswordEyeIcon :visible="showEditUserPassword" @click="showEditUserPassword = !showEditUserPassword" @keydown.enter.prevent="showEditUserPassword = !showEditUserPassword" /></div></div>
                 <p v-if="editUserError" class="new-user-error">{{ editUserError }}</p>
                 <div class="modal-footer"><button class="btn-back" type="button" @click="closeEditUser">Cancel</button><button class="btn-next" type="submit" :disabled="editUserSaving">{{ editUserSaving ? 'Saving...' : 'Save Changes' }}</button></div>
             </div>
@@ -1356,6 +1356,7 @@
 
 <script setup>
 import MobileNavToggle from '../../components/MobileNavToggle.vue';
+import PasswordEyeIcon from '../../components/PasswordEyeIcon.vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { lazyModal } from '../../utils/lazyModal';
 import { useDebouncedSearch } from '../../utils/dashboardSearch';
@@ -2084,6 +2085,10 @@ const editUserSaving = ref(false);
 const deleteUserSaving = ref(false);
 const editUserError = ref('');
 const deleteUserError = ref('');
+// Show / hide the password boxes of the add and edit user forms
+const showNewUserPassword = ref(false);
+const showNewUserConfirmation = ref(false);
+const showEditUserPassword = ref(false);
 const editUserForm = ref({ name: '', email: '', role: '', secondary_role: '', tertiary_role: '', is_active: true, program: '', year_section: '', password: '' });
 const isEditArticleModalOpen = ref(false);
 const isDeleteArticleModalOpen = ref(false);
@@ -2121,6 +2126,8 @@ const isNewUserStep2Valid = computed(() => {
 
 const openNewUserModal = () => {
     newUserStep.value = 1;
+    showNewUserPassword.value = false;
+    showNewUserConfirmation.value = false;
     newUserError.value = '';
     isNewUserModalOpen.value = true;
 };
@@ -2139,6 +2146,7 @@ const handleNewUserImage = (event) => {
 
 const openEditUser = (member) => {
     selectedUser.value = member;
+    showEditUserPassword.value = false;
     editUserForm.value = {
         name: member.name,
         email: member.email,
