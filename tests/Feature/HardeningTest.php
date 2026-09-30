@@ -102,6 +102,18 @@ class HardeningTest extends TestCase
         }
     }
 
+    public function test_signing_up_reports_an_unreachable_mail_server_instead_of_crashing(): void
+    {
+        Mail::shouldReceive('to->send')->andThrow(new \RuntimeException('Connection timed out'));
+
+        $this->postJson('/api/register/send-otp', [
+            'name' => 'Maria Santos', 'email' => 'new.reader@example.test', 'password' => 'Gentle-river-5821', 'password_confirmation' => 'Gentle-river-5821',
+        ])->assertStatus(503)->assertJsonPath('message', "We couldn't send the verification code right now. Please try again in a few minutes.");
+
+        // No half-finished sign-up is left waiting for a code that never arrived
+        $this->assertSame(0, \App\Models\OtpVerification::count());
+    }
+
     // ── Passwords ────────────────────────────────────────────────────────────
 
     public function test_weak_passwords_are_refused_when_signing_up(): void

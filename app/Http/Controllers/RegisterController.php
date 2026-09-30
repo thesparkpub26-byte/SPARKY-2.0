@@ -7,6 +7,7 @@ use App\Models\OtpVerification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Rules\NotCommonPassword;
 
@@ -49,7 +50,10 @@ class RegisterController extends Controller
         ]);
 
         // Send OTP email
-        Mail::to($request->email)->send(new OtpMail($otp, $request->name));
+        if ($failure = $this->sendCode($request->email, new OtpMail($otp, $request->name))) {
+            OtpVerification::where('email', $request->email)->delete(); // nothing to verify: let them retry cleanly
+            return $failure;
+        }
 
         return response()->json([
             'message' => 'Verification code sent to ' . $request->email,
@@ -141,8 +145,26 @@ class RegisterController extends Controller
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        Mail::to($record->email)->send(new OtpMail($otp, $record->name));
+        if ($failure = $this->sendCode($record->email, new OtpMail($otp, $record->name))) {
+            return $failure;
+        }
 
         return response()->json(['message' => 'A new verification code has been sent.']);
+    }
+
+    /** Sends the code; returns an error response (and logs why) when the mail server can't be reached, null on success. */
+    private function sendCode(string $email, OtpMail $mail)
+    {
+        try {
+            Mail::to($email)->send($mail);
+        } catch (\Throwable $e) {
+            Log::error('Sign-up verification email failed: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => "We couldn't send the verification code right now. Please try again in a few minutes.",
+            ], 503);
+        }
+
+        return null;
     }
 }
