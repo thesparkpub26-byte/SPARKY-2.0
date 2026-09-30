@@ -140,6 +140,17 @@ class AccountSecurityTest extends TestCase
         $this->assertNull($user->fresh());
     }
 
+    public function test_staff_cannot_delete_their_own_account(): void
+    {
+        foreach (['admin', 'eic', 'section_editor', 'staff_writer', 'staff_artist', 'staff_broadcaster'] as $role) {
+            $user = $this->makeUser($role, ['password' => 'oldpassword1']);
+            Sanctum::actingAs($user);
+
+            $this->deleteJson('/api/profile', ['password' => 'oldpassword1'])->assertForbidden();
+            $this->assertNotNull($user->fresh(), "{$role} account should not be deleted");
+        }
+    }
+
     public function test_sign_in_tokens_expire_and_deactivation_signs_people_out(): void
     {
         $user = $this->makeUser('reader');

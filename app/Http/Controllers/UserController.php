@@ -211,8 +211,8 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'admin') {
-            return response()->json(['message' => 'Only administrators can delete their account. Please contact an admin if you need your account removed.'], 403);
+        if ($user->isStaff()) {
+            return response()->json(['message' => 'Staff accounts cannot be deleted from the profile page. Please contact an administrator if you need your account removed.'], 403);
         }
 
         $request->validate(['password' => 'required|string|current_password:sanctum']);
