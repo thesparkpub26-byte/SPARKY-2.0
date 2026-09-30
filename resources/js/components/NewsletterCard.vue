@@ -161,6 +161,23 @@ const confirm = async () => {
 </script>
 
 <style scoped>
+/* The form spans the full width of the block (as wide as the note below it): the input takes what the button leaves */
+.newsletter-form {
+  width: 100%;
+}
+
+@media (min-width: 641px) {
+  .newsletter-form .newsletter-input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  .newsletter-form .btn-subscribe {
+    flex: 0 0 auto;
+  }
+}
+
 .btn-unsubscribe {
   background-color: #ffffff;
   color: #dc2626;
