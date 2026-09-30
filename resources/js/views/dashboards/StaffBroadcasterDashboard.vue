@@ -209,7 +209,7 @@
                             <div v-show="staffExpandedYears[yearGroup.academic_year]" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 8px;">
                                 <div v-for="sheet in yearGroup.monitoring_sheets" :key="sheet.id" class="monitoring-sheet-row" @click="openMonitoringSheet(sheet)" style="padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s;">
                                     <span :class="`pub-badge pub-${(sheet.publication_type || '').toLowerCase()}`" style="padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap;">{{ sheet.publication_type }}</span>
-                                    <span style="flex: 1; font-weight: 600; color: #0f172a;">{{ sheet.title }}</span>
+                                    <span style="flex: 1;"></span>
                                     <span style="color: #94a3b8; font-size: 13px;">{{ formatDate(sheet.created_at) }}</span>
                                 </div>
                                 <div v-if="(yearGroup.monitoring_sheets || []).length === 0" style="padding: 20px; text-align: center; color: #94a3b8;">No monitoring sheets yet</div>

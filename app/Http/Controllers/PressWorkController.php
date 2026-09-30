@@ -79,7 +79,7 @@ class PressWorkController extends Controller
             foreach (self::TYPES as $type) {
                 $pressWork->monitoringSheets()->create([
                     'publication_type' => $type,
-                    'title' => $pressWork->title . ' - ' . $type,
+                    'title' => $type,
                 ]);
             }
 

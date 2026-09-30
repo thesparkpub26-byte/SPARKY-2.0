@@ -341,6 +341,11 @@ body {
         gap: 10px 16px;
     }
 
+    /* Breathing room under the last footer link so it doesn't sit on the browser's bottom edge */
+    .reader-footer {
+        padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+    }
+
     .newsletter-card {
         padding: 28px 20px;
         gap: 24px;
