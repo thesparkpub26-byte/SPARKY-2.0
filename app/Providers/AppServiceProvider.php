@@ -3,11 +3,9 @@
 namespace App\Providers;
 
 use App\Filesystem\DatabaseAdapter;
-use App\Mail\BrevoTransport;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -35,10 +33,6 @@ class AppServiceProvider extends ServiceProvider
 
             return new FilesystemAdapter(new Filesystem($adapter, $config), $adapter, $config);
         });
-
-        // MAIL_MAILER=brevo sends over HTTPS (Render's free plan blocks SMTP); see App\Mail\BrevoTransport
-        config(['mail.mailers.brevo' => ['transport' => 'brevo']]);
-        Mail::extend('brevo', fn () => new BrevoTransport((string) config('services.brevo.key')));
 
         // Debug pages print environment values (including passwords) and file paths. If a live server is
         // ever left with APP_DEBUG=true, switch it off rather than expose them.

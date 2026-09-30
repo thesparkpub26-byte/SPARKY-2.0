@@ -31,7 +31,7 @@ Point the web server's document root at `public/`, never at the project folder.
 | `APP_DEBUG` | `false` (debug pages print passwords and file paths) |
 | `APP_URL` | the real address, with `https://`. Newsletter and password emails build their links from it |
 | `DB_*` | a database user that can only reach this database, not `root` |
-| `MAIL_MAILER`, `BREVO_API_KEY`, `MAIL_FROM_ADDRESS` | on Render: `brevo`, a [Brevo](https://www.brevo.com) API key, and a sender verified in Brevo (free plan: 300 emails a day). Emails go out over HTTPS because Render's free plan blocks SMTP. On a normal server you can use `smtp` with the `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` of a mail account (an **app password**; Gmail allows roughly 500 a day) |
+| `MAIL_*` | a mail account's **app password**. Gmail allows roughly 500 emails a day; move to a mail service if the newsletter list grows past that |
 | `SANCTUM_TOKEN_EXPIRATION` | minutes before people must sign in again (default 10080 = 7 days) |
 | `CORS_ALLOWED_ORIGINS` | leave empty unless another website must call the API |
 | `CSP_MODE` | leave empty: pages enforce a Content-Security-Policy on a live site (see section 5) |
@@ -167,7 +167,7 @@ The repository contains everything Render needs: a `Dockerfile` (Render has no P
    - `APP_KEY`: run `php artisan key:generate --show` on your computer (it starts with `base64:`). Render cannot generate this one, because Laravel needs that exact format.
    - `APP_URL`: the site's address with `https://` (the `onrender.com` address Render gives it, or your own domain).
    - `DB_URL`: the Supabase Session pooler string from step A.
-   - `BREVO_API_KEY`, `MAIL_FROM_ADDRESS`: create a free Brevo account, verify your sender address (Senders, Domains & Dedicated IPs), then make an API key under SMTP & API. `MAIL_MAILER=brevo` is already set by the Blueprint.
+   - `MAIL_USERNAME`, `MAIL_PASSWORD` (an app password), `MAIL_FROM_ADDRESS`.
    - `CRON_SECRET`: 24 or more random characters, for the scheduler timer in part C. Make one with `php -r "echo bin2hex(random_bytes(24));"` and keep a copy: you will paste the same value into the timer.
 3. Before applying, edit `region` in `render.yaml` to the one nearest your Supabase project (it cannot be changed afterwards). The web service starts on the `free` plan: change `plan` to a paid size when the site should stay awake.
 4. On every start the container creates or updates the database tables (`AUTORUN_ENABLED`), caches the configuration and routes, and serves the site on port 8080. Watch the first deploy in the *Logs* tab.
@@ -196,6 +196,7 @@ Good to know:
 
 **D. Things to know**
 
+- Free Render web services also block outgoing email on the SMTP ports (25, 465, 587), so Gmail cannot be reached and sign-up shows "We couldn't send the verification code right now" (the log says `Connection timed out`). Use a paid instance type for the web service, or an email service that sends over HTTPS.
 - Free Render web services go to sleep after about 15 minutes without visitors, and the first visit afterwards is slow. Free Supabase projects are paused after a week of inactivity and hold 500 MB, which includes the uploads.
 - Every photo is read from the database when it is first requested, then cached by the browser for a year. A CDN in front of the site (Cloudflare's free plan, for instance) keeps that load off the database.
 - Search on PostgreSQL uses plain word matching (case-insensitive) instead of the MySQL full-text index. The results are the same for a campus-sized archive; it only gets slower on hundreds of thousands of articles.

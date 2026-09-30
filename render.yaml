@@ -27,7 +27,13 @@ envVarGroups:
       - key: QUEUE_CONNECTION
         value: sync                 # the site has no queue table; emails are sent while the request runs
       - key: MAIL_MAILER
-        value: brevo                # sends over HTTPS: Render's free plan blocks the SMTP ports (25, 465, 587)
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_ENCRYPTION
+        value: tls
       - key: MAIL_FROM_NAME
         value: TheSPARK
 
@@ -65,9 +71,11 @@ services:
         sync: false
       - key: DB_URL                 # the Supabase "Session pooler" connection string
         sync: false
-      - key: BREVO_API_KEY          # Brevo dashboard > SMTP & API > API keys (a key starting with xkeysib-)
+      - key: MAIL_USERNAME
         sync: false
-      - key: MAIL_FROM_ADDRESS      # a sender you verified in Brevo
+      - key: MAIL_PASSWORD          # an app password, never the account password
+        sync: false
+      - key: MAIL_FROM_ADDRESS
         sync: false
       # The free outside timer (cron-job.org) calls /api/cron/run once a minute with this key: it runs the scheduled
       # jobs (publish scheduled articles, weekly newsletter, clean-up), since Render has no cron. 24+ random
