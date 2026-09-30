@@ -104,6 +104,7 @@ class HardeningTest extends TestCase
 
     public function test_signing_up_reports_an_unreachable_mail_server_instead_of_crashing(): void
     {
+        config(['security.signup_otp' => true]);
         Mail::shouldReceive('to->send')->andThrow(new \RuntimeException('Connection timed out'));
 
         $this->postJson('/api/register/send-otp', [
@@ -118,6 +119,7 @@ class HardeningTest extends TestCase
 
     public function test_weak_passwords_are_refused_when_signing_up(): void
     {
+        config(['security.signup_otp' => true]); // this test ends by checking that the code email goes out
         Mail::fake();
         $signup = fn (string $password) => $this->postJson('/api/register/send-otp', [
             'name' => 'Maria Santos', 'email' => 'maria.santos@example.test', 'password' => $password, 'password_confirmation' => $password,

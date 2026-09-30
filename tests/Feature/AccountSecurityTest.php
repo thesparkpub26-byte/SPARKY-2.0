@@ -6,6 +6,7 @@ use App\Mail\OtpMail;
 use App\Models\Article;
 use App\Models\OtpVerification;
 use App\Models\PasswordResetCode;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
@@ -111,6 +112,42 @@ class AccountSecurityTest extends TestCase
         // even the right code is useless now: the pending sign-up was thrown away
         $this->postJson('/api/register/verify-otp', ['email' => 'new@example.test', 'otp' => '123456'])->assertNotFound();
         $this->assertSame(0, OtpVerification::count());
+    }
+
+    public function test_signup_creates_the_account_straight_away_while_the_email_code_is_off(): void
+    {
+        $this->assertFalse(config('security.signup_otp'), 'the email code is switched off by default for now');
+        $signup = fn (string $email) => $this->postJson('/api/register/send-otp', [
+            'name' => 'Maria Santos', 'email' => $email, 'password' => 'Gentle-river-5821', 'password_confirmation' => 'Gentle-river-5821',
+        ]);
+
+        $token = $signup('new.reader@example.test')->assertCreated()->assertJsonPath('user.role', 'reader')->json('token');
+        $this->assertTrue(User::where('email', 'new.reader@example.test')->where('is_active', true)->exists());
+        $this->assertSame(0, OtpVerification::count());
+        $this->withToken($token)->getJson('/api/me')->assertOk()->assertJsonPath('email', 'new.reader@example.test');
+
+        // The same email cannot sign up twice
+        $signup('new.reader@example.test')->assertStatus(422);
+
+        // A deactivated account is never reactivated this way: nothing proves the email is theirs
+        $gone = $this->makeUser('staff_writer', ['is_active' => false]);
+        $signup($gone->email)->assertStatus(422);
+        $this->assertSame('staff_writer', $gone->fresh()->role);
+        $this->assertFalse($gone->fresh()->is_active);
+    }
+
+    public function test_signup_still_sends_a_code_when_the_email_code_is_switched_on(): void
+    {
+        config(['security.signup_otp' => true]);
+        Mail::fake();
+
+        $this->postJson('/api/register/send-otp', [
+            'name' => 'Maria Santos', 'email' => 'new.reader@example.test', 'password' => 'Gentle-river-5821', 'password_confirmation' => 'Gentle-river-5821',
+        ])->assertOk()->assertJsonMissingPath('token');
+
+        $this->assertFalse(User::where('email', 'new.reader@example.test')->exists());
+        $this->assertSame(1, OtpVerification::count());
+        Mail::assertSent(OtpMail::class, 1);
     }
 
     // ── Own account ──────────────────────────────────────────────────────────

@@ -14,4 +14,11 @@ return [
     | without cron (see App\Http\Controllers\CronController). At least 24 characters; empty switches the address off.
     */
     'cron_secret' => env('CRON_SECRET'),
+
+    /*
+    | Sign-up email verification (the 6-digit code). Switched OFF for now because Render's free plan cannot reach an
+    | SMTP server, so no code could be delivered: new accounts are created straight away, without proving the
+    | email address. Set SIGNUP_OTP_ENABLED=true (or change the default) once email can be sent again.
+    */
+    'signup_otp' => filter_var(env('SIGNUP_OTP_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
 ];

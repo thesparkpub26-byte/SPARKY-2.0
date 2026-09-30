@@ -56,7 +56,7 @@
           <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
 
         <button type="submit" class="submit-btn" :disabled="!isFormValid || loading">
-            {{ loading ? 'Sending code…' : 'Sign Up' }}
+            {{ loading ? 'Signing up…' : 'Sign Up' }}
           </button>
 
           <p class="terms-note">
@@ -75,6 +75,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { lastPage } from '../../utils/returnTo';
 
 const route = useRoute();
 const name = ref('');
@@ -95,6 +96,17 @@ const isFormValid = computed(() => {
   return name.value.trim() && email.value.trim() && password.value && confirmPassword.value
     && !isMismatch.value;
 });
+
+// Role → destination mapping (same as login)
+const roleDashboard = {
+  admin:             '/admin',
+  eic:               '/eic',
+  section_editor:    '/editor',
+  staff_writer:      '/writer',
+  staff_artist:      '/artist',
+  staff_broadcaster: '/broadcaster',
+  reader:            '/',
+};
 
 const handleSignUp = async () => {
   if (!isFormValid.value) return;
@@ -122,6 +134,16 @@ const handleSignUp = async () => {
         ? Object.values(data.errors)[0][0]
         : data.message;
       errorMsg.value = firstError || 'Something went wrong. Please try again.';
+      return;
+    }
+
+    // Email verification is switched off on the server: the account exists and they are already signed in
+    if (data.token) {
+      localStorage.setItem('sparky_token', data.token);
+      localStorage.setItem('sparky_user', JSON.stringify(data.user));
+
+      // Back to the page they were looking at before signing up; their dashboard only if there wasn't one
+      router.push(lastPage() || roleDashboard[data.user.role] || '/');
       return;
     }
 

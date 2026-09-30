@@ -16,6 +16,8 @@ class RegisterController extends Controller
     /**
      * Step 1 – Validate signup details and send OTP email.
      * The account is NOT created yet; it's held in otp_verifications.
+     *
+     * While the email code is switched off (config security.signup_otp), the account is created right here instead.
      */
     public function sendOtp(Request $request)
     {
@@ -33,6 +35,10 @@ class RegisterController extends Controller
             'email'    => 'required|email',
             'password' => ['required', 'string', ...NotCommonPassword::rules(), 'confirmed'],
         ]);
+
+        if (!config('security.signup_otp')) {
+            return $this->registerWithoutCode($request->name, $request->email, $request->password);
+        }
 
         // Remove any previous pending OTPs for this email
         OtpVerification::where('email', $request->email)->delete();
@@ -150,6 +156,34 @@ class RegisterController extends Controller
         }
 
         return response()->json(['message' => 'A new verification code has been sent.']);
+    }
+
+    /**
+     * Sign-up with the email code switched off: create the reader account straight away and log them in.
+     * Nothing proves the email address here, so an existing deactivated account is never reactivated this way
+     * (that would let anyone take over a deactivated account just by knowing its email).
+     */
+    private function registerWithoutCode(string $name, string $email, string $password)
+    {
+        if (User::where('email', $email)->exists()) {
+            return response()->json([
+                'message' => 'This email belongs to an account that is deactivated. Please contact an administrator.',
+                'errors'  => ['email' => ['This email belongs to an account that is deactivated. Please contact an administrator.']],
+            ], 422);
+        }
+
+        $user = User::create([
+            'name'      => $name,
+            'email'     => $email,
+            'password'  => Hash::make($password),
+            'role'      => 'reader',
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'token' => $user->createToken('sparky-token')->plainTextToken,
+            'user'  => $user,
+        ], 201);
     }
 
     /** Sends the code; returns an error response (and logs why) when the mail server can't be reached, null on success. */
