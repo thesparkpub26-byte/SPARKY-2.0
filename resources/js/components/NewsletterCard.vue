@@ -10,14 +10,22 @@
       <div class="newsletter-right">
         <h4 class="newsletter-stay-updated">Stay up to date</h4>
 
-        <button v-if="!isLoggedIn" type="button" class="btn-subscribe" @click="goToLogin">Subscribe</button>
+        <!-- Signed out: leave an email, then create the account first (subscribing happens afterwards, from this card) -->
+        <template v-if="!isLoggedIn">
+          <form class="newsletter-form" @submit.prevent="goToSignUp">
+            <input type="email" v-model="email" placeholder="Enter your email" class="newsletter-input" maxlength="255" required>
+            <button type="submit" class="btn-subscribe">Subscribe</button>
+          </form>
+          <p class="newsletter-feedback newsletter-hint">We'll take you to sign up first. Once you're in, you can subscribe from this card.</p>
+        </template>
+
+        <!-- Signed in: one button that toggles the subscription, each way behind a confirmation -->
         <button v-else-if="status === 'loading'" type="button" class="btn-subscribe" disabled>Loading…</button>
         <button v-else-if="status === 'subscribed'" type="button" class="btn-subscribe btn-unsubscribe" @click="openConfirm">Unsubscribe</button>
         <button v-else type="button" class="btn-subscribe" @click="openConfirm">Subscribe</button>
 
-        <p v-if="!isLoggedIn" class="newsletter-feedback newsletter-hint">Sign in or create an account to subscribe to the newsletter.</p>
-        <p v-else-if="status === 'subscribed'" class="newsletter-feedback">You're subscribed{{ userEmail ? ` as ${userEmail}` : '' }}.</p>
-        <p v-else-if="status === 'unsubscribed'" class="newsletter-feedback newsletter-hint">You're not subscribed yet.</p>
+        <p v-if="isLoggedIn && status === 'subscribed'" class="newsletter-feedback">You're subscribed{{ userEmail ? ` as ${userEmail}` : '' }}.</p>
+        <p v-else-if="isLoggedIn && status === 'unsubscribed'" class="newsletter-feedback newsletter-hint">You're not subscribed yet.</p>
         <p v-if="notice" class="newsletter-feedback">{{ notice }}</p>
         <p v-if="loadError" class="newsletter-feedback error">{{ loadError }}</p>
       </div>
@@ -110,8 +118,14 @@ const onKeydown = (event) => {
   if (event.key === 'Escape' && confirming.value && !saving.value) closeConfirm();
 };
 
-// Subscribing needs an account: signed-out visitors are sent to sign in (or create one) first
-const goToLogin = () => router.push('/login');
+// Subscribing needs an account: a signed-out visitor is sent to sign up first, with their email filled in
+const email = ref('');
+const goToSignUp = () => {
+  const trimmed = email.value.trim();
+  if (!trimmed) return;
+
+  router.push({ path: '/signup', query: { email: trimmed } });
+};
 
 const openConfirm = () => {
   actionError.value = '';
