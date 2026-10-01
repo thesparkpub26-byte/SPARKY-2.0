@@ -786,6 +786,55 @@ const fetchSections = async () => {
     }
 };
 
+// Strips the "(Visuals / Graphics)"-style suffix so an artist task's title matches its writing task's.
+const cleanTitle = (t) => (t || '')
+    .replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '')
+    .trim()
+    .toLowerCase();
+
+// Pulls the thumbnail and media the paired artist/PJ has submitted straight from their task
+// (matched by article or by title) into the workspace, locked as the artist's.
+const loadSubmittedArtistVisuals = async (articleId) => {
+    try {
+        const token = localStorage.getItem('sparky_token');
+        const res = await fetch('/api/tasks', {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) return;
+        const allTasks = await res.json();
+        if (!Array.isArray(allTasks)) return;
+
+        const writerTaskId = task.value?.id || task.value?.raw?.id;
+        const baseTitle = cleanTitle(task.value?.title);
+        const artistTasks = allTasks.filter(t =>
+            t.id !== writerTaskId &&
+            ['illustration', 'photography', 'layout'].includes(t.type) &&
+            ['submitted', 'completed'].includes(t.status) &&
+            ((articleId && t.article_id === articleId) ||
+                (baseTitle && !t.article_id && cleanTitle(t.title) === baseTitle))
+        );
+
+        for (const artistTask of artistTasks) {
+            const thumb = parseNotesField(artistTask.notes || '', 'Thumbnail');
+            const mediaField = parseNotesField(artistTask.notes || '', 'Media Uploads');
+            const urls = mediaField ? mediaField.split(',').map(u => u.trim()).filter(Boolean) : [];
+
+            if (thumb) {
+                artistThumbnailUrl.value = thumb;
+                thumbnailPreview.value = thumb;
+            }
+            for (const url of urls) {
+                artistMediaUrls.value.add(url);
+                if (mediaPreviews.value.length < 3 && !mediaPreviews.value.some(m => m.url === url)) {
+                    mediaPreviews.value.push({ url, name: url.split('/').pop(), size: null });
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Could not load the artist\'s submitted visuals:', e);
+    }
+};
+
 // Watch task data to initialize workspace
 watch(() => props.isOpen, async (newVal) => {
     if (newVal) {
@@ -854,6 +903,9 @@ watch(() => props.isOpen, async (newVal) => {
             artistMediaField ? artistMediaField.split(',').map(u => u.trim()).filter(Boolean) : []
         );
 
+        // The artist's submit only reaches the article when their task is already linked to it,
+        // which doesn't happen until the writer's first save — so also read it off their task.
+        await loadSubmittedArtistVisuals(articleId);
 
         // Debug: log task data to see what we're working with
         console.log('Task data in AssignmentWorkspaceModal:', task.value);
@@ -1050,10 +1102,6 @@ const linkSiblingArtistTask = async (articleId, token) => {
         const allTasks = await res.json();
         if (!Array.isArray(allTasks)) return;
 
-        const cleanTitle = (t) => (t || '')
-            .replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '')
-            .trim()
-            .toLowerCase();
         const baseTitle = cleanTitle(task.value?.title || articleHeadline.value);
         if (!baseTitle) return;
 
