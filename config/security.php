@@ -16,9 +16,9 @@ return [
     'cron_secret' => env('CRON_SECRET'),
 
     /*
-    | Sign-up email verification (the 6-digit code). Switched OFF for now because Render's free plan cannot reach an
-    | SMTP server, so no code could be delivered: new accounts are created straight away, without proving the
-    | email address. Set SIGNUP_OTP_ENABLED=true (or change the default) once email can be sent again.
+    | Sign-up email verification (the 6-digit code). ON by default: sign-up emails a code that must be entered before
+    | the account exists. Set SIGNUP_OTP_ENABLED=false only on a host that cannot reach an SMTP server (such as
+    | Render's free plan): new accounts are then created straight away, without proving the email address.
     */
-    'signup_otp' => filter_var(env('SIGNUP_OTP_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+    'signup_otp' => filter_var(env('SIGNUP_OTP_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
 ];
