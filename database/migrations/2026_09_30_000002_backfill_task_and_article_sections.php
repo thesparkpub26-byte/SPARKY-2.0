@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
  */
 return new class extends Migration
 {
+    /**
+     * Fills in missing sections on tasks and articles: from the task's notes, from the article's other tasks, or
+     * from the writer's title.
+     */
     public function up(): void
     {
         // 1. A task's own notes
@@ -41,6 +45,7 @@ return new class extends Migration
         PublicCache::forget('articles');
     }
 
+    /** Does nothing: sections were only filled in where they were missing. */
     public function down(): void
     {
         // Nothing to undo: the sections were only filled in where they were missing.

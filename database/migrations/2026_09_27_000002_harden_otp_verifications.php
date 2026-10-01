@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds a wrong-guess counter to pending sign-ups. */
     public function up(): void
     {
         Schema::table('otp_verifications', function (Blueprint $table) {
@@ -17,6 +18,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the wrong-guess counter. */
     public function down(): void
     {
         Schema::table('otp_verifications', function (Blueprint $table) {

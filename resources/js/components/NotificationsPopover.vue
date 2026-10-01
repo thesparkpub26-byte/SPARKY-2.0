@@ -362,6 +362,7 @@ const earlierNotifications = computed(() => {
     return notifications.value.filter(n => !!n.read_at);
 });
 
+// True for notification types about the article review chain (submitted, endorsed, approved...).
 const isEndorsementType = (type) => {
     return [
         'article_endorsed', 
@@ -371,6 +372,7 @@ const isEndorsementType = (type) => {
     ].includes(type);
 };
 
+// True for notification types about press work and tasks.
 const isPressWorkType = (type) => {
     return [
         'press_work_update', 
@@ -409,18 +411,21 @@ const getTypeClass = (type) => {
     return 'type-general';
 };
 
+// The label shown on a notification: Endorsement, Press Work or Update.
 const getTypeTag = (type) => {
     if (isEndorsementType(type)) return 'Endorsement';
     if (isPressWorkType(type)) return 'Press Work';
     return 'Update';
 };
 
+// The CSS class that colours a notification's label.
 const getTypeTagClass = (type) => {
     if (isEndorsementType(type)) return 'tag-endorsement';
     if (isPressWorkType(type)) return 'tag-presswork';
     return 'tag-general';
 };
 
+// The display name of a notification tab (All, Unread, Endorsements, Press Works).
 const getTabLabel = (tab) => {
     if (tab === 'unread') return 'Unread';
     if (tab === 'endorsements') return 'Endorsements';
@@ -434,11 +439,13 @@ const escapeHtml = (text) => String(text)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
+// Escapes the message text and makes the quoted titles bold.
 const formatMessage = (msg) => {
     if (!msg) return '';
     return escapeHtml(msg).replace(/&#39;([^&]+?)&#39;/g, '<strong>$1</strong>');
 };
 
+// Shows how long ago a notification arrived ("Just now", "5m ago", "Yesterday", or the date).
 const formatTime = (dateString) => {
     if (!dateString) return 'Just now';
     try {
@@ -464,6 +471,7 @@ const formatTime = (dateString) => {
 // Read/delete requests still in flight. A refetch must wait for them, otherwise it returns
 // the old state and the notification the user just read reappears as unread.
 const pendingWrites = new Set();
+// Remembers a read / delete request that is still running, so a refetch can wait for it.
 const trackWrite = (promise) => {
     pendingWrites.add(promise);
     promise.finally(() => pendingWrites.delete(promise));
@@ -501,6 +509,7 @@ const fetchNotifications = async () => {
     }
 };
 
+// Marks every notification as read, here and on the server.
 const markAllAsRead = async () => {
     const nowIso = new Date().toISOString();
     notifications.value.forEach(item => {
@@ -527,6 +536,7 @@ const markAllAsRead = async () => {
     }
 };
 
+// Deletes one notification, here and on the server.
 const deleteNotification = async (item, event) => {
     if (event) event.stopPropagation();
 
@@ -552,6 +562,7 @@ const deleteNotification = async (item, event) => {
     }
 };
 
+// Deletes all notifications, here and on the server.
 const clearAllNotifications = async () => {
     notifications.value = [];
     const token = localStorage.getItem('sparky_token');
@@ -570,6 +581,7 @@ const clearAllNotifications = async () => {
     }
 };
 
+// Marks the clicked notification as read, and shows it as unread again if the server refuses.
 const handleItemClick = async (item) => {
     if (!item.read_at) {
         item.read_at = new Date().toISOString();
@@ -601,6 +613,7 @@ const togglePopover = () => {
     }
 };
 
+// Closes the popover and opens the full notification list.
 const openSeeAllModal = () => {
     isOpen.value = false;
     isSeeAllModalOpen.value = true;
@@ -608,10 +621,12 @@ const openSeeAllModal = () => {
     fetchNotifications();
 };
 
+// Closes the full notification list.
 const closeSeeAllModal = () => {
     isSeeAllModalOpen.value = false;
 };
 
+// Closes the popover when the user clicks outside it.
 const handleClickOutside = (event) => {
     if (wrapperRef.value && !wrapperRef.value.contains(event.target)) {
         isOpen.value = false;

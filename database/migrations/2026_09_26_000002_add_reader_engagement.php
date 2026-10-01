@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds read and share counters to articles and creates the comments table. */
     public function up(): void
     {
         Schema::table('articles', function (Blueprint $table) {
@@ -22,6 +23,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the comments table and the counters. */
     public function down(): void
     {
         Schema::dropIfExists('article_comments');

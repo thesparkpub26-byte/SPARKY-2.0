@@ -86,6 +86,7 @@ const isMismatch = computed(() => {
   return confirmPassword.value.length > 0 && password.value !== confirmPassword.value;
 });
 
+// Saves the new password using the reset token, then returns to sign-in.
 const handleReset = async () => {
   if (isMismatch.value || loading.value) return;
 

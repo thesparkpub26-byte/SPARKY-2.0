@@ -11,11 +11,13 @@ class MonitoringSheet extends Model
 
     protected $fillable = ['press_work_id', 'publication_type', 'title', 'status'];
 
+    /** The academic year (press work) the sheet belongs to. */
     public function pressWork()
     {
         return $this->belongsTo(PressWork::class);
     }
 
+    /** The entries (tasks) listed on the sheet. */
     public function entries()
     {
         return $this->hasMany(MonitoringSheetEntry::class);

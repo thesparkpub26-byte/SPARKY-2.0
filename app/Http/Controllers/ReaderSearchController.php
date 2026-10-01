@@ -284,6 +284,7 @@ class ReaderSearchController extends Controller
 
     // ── Finding and scoring ────────────────────────────────────────────────────
 
+    /** Ranks articles and gallery photos together for the same search words, best match first. */
     private function rankAll(array $terms, string $phrase): Collection
     {
         return $this->rankArticles($terms, $phrase)->concat($this->rankPhotos($terms, $phrase));
@@ -429,6 +430,7 @@ class ReaderSearchController extends Controller
 
     // ── Database pre-filter ────────────────────────────────────────────────────
 
+    /** Escapes a search word and wraps it in % so it can be used in a LIKE condition. */
     private function like(string $needle): string
     {
         return '%' . addcslashes($needle, '\\%_') . '%';
@@ -457,6 +459,10 @@ class ReaderSearchController extends Controller
         }
     }
 
+    /**
+     * Tells whether a word can use the full-text index (long enough, not an ignored word, and the database
+     * supports it).
+     */
     private function fulltextUsable(string $word): bool
     {
         if (mb_strlen($word) < 3 || in_array($word, self::FULLTEXT_IGNORED, true) || !preg_match('/^[\p{L}\p{N}]+$/u', $word)) {
@@ -488,6 +494,7 @@ class ReaderSearchController extends Controller
         return Str::limit($a->excerpt ?: $plain, 160);
     }
 
+    /** Strips HTML tags and extra whitespace from article text so it can be matched and shown as plain text. */
     private function plain(?string $html): string
     {
         return trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(str_replace(['</p>', '<br>', '<br/>', '</div>'], ' ', $html ?? '')))));

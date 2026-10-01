@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the article likes, bookmarks and comment reports tables. */
     public function up(): void
     {
         // One like per reader per article
@@ -42,6 +43,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the comment reports, bookmarks and likes tables. */
     public function down(): void
     {
         Schema::dropIfExists('comment_reports');

@@ -14,6 +14,7 @@ class PruneOldData extends Command
 
     protected $description = 'Delete data nobody needs any more: old page views, expired sign-up / reset codes and old read notifications';
 
+    /** Deletes data nobody needs any more: old page views, expired sign-up and reset codes, old read notifications. */
     public function handle(): int
     {
         // The admin report only looks back 90 days at most

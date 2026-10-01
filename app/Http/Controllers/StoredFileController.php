@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /** Serves uploaded photos, avatars and issue PDFs from the database at /storage/{path}. */
 class StoredFileController extends Controller
 {
+    /** Streams an uploaded file (photo, PDF) kept in the database, with caching headers. */
     public function show(Request $request, string $path)
     {
         $file = StoredFile::where('path', $path)->first(['id', 'path', 'mime_type', 'size', 'sha1']);

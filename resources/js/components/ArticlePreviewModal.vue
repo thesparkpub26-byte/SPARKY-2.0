@@ -279,6 +279,7 @@ const scheduleError = ref('');
 const deleteError = ref('');
 const publishBtnWrap = ref(null);
 
+// Closes the publish options menu.
 const closePublishMenu = () => { isPublishMenuOpen.value = false; };
 
 watch(() => props.isOpen, (open) => {
@@ -322,6 +323,7 @@ const displayWriter = computed(() => {
     return 'Unknown Writer';
 });
 
+// Formats a date as "Oct 1, 2026" ("—" when empty or invalid).
 const formatDateShort = (dateVal) => {
     if (!dateVal) return '—';
     const d = new Date(dateVal);
@@ -411,15 +413,18 @@ const displayPreviewParagraphs = computed(() => {
 
 const defaultPreviewText = computed(() => isVideo.value ? 'No video description has been submitted yet.' : 'No article content has been submitted yet.');
 
+// Closes the publish menu and the modal.
 const closeModal = () => {
     isPublishMenuOpen.value = false;
     emit('close');
 };
 
+// Asks the parent to open the article for editing.
 const requestEdit = () => {
     emit('edit-article', article.value);
 };
 
+// Opens the live article page in a new tab (a video opens its link instead).
 const visitArticle = () => {
     if (isVideo.value) {
         if (article.value.video_url) window.open(article.value.video_url, '_blank', 'noopener');
@@ -432,6 +437,7 @@ const visitArticle = () => {
     }
 };
 
+// Saves the given fields on the article and returns the updated article; throws a readable error on failure.
 const patchArticle = async (body) => {
     const token = localStorage.getItem('sparky_token');
     const articleId = article.value.id;
@@ -453,6 +459,7 @@ const patchArticle = async (body) => {
     return res.json();
 };
 
+// Publishes the article right now.
 const handlePublishNow = async () => {
     isPublishMenuOpen.value = false;
     try {
@@ -466,6 +473,7 @@ const handlePublishNow = async () => {
     }
 };
 
+// Opens the schedule form, filled with the current schedule if the article already has one.
 const openScheduleModal = () => {
     isPublishMenuOpen.value = false;
     scheduleError.value = '';
@@ -482,6 +490,7 @@ const openScheduleModal = () => {
     isScheduleModalOpen.value = true;
 };
 
+// Schedules the article to go live at the chosen date and time.
 const submitSchedule = async () => {
     if (!scheduleDate.value || !scheduleTime.value) {
         scheduleError.value = 'Please choose both a date and a time.';
@@ -506,6 +515,7 @@ const submitSchedule = async () => {
     }
 };
 
+// Deletes the article after the user confirms.
 const confirmDelete = async () => {
     const token = localStorage.getItem('sparky_token');
     const articleId = article.value.id;

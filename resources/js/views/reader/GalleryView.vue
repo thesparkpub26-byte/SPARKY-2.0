@@ -75,6 +75,7 @@ const loadPage = async (next) => {
   lastPage.value = body.last_page;
 };
 
+// Loads the next page of photos and adds them to the grid.
 const loadMore = async () => {
   loadingMore.value = true;
   try {
@@ -102,6 +103,7 @@ const openFromLink = async () => {
   }
 };
 
+// Closes the photo lightbox (and removes the photo from the address).
 const closeLightbox = () => {
   isModalOpen.value = false;
   if (route.query.photo) router.replace({ path: '/gallery' });
@@ -118,6 +120,7 @@ onMounted(async () => {
   openFromLink();
 });
 
+// Opens a photo in the lightbox.
 const openLightbox = (photo) => {
   selectedPhoto.value = photo;
   isModalOpen.value = true;

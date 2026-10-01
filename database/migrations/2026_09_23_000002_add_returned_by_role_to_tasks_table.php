@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds the column that records which reviewer returned a task. */
     public function up(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
@@ -15,6 +16,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the returned-by column. */
     public function down(): void
     {
         Schema::table('tasks', function (Blueprint $table) {

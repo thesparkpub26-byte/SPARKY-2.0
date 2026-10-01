@@ -16,6 +16,7 @@ class SendNewsletterDigest extends Command
 
     protected $description = 'Email subscribers the articles published recently';
 
+    /** Emails the week's published articles to every active subscriber; sends nothing when nothing was published. */
     public function handle(ArticleController $cards): int
     {
         Article::publishDue();

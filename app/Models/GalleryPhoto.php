@@ -24,16 +24,19 @@ class GalleryPhoto extends Model
         static::deleted(fn () => PublicCache::forget('gallery'));
     }
 
+    /** The staff member who uploaded the photo. */
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    /** The artist credited for the photo. */
     public function artist()
     {
         return $this->belongsTo(User::class, 'artist_id');
     }
 
+    /** The public address of the photo's image, or null when it has none. */
     public function getImageUrlAttribute(): ?string
     {
         if (!$this->image_path) {

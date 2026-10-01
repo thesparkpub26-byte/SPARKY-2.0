@@ -27,6 +27,7 @@ return new class extends Migration
         'monitoring_sheet_entries' => ['storage_url'],                         // file storage is tracked by has_files
     ];
 
+    /** Drops the columns and tables nothing in the system uses. */
     public function up(): void
     {
         foreach (self::COLUMNS as $table => $columns) {
@@ -43,6 +44,7 @@ return new class extends Migration
         Schema::dropIfExists('sessions');
     }
 
+    /** Puts the dropped columns back (empty). */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {

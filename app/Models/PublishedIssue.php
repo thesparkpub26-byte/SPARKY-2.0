@@ -24,11 +24,13 @@ class PublishedIssue extends Model
         static::deleted(fn () => PublicCache::forget('issues'));
     }
 
+    /** The staff member who uploaded the issue. */
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    /** The public address of the issue's PDF, or null when it has none. */
     public function getPdfUrlAttribute(): ?string
     {
         if (!$this->pdf_path) {

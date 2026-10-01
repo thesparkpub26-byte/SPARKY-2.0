@@ -100,8 +100,10 @@ const pageNumbers = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
+// Scrolls the page back to the top.
 const scrollToTop = () => document.querySelector('.reader-page')?.scrollTo({ top: 0 });
 
+// Loads the current page of articles for the chosen category.
 const loadArticles = async () => {
   loading.value = true;
   try {
@@ -124,6 +126,7 @@ const loadArticles = async () => {
   }
 };
 
+// Moves to another page of the category by changing the address.
 const goToPage = (p) => {
   if (p < 1 || p > lastPage.value || p === page.value) return;
   router.push({ path: '/categories', query: { ...route.query, page: p } });

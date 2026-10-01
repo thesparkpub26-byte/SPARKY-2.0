@@ -564,6 +564,7 @@ const isUploadingThumbnail = ref(false);
 const artistThumbnailUrl = ref('');
 const artistMediaUrls = ref(new Set());
 const isThumbnailFromArtist = computed(() => !!artistThumbnailUrl.value && thumbnailPreview.value === artistThumbnailUrl.value);
+// True when a media photo was uploaded by the artist (shown read-only to the writer).
 const isMediaFromArtist = (url) => artistMediaUrls.value.has(url);
 
 const task = computed(() => props.taskData || {});
@@ -881,17 +882,20 @@ watch(currentTab, (newTab) => {
     }
 });
 
+// Copies the editor's HTML into the article content as the writer types.
 const handleEditorInput = () => {
     if (editorRef.value) {
         articleContent.value = editorRef.value.innerHTML;
     }
 };
 
+// Applies a formatting command (bold, italic, list...) to the selected text.
 const formatDoc = (cmd, val = null) => {
     document.execCommand(cmd, false, val);
     handleEditorInput();
 };
 
+// Turns the current block into a heading, paragraph or quote.
 const applyFormatBlock = (tag) => {
     if (tag) {
         document.execCommand('formatBlock', false, `<${tag}>`);
@@ -899,6 +903,7 @@ const applyFormatBlock = (tag) => {
     }
 };
 
+// Asks for a link address and turns the selected text into a link.
 const promptLink = () => {
     const url = prompt('Enter the link URL (e.g. https://...):', 'https://');
     if (url) {
@@ -911,6 +916,7 @@ const triggerThumbnailInput = () => {
     if (thumbnailInputRef.value) thumbnailInputRef.value.click();
 };
 
+// Uploads the chosen image as the article's thumbnail and shows its preview.
 const uploadThumbnailFile = async (file) => {
     if (!file || !file.type.startsWith('image/')) return;
     isUploadingThumbnail.value = true;
@@ -942,16 +948,19 @@ const uploadThumbnailFile = async (file) => {
     }
 };
 
+// Starts the upload when a thumbnail file is picked.
 const onThumbnailSelected = (e) => {
     const file = e.target.files[0];
     if (file) uploadThumbnailFile(file);
 };
 
+// Starts the upload when an image is dropped on the thumbnail area.
 const handleThumbnailDrop = (e) => {
     const file = e.dataTransfer.files[0];
     if (file) uploadThumbnailFile(file);
 };
 
+// Clears the thumbnail and its preview.
 const removeThumbnail = () => {
     thumbnailPreview.value = '';
     if (thumbnailInputRef.value) thumbnailInputRef.value.value = '';
@@ -962,16 +971,19 @@ const triggerMediaInput = () => {
     if (mediaInputRef.value) mediaInputRef.value.click();
 };
 
+// Adds the photos picked in the file dialog.
 const onMediaSelected = (e) => {
     const files = Array.from(e.target.files);
     addMediaFiles(files);
 };
 
+// Adds the image files dropped on the media area.
 const handleMediaDrop = (e) => {
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     addMediaFiles(files);
 };
 
+// Uploads the photos (3 in total at most) and adds their previews.
 const addMediaFiles = async (files) => {
     const remainingSlots = 3 - mediaPreviews.value.length;
     if (remainingSlots <= 0) return;
@@ -1019,6 +1031,7 @@ const addMediaFiles = async (files) => {
     }
 };
 
+// Removes one photo from the media list.
 const removeMedia = (index) => {
     mediaPreviews.value.splice(index, 1);
 };
@@ -1066,6 +1079,8 @@ const linkSiblingArtistTask = async (articleId, token) => {
     }
 };
 
+// Saves the draft (creates or updates the article and the task notes) without submitting; ignored while a save is
+// already running.
 const saveProgress = async () => {
     // Guards against repeated/rapid clicks firing overlapping requests, which used to create
     // duplicate articles since each concurrent call independently saw no article_id yet.
@@ -1177,10 +1192,12 @@ const saveProgress = async () => {
     }
 };
 
+// Closes the workspace.
 const closeModal = () => {
     emit('close');
 };
 
+// Saves the article, then submits both the task and the article for review.
 const confirmSubmit = async () => {
     isSubmitting.value = true;
     try {
@@ -1239,6 +1256,7 @@ const confirmSubmit = async () => {
     }
 };
 
+// Opens the copyreader's confirmation for endorsing the article or returning it.
 const openCopyreaderConfirm = (action) => {
     copyreaderAction.value = action;
     copyreaderReturnNotes.value = '';
@@ -1246,11 +1264,13 @@ const openCopyreaderConfirm = (action) => {
     isCopyreaderModalOpen.value = true;
 };
 
+// Closes the copyreader confirmation (not while it is being sent).
 const closeCopyreaderModal = () => {
     if (isCopyreaderActing.value) return;
     isCopyreaderModalOpen.value = false;
 };
 
+// Copyreader's decision: endorses the article to the EIC, or returns it to the writer with revision notes.
 const confirmCopyreaderAction = async () => {
     if (copyreaderAction.value === 'return' && !copyreaderReturnNotes.value.trim()) {
         copyreaderError.value = 'Please provide revision notes.';
@@ -1364,6 +1384,7 @@ const confirmCopyreaderAction = async () => {
     }
 };
 
+// Closes the success dialog and the workspace, then opens the submissions list if asked.
 const closeAllModals = (action) => {
     isSuccessModalOpen.value = false;
     copyreaderSuccessMessage.value = '';

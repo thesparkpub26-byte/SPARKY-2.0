@@ -55,11 +55,13 @@ const current = computed(() => props.options.find(o => o.value === props.modelVa
 // Highlight the pill when it's no longer on its first (default) option
 const changed = computed(() => current.value !== props.options[0]);
 
+// Picks an option, tells the parent and closes the list.
 const pick = (value) => {
   emit('update:modelValue', value);
   open.value = false;
 };
 
+// Closes the list when the user clicks outside it.
 const onOutside = (e) => {
   if (open.value && !root.value?.contains(e.target)) open.value = false;
 };

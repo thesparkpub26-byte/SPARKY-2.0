@@ -43,11 +43,16 @@ class NewsletterController extends Controller
         ]);
     }
 
+    /** Query for the active (not unsubscribed) subscription of an email address. */
     private function activeSubscription(string $email)
     {
         return NewsletterSubscriber::active()->where('email', strtolower(trim($email)));
     }
 
+    /**
+     * Subscribes (or re-subscribes) an email address and sends the welcome email; does nothing if already
+     * subscribed.
+     */
     private function join(string $email)
     {
         $subscriber = NewsletterSubscriber::firstOrNew(['email' => $email]);

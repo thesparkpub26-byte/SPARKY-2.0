@@ -24,6 +24,10 @@ class CopyDataToDatabase extends Command
 
     private const BATCH = 100;
 
+    /**
+     * Copies every table from the current database into the PostgreSQL database given by the URL (used for the
+     * move to Supabase).
+     */
     public function handle(): int
     {
         config(['database.connections.copy_target' => [
@@ -124,6 +128,7 @@ class CopyDataToDatabase extends Command
         return $ordered;
     }
 
+    /** Copies the rows of one table to the target database in batches, keeping binary columns (file chunks) intact. */
     private function copyTable(Connection $source, Connection $target, string $table): int
     {
         $binary = array_column(array_filter(

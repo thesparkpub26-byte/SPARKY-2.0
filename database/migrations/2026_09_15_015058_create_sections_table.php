@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the sections table (News, Features, Sports...). */
     public function up(): void
     {
         Schema::create('sections', function (Blueprint $table) {
@@ -17,6 +18,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the sections table. */
     public function down(): void
     {
         Schema::dropIfExists('sections');

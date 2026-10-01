@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds the column that lists an article's uploaded media files. */
     public function up(): void
     {
         Schema::table('articles', function (Blueprint $table) {
@@ -14,6 +15,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the media files column. */
     public function down(): void
     {
         Schema::table('articles', function (Blueprint $table) {

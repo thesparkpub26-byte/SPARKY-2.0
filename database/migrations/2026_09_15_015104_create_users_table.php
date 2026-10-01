@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the users, password reset tokens and sessions tables. */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -40,6 +41,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the users, password reset tokens and sessions tables. */
     public function down(): void
     {
         Schema::dropIfExists('sessions');

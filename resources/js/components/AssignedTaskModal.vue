@@ -141,11 +141,13 @@ const task = computed(() => props.taskData || {});
 // Debug logging - simplified
 console.log('Modal component mounted, task:', task.value);
 
+// Closes the description dialog and the modal.
 const closeModal = () => {
     isFullDescriptionModalOpen.value = false;
     emit('close');
 };
 
+// The CSS class (low, moderate, high, urgent) for a priority badge.
 const getPriorityClass = (priority) => {
     try {
         const p = (priority || '').toLowerCase();
@@ -159,6 +161,7 @@ const getPriorityClass = (priority) => {
     }
 };
 
+// Shows a task priority as Low, Moderate, High or Urgent.
 const formatPriority = (priority) => {
     try {
         const p = (priority || '').toLowerCase();
@@ -173,6 +176,7 @@ const formatPriority = (priority) => {
     }
 };
 
+// Opens the task's workspace where the work is done.
 const handleOpenWorkspace = () => {
     isFullDescriptionModalOpen.value = false;
     emit('open-workspace', task.value);
@@ -180,6 +184,7 @@ const handleOpenWorkspace = () => {
 
 const allUsers = ref([]);
 
+// Loads the user list, used to show assignees' names and photos.
 const fetchUsers = async () => {
     try {
         const token = localStorage.getItem('sparky_token');
@@ -214,6 +219,7 @@ const cleanDescription = computed(() => {
     return desc;
 });
 
+// The picture address for a user: the uploaded photo, otherwise a generated avatar.
 const getUserAvatar = (userObj) => {
     if (!userObj) return '';
     if (userObj.profile_picture) return '/storage/' + userObj.profile_picture;
@@ -234,6 +240,7 @@ const isVideoTask = computed(() => {
 const crewPills = computed(() => {
     if (!isVideoTask.value) return [];
     const notes = props.taskData?.notes || '';
+    // Reads one "Key: value" field out of the task's notes text.
     const pick = (key) => {
         const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
         return match ? match[1].trim() : '';

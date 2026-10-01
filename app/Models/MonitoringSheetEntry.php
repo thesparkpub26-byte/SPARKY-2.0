@@ -30,6 +30,7 @@ class MonitoringSheetEntry extends Model
         'article_content',
     ];
 
+    /** Converts the yes / no columns to booleans and the deadline to a date. */
     protected function casts(): array
     {
         return [
@@ -39,6 +40,7 @@ class MonitoringSheetEntry extends Model
         ];
     }
 
+    /** The monitoring sheet the entry is on. */
     public function monitoringSheet()
     {
         return $this->belongsTo(MonitoringSheet::class);

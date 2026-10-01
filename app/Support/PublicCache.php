@@ -40,11 +40,13 @@ class PublicCache
         Cache::increment($key);
     }
 
+    /** Current version number of a cache group; raising it makes every cached list of that group stale. */
     private static function version(string $group): int
     {
         return (int) Cache::get(self::versionKey($group), 1);
     }
 
+    /** The cache key that holds a group's version number. */
     private static function versionKey(string $group): string
     {
         return "public:{$group}:version";

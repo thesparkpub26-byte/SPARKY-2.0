@@ -542,6 +542,7 @@ onMounted(async () => {
     window.clearHighlights = clearHighlights;
 });
 
+// Loads the monitoring sheet shown on the page.
 const loadSheet = async () => {
     const response = await fetch(`/api/monitoring-sheets/${route.params.monitoringSheet}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
@@ -549,6 +550,7 @@ const loadSheet = async () => {
     if (response.ok) sheet.value = await response.json();
 };
 
+// Loads the sheet's entries and shows them in the table.
 const loadEntries = async () => {
     const response = await fetch(`/api/monitoring-sheets/${route.params.monitoringSheet}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' },
@@ -600,6 +602,7 @@ const groupedEntries = computed(() => {
 
 const allSections = ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary', 'Radio Broadcasting'];
 
+// The colours of an article-type label.
 const getArticleTypeStyle = (type) => {
     const styles = {
         'Special Report': { background: '#fce7f3', color: '#db2777' },
@@ -619,6 +622,7 @@ const getArticleTypeStyle = (type) => {
     return styles[type] || { background: '#f1f5f9', color: '#475569' };
 };
 
+// The colours of a status label.
 const getStatusStyle = (status) => {
     const styles = {
         'Not Started': { background: '#f1f5f9', color: '#475569' },
@@ -636,6 +640,7 @@ const getStatusStyle = (status) => {
     return styles[status] || { background: '#f1f5f9', color: '#475569' };
 };
 
+// Saves an entry's artist, interview and status changes.
 const updateEntry = async (entry) => {
     try {
         const response = await fetch(`/api/monitoring-sheets/${route.params.monitoringSheet}/entries/${entry.id}`, {
@@ -660,6 +665,7 @@ const updateEntry = async (entry) => {
     }
 };
 
+// Goes back to the previous page, or to the editor dashboard when there is none.
 const goBack = () => {
     if (window.history.length > 1) {
         router.back();
@@ -668,10 +674,12 @@ const goBack = () => {
     }
 };
 
+// Opens the entry's file storage page in a new tab.
 const openStorage = (entry) => {
     window.open(`/storage/${entry.id}`, '_blank');
 };
 
+// Opens the article form for an entry.
 const openUploadModal = (entry) => {
     console.log('openUploadModal called with entry:', entry);
     selectedEntry.value = entry;
@@ -690,6 +698,7 @@ const openUploadModal = (entry) => {
     document.getElementById('uploadModal').style.display = 'flex';
 };
 
+// Opens the task details of an entry with its current values.
 const openTaskDetail = (entry) => {
     selectedTaskForDetail.value = entry;
     taskEditForm.value = {
@@ -711,12 +720,14 @@ const openTaskDetail = (entry) => {
     isTaskDetailModalOpen.value = true;
 };
 
+// Closes the task details.
 const closeTaskDetailModal = () => {
     isTaskDetailModalOpen.value = false;
     selectedTaskForDetail.value = null;
     taskEditError.value = '';
 };
 
+// Switches the task details to edit mode with the entry's current values.
 const startEditTask = () => {
     isEditingTask.value = true;
     taskEditError.value = '';
@@ -739,6 +750,7 @@ const startEditTask = () => {
     }
 };
 
+// Leaves edit mode and resets the form to the entry's current values.
 const cancelEditTask = () => {
     isEditingTask.value = false;
     taskEditError.value = '';
@@ -761,6 +773,7 @@ const cancelEditTask = () => {
     }
 };
 
+// Saves the edited task details of an entry.
 const saveTaskEdit = async () => {
     if (!selectedTaskForDetail.value) return;
 
@@ -811,12 +824,14 @@ const saveTaskEdit = async () => {
     }
 };
 
+// Opens the confirmation for deleting the entry.
 const openDeleteConfirm = () => {
     if (!selectedTaskForDetail.value) return;
     isDeleteConfirmModalOpen.value = true;
     deleteConfirmError.value = '';
 };
 
+// Deletes the entry from the sheet after confirmation.
 const confirmDeleteTask = async () => {
     if (!selectedTaskForDetail.value) return;
 
@@ -849,11 +864,13 @@ const confirmDeleteTask = async () => {
     }
 };
 
+// Closes the delete confirmation.
 const cancelDeleteTask = () => {
     isDeleteConfirmModalOpen.value = false;
     deleteConfirmError.value = '';
 };
 
+// Debug helper: writes the upload form's state to the console.
 const testUploadModal = () => {
     console.log('testUploadModal called');
     console.log('Current isUploadModalOpen value:', isUploadModalOpen.value);
@@ -889,6 +906,7 @@ const testUploadModal = () => {
     }
 };
 
+// Closes the article form and clears its state.
 const closeUploadModal = () => {
     isUploadModalOpen.value = false;
     selectedEntry.value = null;
@@ -904,6 +922,7 @@ const closeUploadModal = () => {
     document.getElementById('uploadModal').style.display = 'none';
 };
 
+// Saves the written article (headline, author, content) on the entry.
 const saveArticle = async () => {
     if (!selectedEntry.value) return;
 
@@ -990,6 +1009,7 @@ const highlightText = (color) => {
     }
 };
 
+// Removes the highlight marks from the article text.
 const clearHighlights = () => {
     const editableDiv = document.getElementById('articleContentEditable');
     

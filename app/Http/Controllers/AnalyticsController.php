@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class AnalyticsController extends Controller
 {
+    /** Public: records one visit to a page (and the article it shows, if any) for the analytics report. */
     public function recordPageView(Request $request)
     {
         $validated = $request->validate([
@@ -24,6 +25,10 @@ class AnalyticsController extends Controller
         return response()->json(['message' => 'Page view recorded.'], 201);
     }
 
+    /**
+     * Admin / EIC: builds the analytics report (views, visitors, top pages, peak times) for the last 7, 30 or 90
+     * days.
+     */
     public function adminReport(Request $request)
     {
         abort_unless($request->user()->isAdmin() || $request->user()->isEIC(), 403);

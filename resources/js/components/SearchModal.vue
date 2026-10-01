@@ -182,12 +182,14 @@ const trimmed = computed(() => query.value.trim());
 const loadRecent = () => {
   try { recent.value = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]').slice(0, 5); } catch { recent.value = []; }
 };
+// Remembers a search term (the latest five, no repeats).
 const saveRecent = (term) => {
   const t = term.trim();
   if (t.length < 2) return;
   recent.value = [t, ...recent.value.filter(r => r.toLowerCase() !== t.toLowerCase())].slice(0, 5);
   try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent.value)); } catch { /* storage unavailable */ }
 };
+// Forgets the remembered searches.
 const clearRecent = () => {
   recent.value = [];
   try { localStorage.removeItem(RECENT_KEY); } catch { /* storage unavailable */ }
@@ -197,6 +199,7 @@ const clearRecent = () => {
 let timer = null;
 let controller = null;
 
+// Runs the search for the typed text and filters, cancelling any search still running.
 const runSearch = async () => {
   clearTimeout(timer);
   timer = null;
@@ -239,6 +242,7 @@ const runSearch = async () => {
   }
 };
 
+// Waits 300 ms after typing stops before searching.
 const debounced = () => {
   clearTimeout(timer);
   timer = setTimeout(runSearch, 300);
@@ -252,10 +256,15 @@ watch(query, () => {
 });
 watch([category, type, period, sort], runSearch);
 
+// Filters by category (and clears the type filter).
 const setCategory = (name) => { category.value = name; if (name) type.value = ''; };
+// Filters by type (and clears the category filter).
 const setType = (value) => { type.value = value; if (value) category.value = ''; };
+// Clears the category, type and period filters.
 const resetFilters = () => { category.value = ''; type.value = ''; period.value = ''; };
+// Repeats the search requiring exact matches.
 const searchExact = () => { exact.value = true; runSearch(); };
+// Opens the full search page for the current text and filters.
 const viewAll = () => {
   saveRecent(trimmed.value);
   close();
@@ -267,7 +276,9 @@ const viewAll = () => {
   if (exact.value) q.exact = '1';
   router.push({ path: '/search', query: q });
 };
+// Clears the search text and category and puts the cursor back in the search box.
 const clearQuery = () => { query.value = ''; category.value = ''; nextTick(() => inputEl.value?.focus()); };
+// Searches for a suggested or recent text.
 const useQuery = (text) => { query.value = text; category.value = ''; runSearch(); nextTick(() => inputEl.value?.focus()); };
 
 // ── Keyboard + navigation ────────────────────────────────────────────────────
@@ -277,6 +288,7 @@ const move = (step) => {
   nextTick(() => rowEls.value[activeIndex.value]?.scrollIntoView({ block: 'nearest' }));
 };
 
+// Enter key: opens the top result, waiting for the search first if it is still running.
 const onEnter = async () => {
   if (loading.value || timer) {
     // Don't wait for the debounce; open the top result once it's in
@@ -286,17 +298,20 @@ const onEnter = async () => {
   if (pick) openArticle(pick);
 };
 
+// Opens the chosen result and closes the search.
 const openArticle = (a) => {
   saveRecent(trimmed.value || '');
   close();
   openResult(router, a);
 };
 
+// Opens the category page and closes the search.
 const goToCategory = (name) => {
   close();
   router.push({ path: '/categories', query: { category: name } });
 };
 
+// Closes the search.
 const close = () => emit('close');
 
 // ── Open / close ─────────────────────────────────────────────────────────────

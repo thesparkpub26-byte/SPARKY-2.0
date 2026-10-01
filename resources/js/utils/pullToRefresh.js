@@ -17,6 +17,7 @@ const BLOCKED = [
   '[class*="popover"]', '[class*="lightbox"]',
 ].join(',');
 
+// True when the element can scroll vertically (so the page itself is not at its top).
 const isScrollable = (el) => {
   const overflowY = getComputedStyle(el).overflowY;
   return (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight;
@@ -30,6 +31,7 @@ const atTop = (target) => {
   return window.scrollY <= 0;
 };
 
+// Turns on pull-down-to-refresh on touch screens: pulling down from the top of the page reloads it.
 export const enablePullToRefresh = () => {
   if (!window.matchMedia('(pointer: coarse)').matches) return;
 
@@ -45,6 +47,7 @@ export const enablePullToRefresh = () => {
   let pulling = false;
   let refreshing = false;
 
+  // Moves and rotates the pull indicator while the finger is dragging.
   const show = (offset, progress) => {
     indicator.style.transition = 'none';
     indicator.style.transform = `translate(-50%, ${offset}px)`;
@@ -52,12 +55,14 @@ export const enablePullToRefresh = () => {
     indicator.firstChild.style.transform = `rotate(${progress * 270}deg)`;
   };
 
+  // Slides the pull indicator back out of view.
   const hide = () => {
     indicator.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
     indicator.style.transform = 'translate(-50%, -60px)';
     indicator.style.opacity = '0';
   };
 
+  // Follows the finger while it moves; treats a pull down from the top of the page as the refresh gesture.
   const onMove = (event) => {
     const touch = event.touches[0];
     const dy = touch.clientY - startY;
@@ -76,6 +81,7 @@ export const enablePullToRefresh = () => {
     indicator.classList.toggle('ptr-ready', distance >= THRESHOLD);
   };
 
+  // Stops listening for the gesture and resets its state.
   const stop = () => {
     document.removeEventListener('touchmove', onMove);
     document.removeEventListener('touchend', onEnd);
@@ -84,6 +90,7 @@ export const enablePullToRefresh = () => {
     distance = 0;
   };
 
+  // When the finger lifts: refreshes the page if the pull was long enough, otherwise hides the indicator.
   const onEnd = () => {
     const shouldRefresh = pulling && distance >= THRESHOLD;
     stop();

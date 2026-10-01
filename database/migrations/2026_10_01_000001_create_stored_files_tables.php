@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 // pieces of 256 KB, so a 35 MB PDF never has to fit in one query (MySQL's default packet limit is 1 MB).
 return new class extends Migration
 {
+    /** Creates the tables that keep uploaded files (and their chunks) in the database. */
     public function up(): void
     {
         Schema::create('stored_files', function (Blueprint $table) {
@@ -35,6 +36,7 @@ return new class extends Migration
         }
     }
 
+    /** Drops the stored files tables. */
     public function down(): void
     {
         Schema::dropIfExists('stored_file_chunks');

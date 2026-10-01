@@ -52,13 +52,16 @@ const root = ref(null);
 const isOpen = ref(false);
 
 const COLORS = { Documentary: '#2563eb', Reel: '#db2777', Telesiklab: '#16a34a' };
+// The colour of a section's dot in the list.
 const colorFor = (option) => COLORS[option] || '#64748b';
 
+// Chooses a section, tells the parent and closes the list.
 const select = (option) => {
     emit('update:modelValue', option);
     isOpen.value = false;
 };
 
+// Closes the list when the user clicks outside it.
 const closeOnOutsideClick = (event) => {
     if (isOpen.value && root.value && !root.value.contains(event.target)) isOpen.value = false;
 };

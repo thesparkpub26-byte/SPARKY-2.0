@@ -15,6 +15,7 @@ const NOT_REMEMBERED = new Set([
 // Only addresses on this site: a stored value can't send anyone elsewhere
 const isSitePath = (path) => typeof path === 'string' && path.startsWith('/') && !path.startsWith('//');
 
+// Reads the remembered page from session storage, or null if it cannot be read.
 const read = () => { try { return sessionStorage.getItem(KEY); } catch { return null; } };
 
 /** Remember a route as "the page I was on". Does nothing for the in-between pages listed above. */
@@ -29,6 +30,7 @@ export const lastPage = () => {
     return isSitePath(path) ? path : null;
 };
 
+// Forgets the remembered page.
 export const forgetLastPage = () => {
     try { sessionStorage.removeItem(KEY); } catch { /* nothing to clear */ }
 };

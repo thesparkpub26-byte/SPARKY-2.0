@@ -30,6 +30,7 @@ class NotCommonPassword implements DataAwareRule, ValidationRule
         return [Password::min(8)->letters()->numbers(), new self()];
     }
 
+    /** Receives the other form fields (name, email) so passwords built from them can be refused. */
     public function setData(array $data): static
     {
         $this->data = $data;
@@ -37,6 +38,7 @@ class NotCommonPassword implements DataAwareRule, ValidationRule
         return $this;
     }
 
+    /** Refuses passwords that are on the common list or too easy to guess. */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         $password = strtolower((string) $value);

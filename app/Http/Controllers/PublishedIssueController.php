@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PublishedIssueController extends Controller
 {
+    /** Staff: lists all published issues (PDFs) with their uploader, newest first. */
     public function index()
     {
         return response()->json(PublishedIssue::with('uploader')->latest()->get());
@@ -25,6 +26,7 @@ class PublishedIssueController extends Controller
         return response()->json(PublicCache::remember($request, 'issues', ['limit', 'page'], fn () => $this->latestList($request)));
     }
 
+    /** Builds the public list of published issues (optionally limited or paginated) for the reader site. */
     private function latestList(Request $request): array
     {
         $query = PublishedIssue::latest('created_at')->latest('id');
@@ -63,6 +65,7 @@ class PublishedIssueController extends Controller
         ]);
     }
 
+    /** Uploads a new published issue PDF with its title and date (EIC and admin only). */
     public function store(Request $request)
     {
         if (!in_array($request->user()->role, ['eic', 'admin'])) {
@@ -95,11 +98,13 @@ class PublishedIssueController extends Controller
         return response()->json($issue->load('uploader'), 201);
     }
 
+    /** Returns one published issue with its uploader. */
     public function show(PublishedIssue $issue)
     {
         return response()->json($issue->load('uploader'));
     }
 
+    /** Edits a published issue's title, date or PDF (EIC and admin only). */
     public function update(Request $request, PublishedIssue $issue)
     {
         if (!in_array($request->user()->role, ['eic', 'admin'])) {
@@ -135,6 +140,7 @@ class PublishedIssueController extends Controller
         return response()->json($issue->load('uploader'));
     }
 
+    /** Deletes a published issue and its PDF (EIC and admin only). */
     public function destroy(Request $request, PublishedIssue $issue)
     {
         if (!in_array($request->user()->role, ['eic', 'admin'])) {

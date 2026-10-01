@@ -5,6 +5,7 @@ const BLOCK_TAGS = new Set(['DIV', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL'
 const KEEP_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'BR', 'A', 'SPAN', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'DIV']);
 const DROP_TAGS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'NOSCRIPT', 'TEMPLATE']);
 
+// Escapes the characters that would be read as HTML (&, <, >) in plain text.
 const escapeHtml = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // Rebuilds a node as a string, keeping only harmless tags and (safe) link hrefs
@@ -26,6 +27,7 @@ const clean = (node) => {
     return `<${tag}>${inner}</${tag}>`;
 };
 
+// True when a piece of article HTML holds no visible content (only breaks, spaces or empty tags).
 const isBlank = (html) => html.replace(/<br\s*\/?>/gi, '').replace(/&nbsp;|\s/g, '').replace(/<[^>]*>/g, '') === '';
 
 // Each non-empty top-level block of the article is one paragraph; empty spacer lines are dropped.
@@ -34,6 +36,7 @@ export const paragraphsOf = (html) => {
     const blocks = [];
     let inline = '';
 
+    // Closes the loose text collected so far: splits it on line breaks and adds each non-empty part as a paragraph.
     const flushInline = () => {
         // Loose text (e.g. plain-text articles) is split on line breaks into paragraphs
         inline.split(/(?:<br>\s*){1,}|\n+/i).forEach((part) => {

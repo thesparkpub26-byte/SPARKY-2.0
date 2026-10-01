@@ -46,6 +46,7 @@ const formattedDate = computed(() => props.date
   ? new Date(props.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   : '');
 
+// Closes the lightbox when the dark background, the close button or the empty area around the picture is clicked.
 const handleOverlayClick = (event) => {
   const cls = event.target.classList;
   if (cls.contains('gallery-modal') || cls.contains('gallery-modal-close') || cls.contains('gallery-modal-figure')) {

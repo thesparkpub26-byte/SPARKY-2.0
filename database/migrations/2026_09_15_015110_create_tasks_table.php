@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the tasks table. */
     public function up(): void
     {
         Schema::create('tasks', function (Blueprint $table) {
@@ -30,6 +31,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the tasks table. */
     public function down(): void
     {
         Schema::dropIfExists('tasks');

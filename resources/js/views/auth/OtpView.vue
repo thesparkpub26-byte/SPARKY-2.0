@@ -96,6 +96,7 @@ const roleDashboard = {
   reader:            '/',   // Readers land on the public portal
 };
 
+// Keeps one digit per box and moves to the next box.
 const onInput = (index, event) => {
   // Only allow digits
   otp.value[index] = event.target.value.replace(/\D/g, '').slice(-1);
@@ -105,12 +106,14 @@ const onInput = (index, event) => {
   }
 };
 
+// Backspace on an empty box moves back to the previous box.
 const onKeyDown = (index, event) => {
   if (event.key === 'Backspace' && !otp.value[index] && index > 0) {
     otpRef.value[index - 1].focus();
   }
 };
 
+// Spreads a pasted 6-digit code over the boxes.
 const onPaste = (event) => {
   event.preventDefault();
   const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6).split('');
@@ -120,6 +123,8 @@ const onPaste = (event) => {
   }
 };
 
+// Checks the 6-digit code: a sign-up creates the account and signs in, a password reset moves on to choosing a new
+// password.
 const handleVerify = async () => {
   const code = otp.value.join('');
   if (code.length < 6) return;
@@ -183,6 +188,7 @@ const handleVerify = async () => {
 
 let cooldownTimer = null;
 
+// Asks the server for a new code (with a cooldown between requests).
 const resendCode = async () => {
   if (resendCooldown.value > 0 || !email) return;
 

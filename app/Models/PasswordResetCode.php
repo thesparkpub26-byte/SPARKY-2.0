@@ -8,6 +8,7 @@ class PasswordResetCode extends Model
 {
     protected $fillable = ['email', 'code_hash', 'attempts', 'expires_at', 'reset_token_hash', 'reset_expires_at'];
 
+    /** Converts the code and reset-token expiry columns to date objects. */
     protected function casts(): array
     {
         return [

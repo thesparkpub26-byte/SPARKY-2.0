@@ -199,10 +199,14 @@ const staffDashboardPath = computed(() => dashMap[currentUser.value?.role] || '/
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 const toggleMenu   = () => { isMenuOpen.value = !isMenuOpen.value; };
+// Closes the mobile menu.
 const closeMenu    = () => { isMenuOpen.value = false; };
+// Opens the search dialog (and closes the menu).
 const openSearch   = () => { isMenuOpen.value = false; isSearchOpen.value = true; };
+// Closes the search dialog.
 const closeSearch  = () => { isSearchOpen.value = false; };
 
+// Signs the user out and returns to the reader home page.
 const signOut = async () => {
   currentUser.value = null;
   closeMenu();

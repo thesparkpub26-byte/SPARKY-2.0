@@ -160,10 +160,12 @@ const fallbackImage = '/images/hero_banner.jpg';
 const slides = ref([]);
 const slidesLoaded = ref(false);
 
+// Formats a date as "October 1, 2026".
 const formatDate = (iso) => iso
   ? new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   : '';
 
+// Loads the stories shown in the home page carousel.
 const loadSlides = async () => {
   try {
     const res = await fetch('/api/reader/carousel', { headers: { Accept: 'application/json' } });
@@ -186,6 +188,7 @@ const videosLoaded = ref(false);
 const issuesLoaded = ref(false);
 const galleryLoaded = ref(false);
 
+// Fetches a list from the API, or an empty list when the request fails.
 const getJson = async (url) => {
   try {
     const res = await fetch(url, { headers: { Accept: 'application/json' } });
@@ -195,21 +198,25 @@ const getJson = async (url) => {
   }
 };
 
+// Loads the popular articles.
 const loadArticles = async () => {
   popularArticles.value = await getJson('/api/reader/popular');
   articlesLoaded.value = true;
 };
 
+// Loads the latest videos (3).
 const loadVideos = async () => {
   homeVideos.value = await getJson('/api/reader/videos?limit=3');
   videosLoaded.value = true;
 };
 
+// Loads the latest gallery photos (3).
 const loadGallery = async () => {
   galleryPhotos.value = await getJson('/api/reader/gallery?limit=3');
   galleryLoaded.value = true;
 };
 
+// Loads the latest published issues (3) and draws their covers.
 const loadIssues = async () => {
   const issues = await getJson('/api/reader/issues?limit=3');
   homeIssues.value = issues.map((i) => ({ ...i, image: null, date: formatDate(i.created_at) }));
@@ -225,6 +232,7 @@ const loadIssues = async () => {
   });
 };
 
+// Opens an issue in the booklet viewer in a new tab.
 const openIssue = (issue) => {
   window.open(`/booklet/${issue.id}`, '_blank');
 };
@@ -232,31 +240,37 @@ const openIssue = (issue) => {
 const isModalOpen = ref(false);
 const selectedPhoto = ref({});
 
+// Opens a gallery photo in the lightbox.
 const openModal = (photo) => {
   selectedPhoto.value = photo;
   isModalOpen.value = true;
 };
 
+// Shows the next carousel slide (wrapping around).
 const nextSlide = () => {
   if (!slides.value.length) return;
   currentSlide.value = (currentSlide.value + 1) % slides.value.length;
 };
 
+// Shows the previous carousel slide (wrapping around).
 const prevSlide = () => {
   if (!slides.value.length) return;
   currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length;
 };
 
+// Jumps to a chosen carousel slide.
 const goToSlide = (idx) => {
   currentSlide.value = idx;
 };
 
+// Starts the carousel moving every 4.5 seconds (paused while the tab is in the background).
 const startAutoPlay = () => {
   stopAutoPlay();
   // No point re-rendering the page every few seconds while the tab is in the background
   timer = setInterval(() => { if (!document.hidden) nextSlide(); }, 4500);
 };
 
+// Stops the carousel.
 const stopAutoPlay = () => {
   if (timer) clearInterval(timer);
 };

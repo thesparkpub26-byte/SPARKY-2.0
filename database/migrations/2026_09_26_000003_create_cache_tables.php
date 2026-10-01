@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 // so the cache tables have to exist.
 return new class extends Migration
 {
+    /** Creates the cache tables if they are missing. */
     public function up(): void
     {
         if (!Schema::hasTable('cache')) {
@@ -27,6 +28,7 @@ return new class extends Migration
         }
     }
 
+    /** Drops the cache tables. */
     public function down(): void
     {
         Schema::dropIfExists('cache_locks');

@@ -373,6 +373,7 @@ const sectionName = computed(() => {
     return s || 'News';
 });
 
+// Reads one "Key: value" field out of the task's notes text.
 const parseNotesField = (notes, key) => {
     if (!notes || typeof notes !== 'string') return '';
     const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
@@ -406,6 +407,7 @@ const writerInfo = computed(() => {
     };
 });
 
+// Shows a task priority as Low, Moderate, High or Urgent.
 const formatPriority = (priority) => {
     const p = (priority || '').toLowerCase();
     if (p === 'low') return 'Low';
@@ -447,6 +449,7 @@ const triggerThumbnailInput = () => {
     if (thumbnailInputRef.value) thumbnailInputRef.value.click();
 };
 
+// Uploads the chosen image as the article's thumbnail and shows its preview.
 const uploadThumbnailFile = async (file) => {
     if (!file || !file.type.startsWith('image/')) return;
     isUploadingThumbnail.value = true;
@@ -478,16 +481,19 @@ const uploadThumbnailFile = async (file) => {
     }
 };
 
+// Starts the upload when a thumbnail file is picked.
 const onThumbnailSelected = (e) => {
     const file = e.target.files[0];
     if (file) uploadThumbnailFile(file);
 };
 
+// Starts the upload when an image is dropped on the thumbnail area.
 const handleThumbnailDrop = (e) => {
     const file = e.dataTransfer.files[0];
     if (file) uploadThumbnailFile(file);
 };
 
+// Clears the thumbnail and its preview.
 const removeThumbnail = () => {
     thumbnailPreview.value = '';
     if (thumbnailInputRef.value) thumbnailInputRef.value.value = '';
@@ -498,16 +504,19 @@ const triggerMediaInput = () => {
     if (mediaInputRef.value) mediaInputRef.value.click();
 };
 
+// Adds the photos picked in the file dialog.
 const onMediaSelected = (e) => {
     const files = Array.from(e.target.files);
     addMediaFiles(files);
 };
 
+// Adds the image files dropped on the media area.
 const handleMediaDrop = (e) => {
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     addMediaFiles(files);
 };
 
+// Uploads the photos (3 in total at most) and adds their previews.
 const addMediaFiles = async (files) => {
     const remainingSlots = 3 - mediaPreviews.value.length;
     if (remainingSlots <= 0) return;
@@ -553,6 +562,7 @@ const addMediaFiles = async (files) => {
     }
 };
 
+// Removes one photo from the media list.
 const removeMedia = (index) => {
     mediaPreviews.value.splice(index, 1);
 };
@@ -705,10 +715,12 @@ const confirmSendToWriter = async () => {
     }
 };
 
+// Closes the workspace.
 const closeModal = () => {
     emit('close');
 };
 
+// Closes the success and submit dialogs and the workspace.
 const closeAllModals = () => {
     isSuccessModalOpen.value = false;
     isSubmitModalOpen.value = false;

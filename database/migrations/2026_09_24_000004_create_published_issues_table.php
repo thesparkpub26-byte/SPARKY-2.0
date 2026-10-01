@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the published issues (PDF) table. */
     public function up(): void
     {
         Schema::create('published_issues', function (Blueprint $table) {
@@ -19,6 +20,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the published issues table. */
     public function down(): void
     {
         Schema::dropIfExists('published_issues');

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    /** Adds activity log entries for users, articles and tasks that existed before the log did. */
     public function up(): void
     {
         $activities = [];
@@ -47,6 +48,7 @@ return new class extends Migration
         }
     }
 
+    /** Removes the entries that were backfilled. */
     public function down(): void
     {
         DB::table('activities')

@@ -24,6 +24,10 @@ class ImportUploadsToDatabase extends Command
     /** Tables that can never hold a reference to an upload. */
     private const SKIP_TABLES = ['cache', 'cache_locks', 'migrations', 'personal_access_tokens', 'stored_files', 'stored_file_chunks'];
 
+    /**
+     * Finds every uploaded photo / PDF the site refers to and copies it from storage/app/public into the
+     * database file storage (--dry-run only reports).
+     */
     public function handle(): int
     {
         $dry = (bool) $this->option('dry-run');
@@ -144,6 +148,7 @@ class ImportUploadsToDatabase extends Command
         return $unused;
     }
 
+    /** Formats a byte count as KB or MB for the import report. */
     private function size(int $bytes): string
     {
         return $bytes >= 1048576 ? round($bytes / 1048576, 1) . ' MB' : round($bytes / 1024) . ' KB';

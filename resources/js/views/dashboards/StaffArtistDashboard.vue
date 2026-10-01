@@ -468,12 +468,14 @@ const formatRole = (role, secondaryRole) => {
     return roles[role] || role;
 };
 
+// Reads one "Key: value" field out of a task's notes text.
 const parseNotesField = (notes, key) => {
     if (!notes || typeof notes !== 'string') return '';
     const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
     return match ? match[1].trim() : '';
 };
 
+// Formats a task's deadline date and due time for its card ("No deadline" when empty).
 const formatDeadline = (dateStr, dueTimeStr) => {
     if (!dateStr) return 'No deadline';
     if (typeof dateStr === 'string' && dateStr.includes('•')) return dateStr;
@@ -519,6 +521,7 @@ const formatDeadline = (dateStr, dueTimeStr) => {
     return timePart ? `${datePart} • ${timePart}` : datePart;
 };
 
+// Shows a task priority as a readable label.
 const formatPriorityLabel = (priority) => {
     const labels = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent', critical: 'Critical' };
     return labels[(priority || '').toLowerCase()] || priority || 'Medium';
@@ -526,13 +529,16 @@ const formatPriorityLabel = (priority) => {
 
 // A task's priority picks the card colour. "medium" is styled as .card-moderate; a priority with no theme falls back to it
 const CARD_THEMES = { low: 'card-low', medium: 'card-moderate', high: 'card-high', urgent: 'card-urgent', critical: 'card-urgent' };
+// The CSS class that colours a task card by its priority.
 const cardThemeClass = (priority) => CARD_THEMES[String(priority || '').toLowerCase()] || 'card-moderate';
 
+// The CSS class of a priority badge.
 const getPriorityClass = (priority) => {
     const classes = { low: 'priority-low', medium: 'priority-medium', high: 'priority-high', urgent: 'priority-critical', critical: 'priority-critical' };
     return classes[(priority || '').toLowerCase()] || 'priority-medium';
 };
 
+// Formats a date as "Oct 1, 2026".
 const formatDate = (date) => {
     if (!date) return '';
     const d = new Date(date);
@@ -580,6 +586,7 @@ const searchPlaceholder = computed(() => ({
     pressWorks: 'Search press works',
 }[activeTab.value] || 'Search'));
 
+// The name of a task's section, whether it is stored as an object or as text.
 const sectionNameOf = (t) => (typeof t.section === 'object' ? t.section?.name : t.section) || '';
 
 // Computed properties
@@ -608,12 +615,14 @@ const worksFilterOptions = [
 ];
 const worksFilterLabel = computed(() => worksFilterOptions.find(o => o.value === selectedWorksFilter.value)?.label || 'Status');
 
+// Applies a filter to the works list and goes back to the first page.
 const selectWorksFilter = (value) => {
     selectedWorksFilter.value = value;
     activeWorksFilter.value = false;
     worksCurrentPage.value = 1;
 };
 
+// The picture address for a person: the uploaded photo, otherwise a generated avatar.
 const avatarFor = (person, background) => person?.profile_picture
     ? `/storage/${person.profile_picture}`
     : `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(person?.name || 'writer')}&backgroundColor=${background}`;
@@ -648,11 +657,13 @@ const paginatedWorks = computed(() => {
     return filteredWorks.value.slice(start, start + worksPerPage);
 });
 
+// Shows a work's status as a readable label.
 const formatWorkStatus = (status) => {
     const map = { draft: 'Draft', submitted: 'For Review', under_review: 'Under Review', endorsed: 'Endorsed', approved: 'Approved', rejected: 'Rejected', scheduled: 'Scheduled', published: 'Published' };
     return map[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Draft');
 };
 
+// The CSS class that colours a work's status label.
 const getWorkStatusClass = (status) => {
     const map = {
         draft: 'status-draft',
@@ -667,6 +678,7 @@ const getWorkStatusClass = (status) => {
     return map[status] || 'status-draft';
 };
 
+// The file name at the end of a file address.
 const fileNameOf = (url) => String(url || '').split('/').pop() || 'file';
 
 // Same read-only preview shape the writer and EIC dashboards use
@@ -691,6 +703,7 @@ const buildArticlePreviewData = (item = {}) => {
     };
 };
 
+// Opens a work: a published one as a read-only preview, an unfinished one through its task's details.
 const openWork = (work) => {
     if (work.status === 'published') {
         selectedArticlePreview.value = buildArticlePreviewData(work.raw);
@@ -742,6 +755,7 @@ const totalSubmissionsPages = computed(() =>
     Math.ceil(recentSubmissions.value.length / submissionsPerPage)
 );
 
+// Formats a submission date for the list ("—" when empty).
 const formatSubmittedDate = (dateStr) => {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
@@ -751,11 +765,13 @@ const formatSubmittedDate = (dateStr) => {
         + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
+// Shows a submission status as a readable label.
 const getSubmissionStatusLabel = (status) => {
     const map = { submitted: 'Submitted', completed: 'Reviewed', in_progress: 'In Progress', pending: 'Pending' };
     return map[status] || status.charAt(0).toUpperCase() + status.slice(1);
 };
 
+// The CSS classes that colour a submission status label.
 const getSubmissionStatusClass = (status) => {
     const map = {
         submitted: 'status-pill status-for-review',
@@ -855,6 +871,7 @@ watch(activeTab, (tab) => {
 watch(selectedWorksFilter, () => { worksCurrentPage.value = 1; });
 watch(searchQuery, () => { worksCurrentPage.value = 1; submissionsCurrentPage.value = 1; });
 
+// Closes the works filter menu when the user clicks outside it.
 const closeWorksFilter = (event) => {
     if (activeWorksFilter.value && !event.target.closest('.custom-filter')) {
         activeWorksFilter.value = false;
@@ -895,6 +912,7 @@ const handleOpenWorkspace = (taskData) => {
     isWorkspaceModalOpen.value = true;
 };
 
+// Updates the task in the list after a draft was saved in the workspace.
 const handleTaskSavedAsDraft = (draftTask) => {
     const targetId = draftTask.id || selectedTask.value.id;
     const index = tasks.value.findIndex(t => t.id === targetId || t.title === draftTask.title);
@@ -909,6 +927,7 @@ const handleTaskSavedAsDraft = (draftTask) => {
     fetchTasks();
 };
 
+// Updates the task in the list after it was submitted.
 const handleTaskSubmitted = (submittedTask) => {
     const targetId = submittedTask.id || selectedTask.value.id;
     const index = tasks.value.findIndex(t => t.id === targetId || t.title === submittedTask.title);

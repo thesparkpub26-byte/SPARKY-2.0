@@ -29,6 +29,7 @@ class User extends Authenticatable
 
     protected $hidden = ['password'];
 
+    /** Makes the password hash itself when set, and the active flag a boolean. */
     protected function casts(): array
     {
         return [
@@ -37,6 +38,7 @@ class User extends Authenticatable
         ];
     }
 
+    /** When a user is deleted, also deletes their articles (with cover images) and their profile picture file. */
     protected static function booted()
     {
         static::deleting(function (User $user) {
@@ -78,16 +80,19 @@ class User extends Authenticatable
         return $this->hasMany(Article::class, 'author_id');
     }
 
+    /** The tasks assigned to this user. */
     public function assignedTasks()
     {
         return $this->hasMany(Task::class, 'assignee_id');
     }
 
+    /** The tasks this user assigned to others. */
     public function createdTasks()
     {
         return $this->hasMany(Task::class, 'assigned_by');
     }
 
+    /** The user's in-app notifications. */
     public function notifications()
     {
         return $this->hasMany(Notification::class);
@@ -95,13 +100,23 @@ class User extends Authenticatable
 
     // Role helpers
     public function isAdmin(): bool            { return $this->role === self::ROLE_ADMIN; }
+    /** True for the Editor-in-Chief. */
     public function isEIC(): bool              { return $this->role === self::ROLE_EIC; }
+    /** True for a section editor. */
     public function isSectionEditor(): bool    { return $this->role === self::ROLE_SECTION_EDITOR; }
+    /** True for a staff writer. */
     public function isStaffWriter(): bool      { return $this->role === self::ROLE_STAFF_WRITER; }
+    /** True for a staff artist. */
     public function isStaffArtist(): bool      { return $this->role === self::ROLE_STAFF_ARTIST; }
+    /** True for a staff broadcaster. */
     public function isStaffBroadcaster(): bool { return $this->role === self::ROLE_STAFF_BROADCASTER; }
+    /** True for a reader (a public member account). */
     public function isReader(): bool           { return $this->role === self::ROLE_READER; }
 
+    /**
+     * True for anyone on the publication staff (admin, EIC, section editor, writer, artist, broadcaster), not
+     * readers.
+     */
     public function isStaff(): bool
     {
         return in_array($this->role, [

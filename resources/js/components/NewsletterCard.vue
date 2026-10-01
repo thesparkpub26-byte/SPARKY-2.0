@@ -72,6 +72,7 @@ const isLoggedIn = ref(!!localStorage.getItem('sparky_token'));
 const status = ref(isLoggedIn.value ? 'loading' : 'unsubscribed'); // loading | subscribed | unsubscribed
 const isSubscribed = computed(() => status.value === 'subscribed');
 
+// The signed-in user's email from the saved profile, or an empty string.
 const userEmail = (() => {
   try {
     return JSON.parse(localStorage.getItem('sparky_user') || '{}').email || '';
@@ -86,6 +87,7 @@ const actionError = ref('');
 const loadError = ref('');
 const notice = ref('');
 
+// Sends a request to the newsletter API with the sign-in token.
 const request = (path, method = 'GET') => fetch(`/api/newsletter/${path}`, {
   method,
   headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem('sparky_token')}` },
@@ -114,12 +116,14 @@ onMounted(async () => {
 
 onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
 
+// Closes the confirmation dialog when Escape is pressed (not while saving).
 const onKeydown = (event) => {
   if (event.key === 'Escape' && confirming.value && !saving.value) closeConfirm();
 };
 
 // Subscribing needs an account: a signed-out visitor is sent to sign up first, with their email filled in
 const email = ref('');
+// Sends a signed-out visitor to the sign-up page with the typed email filled in.
 const goToSignUp = () => {
   const trimmed = email.value.trim();
   if (!trimmed) return;
@@ -127,17 +131,20 @@ const goToSignUp = () => {
   router.push({ path: '/signup', query: { email: trimmed } });
 };
 
+// Opens the subscribe / unsubscribe confirmation dialog.
 const openConfirm = () => {
   actionError.value = '';
   notice.value = '';
   confirming.value = true;
 };
 
+// Closes the confirmation dialog (not while saving).
 const closeConfirm = () => {
   if (saving.value) return;
   confirming.value = false;
 };
 
+// Subscribes or unsubscribes (depending on the current state) and updates the card.
 const confirm = async () => {
   saving.value = true;
   actionError.value = '';

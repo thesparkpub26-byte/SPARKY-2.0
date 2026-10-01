@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the table that holds pending sign-ups until their email code is confirmed. */
     public function up(): void
     {
         Schema::create('otp_verifications', function (Blueprint $table) {
@@ -20,6 +21,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the pending sign-ups table. */
     public function down(): void
     {
         Schema::dropIfExists('otp_verifications');

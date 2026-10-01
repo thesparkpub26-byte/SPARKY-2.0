@@ -245,11 +245,13 @@ const editableTitle = ref('');
 const articleContent = ref('');
 const editorRef = ref(null);
 
+// Applies a formatting command (bold, italic, list...) to the selected text.
 const formatDoc = (cmd, val = null) => {
     document.execCommand(cmd, false, val);
     handleEditorInput();
 };
 
+// Copies the editor's HTML into the article content as the editor types.
 const handleEditorInput = () => {
     if (editorRef.value) {
         articleContent.value = editorRef.value.innerHTML;
@@ -271,8 +273,10 @@ const loadingCopyreaders = ref(false);
 const selectedCopyreaderId = ref(null);
 const selectedCopyreader = computed(() => copyreaders.value.find(cr => cr.id === selectedCopyreaderId.value) || null);
 
+// A generated picture for a copyreader without a photo.
 const copyreaderAvatarFallback = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=dbeafe&color=1d4ed8`;
 
+// Loads the copyreaders the article can be sent to.
 const loadCopyreaders = async () => {
     loadingCopyreaders.value = true;
     try {
@@ -295,6 +299,7 @@ const loadCopyreaders = async () => {
     }
 };
 
+// Moves to the step where a copyreader is chosen.
 const openCopyreaderStep = () => {
     step.value = 'select-copyreader';
     if (copyreaders.value.length === 0) loadCopyreaders();
@@ -331,6 +336,7 @@ watch(() => [props.isOpen, props.submission], () => {
     }
 }, { immediate: true, deep: true });
 
+// Formats a date for display.
 const formatDate = (d) => {
     if (!d) return '';
     const date = new Date(d);
@@ -339,10 +345,12 @@ const formatDate = (d) => {
         ' • ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
+// Closes the review modal.
 const handleClose = () => {
     emit('close');
 };
 
+// Returns the article to the writer with the revision notes (the writer's task is returned too).
 const confirmReturn = async () => {
     if (!returnNotes.value.trim()) {
         errorMsg.value = 'Please provide revision notes.';
@@ -409,6 +417,7 @@ const confirmReturn = async () => {
     }
 };
 
+// Sends the article to the chosen copyreader (under review) and completes the writer's task.
 const confirmEndorse = async () => {
     if (!selectedCopyreaderId.value) {
         errorMsg.value = 'Please select a copyreader.';

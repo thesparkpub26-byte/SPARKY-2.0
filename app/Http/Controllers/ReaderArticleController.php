@@ -84,6 +84,10 @@ class ReaderArticleController extends Controller
         ];
     }
 
+    /**
+     * Public: one published article for the reader page: content, media, author, credited contributors, counts,
+     * three related articles and the viewer's like / bookmark state.
+     */
     public function show(Request $request, Article $article)
     {
         $this->readable($article)->loadCount(['comments', 'likes']);
@@ -185,6 +189,7 @@ class ReaderArticleController extends Controller
         ];
     }
 
+    /** Signed-in reader likes an article (liking twice changes nothing) and gets the updated counts. */
     public function like(Request $request, Article $article)
     {
         $this->readable($article);
@@ -193,6 +198,7 @@ class ReaderArticleController extends Controller
         return response()->json($this->engagement($article, $request->user()));
     }
 
+    /** Signed-in reader removes their like from an article and gets the updated counts. */
     public function unlike(Request $request, Article $article)
     {
         $this->readable($article);
@@ -201,6 +207,7 @@ class ReaderArticleController extends Controller
         return response()->json($this->engagement($article, $request->user()));
     }
 
+    /** Signed-in reader saves an article to their bookmarks and gets the updated state. */
     public function bookmark(Request $request, Article $article)
     {
         $this->readable($article);
@@ -209,6 +216,7 @@ class ReaderArticleController extends Controller
         return response()->json($this->engagement($article, $request->user()));
     }
 
+    /** Signed-in reader removes an article from their bookmarks and gets the updated state. */
     public function unbookmark(Request $request, Article $article)
     {
         $this->readable($article);
@@ -368,6 +376,7 @@ class ReaderArticleController extends Controller
         return response()->json(['comments_count' => $article->comments()->count()]);
     }
 
+    /** Turns a comment into the array the reader site displays (text, time, edited flag, author). */
     private function comment(ArticleComment $c): array
     {
         return [

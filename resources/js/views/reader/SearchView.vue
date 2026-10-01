@@ -116,6 +116,7 @@ const error = ref(false);
 
 let controller = null;
 
+// Fetches one page of search results, cancelling any request still running.
 const fetchPage = async (n) => {
   controller?.abort();
   const mine = (controller = new AbortController());
@@ -150,22 +151,32 @@ const fetchPage = async (n) => {
   }
 };
 
+// Starts a new search from page 1 (needs at least 2 characters).
 const runFresh = () => {
   results.value = [];
   if (q.value.length < 2) { controller?.abort(); loading.value = false; return; }
   fetchPage(1);
 };
 
+// Loads the next page of results.
 const loadMore = () => fetchPage(page.value + 1);
 
+// Updates the search address with the changed query or filters.
 const go = (changes) => router.replace({ path: '/search', query: { ...route.query, ...changes } });
+// Searches for the typed text and resets the filters.
 const submit = () => go({ q: draft.value.trim(), category: undefined, type: undefined, exact: undefined });
+// Filters by category (and clears the type filter).
 const setCategory = (name) => go({ category: name || undefined, type: undefined });
+// Filters by type (and clears the category filter).
 const setType = (value) => go({ type: value || undefined, category: undefined });
+// Sets or clears one filter in the search address.
 const setParam = (key, value) => go({ [key]: value || undefined });
+// Repeats the search requiring exact matches.
 const searchExact = () => go({ exact: '1' });
 
+// Splits a text into highlighted and plain parts for the search words.
 const parts = (text) => highlightParts(text, highlight.value);
+// Opens a search result.
 const open = (item) => openResult(router, item);
 
 watch(() => route.query, () => {

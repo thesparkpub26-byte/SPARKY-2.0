@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 /** Any signed-in request from a deactivated account is refused, even if the token is still valid. */
 class EnsureActiveAccount
 {
+    /** Blocks requests from deactivated accounts and signs them out by deleting their token. */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();

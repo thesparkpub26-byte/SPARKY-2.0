@@ -37,6 +37,7 @@ class Section extends Model
         return preg_match('/(?:^|\|)\s*Section:\s*([^|]+)/i', (string) $notes, $m) ? static::idForName($m[1]) : null;
     }
 
+    /** The articles published under the section. */
     public function articles()
     {
         return $this->hasMany(Article::class);

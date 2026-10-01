@@ -18,6 +18,7 @@ class Notification extends Model
         'read_at',
     ];
 
+    /** Converts the data column to an array and read_at to a date object. */
     protected function casts(): array
     {
         return [
@@ -37,6 +38,10 @@ class Notification extends Model
     const TYPE_ARTICLE_REJECTED = 'article_rejected';
     const TYPE_GENERAL = 'general';
 
+    /**
+     * Registers a rule that drops an exact repeat of a notification the user has not read yet (for example from
+     * a double-clicked button).
+     */
     protected static function booted(): void
     {
         // Skip an exact repeat of a notification the user has not read yet (or got moments ago),
@@ -92,6 +97,7 @@ class Notification extends Model
         return !is_null($this->read_at);
     }
 
+    /** Marks the notification as read now, if it is not read already. */
     public function markAsRead(): void
     {
         if (is_null($this->read_at)) {

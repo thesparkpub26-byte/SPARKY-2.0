@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds the program and year / section columns to users. */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
@@ -14,6 +15,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the program and year / section columns. */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds the credited artist to gallery photos. */
     public function up(): void
     {
         Schema::table('gallery_photos', function (Blueprint $table) {
@@ -14,6 +15,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the credited artist column. */
     public function down(): void
     {
         Schema::table('gallery_photos', function (Blueprint $table) {

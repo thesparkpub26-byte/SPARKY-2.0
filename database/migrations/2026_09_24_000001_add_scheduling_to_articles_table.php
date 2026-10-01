@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds the scheduled publish time and the "scheduled" article status. */
     public function up(): void
     {
         Schema::table('articles', function (Blueprint $table) {
@@ -22,6 +23,7 @@ return new class extends Migration
         EnumColumn::change('articles', 'status', ['draft', 'submitted', 'under_review', 'endorsed', 'approved', 'rejected', 'published', 'scheduled'], 'draft', nullable: true);
     }
 
+    /** Removes the scheduled status and the scheduled time. */
     public function down(): void
     {
         EnumColumn::change('articles', 'status', ['draft', 'submitted', 'under_review', 'endorsed', 'approved', 'rejected', 'published'], 'draft', nullable: true);

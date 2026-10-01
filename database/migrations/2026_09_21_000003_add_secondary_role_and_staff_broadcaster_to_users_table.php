@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    /** Adds the staff broadcaster role and the secondary role (title) column to users. */
     public function up(): void
     {
         // Add staff_broadcaster to role ENUM
@@ -20,6 +21,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the secondary role column. */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {

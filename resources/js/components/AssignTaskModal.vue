@@ -213,6 +213,7 @@ const allUsers = ref([]);
 
 const currentUser = ref(JSON.parse(localStorage.getItem('sparky_user') || '{}'));
 
+// Turns a role key such as staff_writer into a readable title such as Staff Writer.
 const formatRole = (role) => {
     if (role === 'eic') return 'Editor in Chief';
     if (role === 'system') return 'System';
@@ -366,6 +367,7 @@ watch(() => props.isOpen, (newVal) => {
     }
 });
 
+// Closes the modal, then returns it to step 1 once the closing animation is done.
 const closeModal = () => {
     emit('close');
     setTimeout(() => {
@@ -373,11 +375,13 @@ const closeModal = () => {
     }, 200);
 };
 
+// Closes the modal and asks the parent to show the assignments list.
 const onViewAssignments = () => {
     emit('view-assignments');
     closeModal();
 };
 
+// Checks the form and creates the writer's task (and the artist / crew tasks) for the assignment.
 const submitTask = async () => {
     errorMessage.value = '';
     isSubmitting.value = true;

@@ -177,6 +177,7 @@ onMounted(() => {
     files.value = JSON.parse(localStorage.getItem(storageKey.value) || '[]');
 });
 
+// Saves the file list in the browser and tells the server whether the entry has files.
 function persist() {
     localStorage.setItem(storageKey.value, JSON.stringify(files.value));
     try {
@@ -196,18 +197,22 @@ function persist() {
     } catch {}
 }
 
+// Opens the file picker.
 function triggerUpload() { fileInput.value?.click(); }
 
+// Adds the files chosen in the file picker.
 function handleUpload(e) {
     readFiles(Array.from(e.target.files));
     e.target.value = '';
 }
 
+// Adds the files dropped on the drop area.
 function handleDrop(e) {
     dragging.value = false;
     readFiles(Array.from(e.dataTransfer.files));
 }
 
+// Reads each file and adds it to the list.
 function readFiles(fileList) {
     fileList.forEach(f => {
         const reader = new FileReader();
@@ -227,6 +232,7 @@ function readFiles(fileList) {
     showToast(`${fileList.length} file(s) uploaded`, 'success');
 }
 
+// Removes a file from the list.
 function removeFile(id) {
     files.value = files.value.filter(f => f.id !== id);
     persist();
@@ -234,6 +240,7 @@ function removeFile(id) {
     if (preview.value?.id === id) preview.value = null;
 }
 
+// Downloads a file.
 function downloadFile(file) {
     const a = document.createElement('a');
     a.href = file.dataUrl;
@@ -241,9 +248,12 @@ function downloadFile(file) {
     a.click();
 }
 
+// Opens a file in the preview.
 function previewFile(file) { preview.value = file; }
+// True when the file is an image.
 function isImage(file) { return file.type?.startsWith('image/'); }
 
+// The short file-type label shown on a file (its extension in capitals, or FILE).
 function extLabel(name) {
     const parts = name.split('.');
     return parts.length > 1 ? parts.pop().toUpperCase().slice(0, 4) : 'FILE';
@@ -264,26 +274,31 @@ const extColorMap = {
     XLSX: { background: '#d1fae5', color: '#065f46' },
 };
 
+// The colours of a file's type label.
 function extColor(name) {
     const ext = extLabel(name);
     return extColorMap[ext] || { background: '#f1f5f9', color: '#475569' };
 }
 
+// The background of a file's icon: plain for images, coloured by type for other files.
 function iconBg(file) {
     if (isImage(file)) return { background: '#f8fafc' };
     return extColor(file.name);
 }
 
+// Formats a size in bytes as B, KB or MB.
 function formatSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
+// Formats a date as "Oct 1, 2026".
 function formatDate(iso) {
     return new Date(iso).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Shows a short message for a moment.
 function showToast(message, type = 'info') {
     toast.value = { message, type };
     setTimeout(() => toast.value = null, 2800);

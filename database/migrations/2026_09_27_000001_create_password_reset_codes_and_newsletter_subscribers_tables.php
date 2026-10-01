@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the password reset codes and newsletter subscribers tables. */
     public function up(): void
     {
         // Forgot-password: an emailed 6-digit code, then a short-lived reset token once the code is verified.
@@ -31,6 +32,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the newsletter subscribers and password reset codes tables. */
     public function down(): void
     {
         Schema::dropIfExists('newsletter_subscribers');

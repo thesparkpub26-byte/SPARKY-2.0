@@ -57,6 +57,7 @@ const root = ref(null);
 const isOpen = ref(false);
 const query = ref('');
 
+// The title shown for a user: their own title, otherwise a readable form of their role.
 const roleLabel = (user) => user.secondary_role
     || ({ eic: 'Editor-in-Chief', section_editor: 'Section Editor', staff_writer: 'Staff Writer', staff_broadcaster: 'Staff Broadcaster' }[user.role] || user.role);
 
@@ -69,9 +70,12 @@ const filteredOptions = computed(() => {
     return props.options.filter(u => !q || `${u.name} ${roleLabel(u)}`.toLowerCase().includes(q));
 });
 
+// True when the user is among the selected ones.
 const isSelected = (id) => props.modelValue.includes(id);
 
+// Opens or closes the list (the search is cleared when it closes).
 const toggle = () => { isOpen.value = !isOpen.value; if (!isOpen.value) query.value = ''; };
+// Selects or unselects a user (in single mode only one can be selected and the list closes).
 const toggleUser = (id) => {
     if (props.single) {
         emit('update:modelValue', isSelected(id) ? [] : [id]);
@@ -81,8 +85,10 @@ const toggleUser = (id) => {
     }
     emit('update:modelValue', isSelected(id) ? props.modelValue.filter(v => v !== id) : [...props.modelValue, id]);
 };
+// Removes one user from the selection.
 const remove = (id) => emit('update:modelValue', props.modelValue.filter(v => v !== id));
 
+// Closes the list when the user clicks anywhere outside it.
 const closeOnOutsideClick = (event) => {
     if (isOpen.value && root.value && !root.value.contains(event.target)) {
         isOpen.value = false;

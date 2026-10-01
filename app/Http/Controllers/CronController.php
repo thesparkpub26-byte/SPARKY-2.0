@@ -16,6 +16,7 @@ class CronController extends Controller
     /** A short secret could be guessed; anything shorter than this counts as "not set up". */
     private const MIN_SECRET_LENGTH = 24;
 
+    /** Runs the scheduled jobs that are due; called every minute by the outside timer, and only with the secret key. */
     public function run(Request $request)
     {
         $secret = (string) config('security.cron_secret');

@@ -284,6 +284,7 @@ const pwMismatch = computed(() =>
   form.value.password !== form.value.password_confirmation
 );
 
+// Switches to edit mode with the user's current details.
 const startEdit = () => {
   form.value = { name: user.value.name, current_password: '', password: '', password_confirmation: '' };
   errorMsg.value = '';
@@ -293,13 +294,16 @@ const startEdit = () => {
   isEditing.value = true;
 };
 
+// Leaves edit mode and drops the unsaved photo preview.
 const cancelEdit = () => {
   isEditing.value = false;
   avatarPreview.value = null;
 };
 
+// Opens the file picker for the profile photo.
 const triggerFileInput = () => fileInput.value?.click();
 
+// Remembers the picked profile photo and shows its preview.
 const onFileChange = (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -355,6 +359,7 @@ const saveProfile = async () => {
 const deleteError = ref('');
 const deletePassword = ref('');
 
+// Deletes the signed-in user's account after they confirm with their password.
 const confirmDelete = async () => {
   deleteLoading.value = true;
   deleteError.value = '';

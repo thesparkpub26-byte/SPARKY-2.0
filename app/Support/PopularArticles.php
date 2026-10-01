@@ -81,6 +81,7 @@ class PopularArticles
         return array_merge($ranked, $fill);
     }
 
+    /** Base query: published, non-video articles that have a publish date. */
     private static function published()
     {
         return Article::where('status', Article::STATUS_PUBLISHED)

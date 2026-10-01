@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
+    /** Fills a fresh database with sample sections, users, articles and tasks for development. */
     public function run(): void
     {
         // ── Sections ──────────────────────────────────────────────

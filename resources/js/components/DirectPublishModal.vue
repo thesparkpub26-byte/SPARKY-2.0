@@ -156,6 +156,7 @@ const isPublishing = ref(false);
 const errorMessage = ref('');
 const feedback = ref('');
 
+// Request headers with the sign-in token (and JSON content type unless told otherwise).
 const authHeaders = (json = true) => {
     const headers = { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' };
     if (json) headers['Content-Type'] = 'application/json';
@@ -167,11 +168,14 @@ const authHeaders = (json = true) => {
 const PRINT_SECTIONS = ['News', 'Opinion', 'Editorial', 'Feature', 'Sci-Tech', 'DevCom', 'Sports', 'Literary'];
 const sectionNames = computed(() => PRINT_SECTIONS.filter(name => sections.value.some(s => s.name === name)));
 
+// Sorts users by name.
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
 const writerOptions = computed(() => users.value.filter(u => ['staff_writer', 'section_editor', 'eic'].includes(u.role)).sort(byName));
 const artistOptions = computed(() => users.value.filter(u => u.role === 'staff_artist').sort(byName));
 
+// Pads a number to two digits.
 const pad = (n) => String(n).padStart(2, '0');
+// Formats a date for a datetime-local input (yyyy-mm-ddThh:mm).
 const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const nowLocal = computed(() => toLocalInput(new Date()));
 const isPast = computed(() => publishedAt.value && new Date(publishedAt.value).getTime() < Date.now() - 5 * 60 * 1000);
@@ -184,13 +188,16 @@ const wordCount = computed(() => {
     return plain ? plain.split(' ').length : 0;
 });
 
+// Applies a formatting command (bold, italic, list...) to the selected text in the editor.
 const formatDoc = (command, value = null) => {
     editorRef.value?.focus();
     document.execCommand(command, false, value);
     handleEditorInput();
 };
+// Copies the editor's HTML into the article content as the user types.
 const handleEditorInput = () => { content.value = editorRef.value?.innerHTML || ''; };
 
+// Loads the sections and users the form needs for its drop-downs.
 const loadLookups = async () => {
     try {
         const [secRes, userRes] = await Promise.all([
@@ -226,6 +233,7 @@ watch(() => props.isOpen, async (open) => {
     if (editorRef.value) editorRef.value.innerHTML = '';
 });
 
+// Uploads image files and returns their stored paths.
 const uploadFiles = async (files) => {
     const body = new FormData();
     files.forEach(file => body.append('files[]', file));
@@ -235,11 +243,13 @@ const uploadFiles = async (files) => {
     return data.urls || [];
 };
 
+// Shows a message for a few seconds.
 const flash = (message) => {
     feedback.value = message;
     setTimeout(() => { feedback.value = ''; }, 3000);
 };
 
+// Uploads the picked image as the thumbnail.
 const uploadThumbnail = async (event) => {
     const file = event.target.files?.[0];
     event.target.value = '';
@@ -257,6 +267,7 @@ const uploadThumbnail = async (event) => {
     }
 };
 
+// Uploads the picked photos as the article's media (3 at most).
 const uploadMedia = async (event) => {
     const files = [...(event.target.files || [])].slice(0, 3 - mediaFiles.value.length);
     event.target.value = '';
@@ -273,6 +284,7 @@ const uploadMedia = async (event) => {
     }
 };
 
+// Checks that the form is complete, then opens the publish confirmation.
 const openConfirm = () => {
     errorMessage.value = '';
     if (!sectionName.value) return (errorMessage.value = 'Please choose a section.');
@@ -285,6 +297,7 @@ const openConfirm = () => {
     isConfirmOpen.value = true;
 };
 
+// Publishes the article straight to the reader site, skipping the review steps.
 const publish = async () => {
     isPublishing.value = true;
     errorMessage.value = '';
@@ -316,6 +329,7 @@ const publish = async () => {
     }
 };
 
+// Closes the modal (not while publishing).
 const closeModal = () => {
     if (isPublishing.value) return;
     emit('close');

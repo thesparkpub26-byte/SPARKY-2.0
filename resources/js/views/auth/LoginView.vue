@@ -84,6 +84,7 @@ const roleDashboard = {
   reader:            '/',   // Readers go to the public reader portal
 };
 
+// Signs in with the email and password, saves the session, then opens the page they came from or their dashboard.
 const handleLogin = async () => {
   errorMsg.value = '';
   loading.value = true;

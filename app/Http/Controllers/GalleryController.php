@@ -47,6 +47,7 @@ class GalleryController extends Controller
         );
     }
 
+    /** Staff: lists every gallery photo with who uploaded it and the credited artist, newest first. */
     public function index()
     {
         return response()->json(GalleryPhoto::with(['uploader', 'artist'])->latest()->get());
@@ -61,6 +62,7 @@ class GalleryController extends Controller
         return response()->json(PublicCache::remember($request, 'gallery', ['limit', 'page'], fn () => $this->latestList($request)));
     }
 
+    /** Builds the public gallery list (optionally limited or paginated) in the shape the reader site needs. */
     private function latestList(Request $request): array
     {
         $query = GalleryPhoto::with('artist:id,name')->latest('created_at')->latest('id');
@@ -104,6 +106,7 @@ class GalleryController extends Controller
         ]);
     }
 
+    /** Uploads a new gallery photo and credits an artist (authorized staff only). */
     public function store(Request $request)
     {
         if (!$this->canManage($request->user())) {
@@ -137,6 +140,7 @@ class GalleryController extends Controller
         return response()->json($photo->load(['uploader', 'artist']), 201);
     }
 
+    /** Edits a gallery photo's title, credited artist or image (authorized staff only). */
     public function update(Request $request, GalleryPhoto $photo)
     {
         if (!$this->canManage($request->user())) {
@@ -175,6 +179,7 @@ class GalleryController extends Controller
         return response()->json($photo->load(['uploader', 'artist']));
     }
 
+    /** Deletes a gallery photo and its stored image (authorized staff only). */
     public function destroy(Request $request, GalleryPhoto $photo)
     {
         if (!$this->canManage($request->user())) {

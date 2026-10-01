@@ -1,5 +1,6 @@
 import { forgetLastPage } from './returnTo';
 
+// Signs the user out: tells the server, clears the saved sign-in, then goes to the given page.
 export const signOut = (router, redirect = '/') => {
     const token = localStorage.getItem('sparky_token');
 

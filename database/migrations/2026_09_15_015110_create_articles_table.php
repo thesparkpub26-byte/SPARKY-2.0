@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the articles table. */
     public function up(): void
     {
         Schema::create('articles', function (Blueprint $table) {
@@ -35,6 +36,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the articles table. */
     public function down(): void
     {
         Schema::dropIfExists('articles');

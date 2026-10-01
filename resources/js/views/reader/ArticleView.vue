@@ -267,16 +267,20 @@ const isLiterary = computed(() => /literary/i.test(`${article.value?.category ||
 
 const body = computed(() => article.value ? buildArticleBody(article.value.content, article.value.media) : { cover: null, blocks: [] });
 
+// Formats a date as "October 1, 2026".
 const formatLongDate = (iso) => iso
   ? new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   : '';
 
+// Formats a date and time as "Oct 1, 2026, 3:00 PM".
 const formatDateTime = (iso) => iso
   ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
   : '';
 
+// The initials (up to two letters) of a name, for avatars without a photo.
 const initialsOf = (name = '') => name.split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2) || '?';
 
+// Loads the article and its related data for the page; shows "not found" when it does not exist.
 const loadArticle = async () => {
   loading.value = true;
   notFound.value = false;
@@ -335,12 +339,14 @@ const recordOpen = async () => {
 const contributorsOpen = ref(false);
 // The author / contributor whose profile card is open
 const personModal = ref(null);
+// Opens the modal with a person's articles (as author or as contributor).
 const openPerson = (person, mode) => {
   contributorsOpen.value = false;
   personModal.value = { person, mode };
 };
 const contributorsRoot = ref(null);
 
+// Closes the contributors list when the user clicks outside it.
 const closeContributors = (event) => {
   if (contributorsOpen.value && contributorsRoot.value && !contributorsRoot.value.contains(event.target)) {
     contributorsOpen.value = false;
@@ -376,6 +382,7 @@ const copyToClipboard = async (text) => {
   }
 };
 
+// Copies the article's link (or shows it to copy by hand) and counts the share.
 const shareArticle = async () => {
   if (sharing) return;
   sharing = true;
@@ -414,8 +421,10 @@ const commentText = ref('');
 const commentError = ref('');
 const posting = ref(false);
 
+// The saved sign-in token, if any.
 const token = () => localStorage.getItem('sparky_token');
 const isLoggedIn = computed(() => Boolean(token() && localStorage.getItem('sparky_user')));
+// JSON request headers, with the sign-in token when the reader is signed in.
 const authJson = () => (token() ? { ...jsonHeaders, Authorization: `Bearer ${token()}` } : jsonHeaders);
 
 // ── Likes and saved articles (signed-in readers) ─────────────────────────────
@@ -425,6 +434,7 @@ const applyEngagement = (body) => {
   bookmarked.value = body.bookmarked;
 };
 
+// Adds or removes a like or a saved article (sends a signed-out reader to the login page).
 const toggleEngagement = async (path, isOn) => {
   if (!isLoggedIn.value) { router.push('/login'); return; }
 
@@ -436,7 +446,9 @@ const toggleEngagement = async (path, isOn) => {
     commentError.value = 'Could not connect to the server. Please try again.';
   }
 };
+// Likes the article, or removes the like.
 const toggleLike = () => toggleEngagement('like', liked.value);
+// Saves the article, or removes it from the saved list.
 const toggleBookmark = () => toggleEngagement('bookmark', bookmarked.value);
 
 // ── Reporting a comment ──────────────────────────────────────────────────────
@@ -445,6 +457,7 @@ const reportReason = ref('spam');
 const reporting = ref(false);
 const reportedIds = ref([]);
 
+// Reports a comment with the chosen reason.
 const reportComment = async (comment) => {
   reporting.value = true;
   try {
@@ -486,12 +499,14 @@ const currentUserId = computed(() => {
     return null;
   }
 });
+// True when the comment was written by the signed-in reader.
 const isOwn = (comment) => Boolean(token()) && currentUserId.value !== null && comment.user?.id === currentUserId.value;
 
 const editingId = ref(null);
 const editText = ref('');
 const savingEdit = ref(false);
 
+// Opens a comment for editing.
 const startEdit = (comment) => {
   deletingId.value = null;
   editingId.value = comment.id;
@@ -499,6 +514,7 @@ const startEdit = (comment) => {
   commentError.value = '';
 };
 
+// Saves the edited comment text.
 const saveEdit = async (comment) => {
   const text = editText.value.trim();
   if (!text || savingEdit.value) return;
@@ -523,6 +539,7 @@ const saveEdit = async (comment) => {
   }
 };
 
+// Deletes one of the reader's own comments.
 const deleteComment = async (comment) => {
   deleting.value = true;
   commentError.value = '';
@@ -567,6 +584,7 @@ watch(commentsOpen, (open) => {
   if (open && article.value) loadComments();
 });
 
+// Posts a new comment on the article.
 const submitComment = async () => {
   const text = commentText.value.trim();
   if (!text || posting.value) return;

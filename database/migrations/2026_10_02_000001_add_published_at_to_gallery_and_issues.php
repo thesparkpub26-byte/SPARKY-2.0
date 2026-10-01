@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds a published date to gallery photos and published issues. */
     public function up(): void
     {
         Schema::table('gallery_photos', function (Blueprint $table) {
@@ -21,6 +22,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the published date columns. */
     public function down(): void
     {
         Schema::table('gallery_photos', function (Blueprint $table) {

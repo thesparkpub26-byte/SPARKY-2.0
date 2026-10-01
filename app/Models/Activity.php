@@ -23,6 +23,7 @@ class Activity extends Model
         'created_at',
     ];
 
+    /** Converts the created_at column to a date object. */
     protected function casts(): array
     {
         return [
@@ -30,6 +31,7 @@ class Activity extends Model
         ];
     }
 
+    /** Writes one entry in the activity log: who did what, to which record. */
     public static function record(?User $actor, string $action, ?Model $subject = null, ?string $subjectLabel = null): self
     {
         return static::create([
@@ -42,11 +44,13 @@ class Activity extends Model
         ]);
     }
 
+    /** Leaves out sign-in / sign-out entries, so activity feeds show real work. */
     public function scopeExcludingSessions($query)
     {
         return $query->whereNotIn('action', self::SESSION_ACTIONS);
     }
 
+    /** The user who performed the action. */
     public function actor()
     {
         return $this->belongsTo(User::class, 'actor_id');

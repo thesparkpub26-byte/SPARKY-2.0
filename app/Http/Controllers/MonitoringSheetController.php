@@ -9,11 +9,16 @@ use Illuminate\Http\Request;
 
 class MonitoringSheetController extends Controller
 {
+    /** Returns one monitoring sheet with its academic year and all of its entries. */
     public function show(MonitoringSheet $monitoringSheet)
     {
         return response()->json($monitoringSheet->load('pressWork', 'entries'));
     }
 
+    /**
+     * Adds an entry (topic, section, writer, artist, deadline...) to a monitoring sheet and notifies the people
+     * it names.
+     */
     public function storeEntry(Request $request, MonitoringSheet $monitoringSheet)
     {
         $validated = $request->validate([
@@ -94,6 +99,7 @@ class MonitoringSheetController extends Controller
         return response()->json($entry, 201);
     }
 
+    /** Updates one entry of a monitoring sheet (status, assignees, dates...); the entry must belong to that sheet. */
     public function updateEntry(Request $request, MonitoringSheet $monitoringSheet, MonitoringSheetEntry $entry)
     {
         if ($entry->monitoring_sheet_id !== $monitoringSheet->id) {
@@ -147,6 +153,7 @@ class MonitoringSheetController extends Controller
         return response()->json($entry);
     }
 
+    /** Deletes one entry from a monitoring sheet; the entry must belong to that sheet. */
     public function deleteEntry(MonitoringSheet $monitoringSheet, MonitoringSheetEntry $entry)
     {
         if ($entry->monitoring_sheet_id !== $monitoringSheet->id) {
@@ -158,6 +165,7 @@ class MonitoringSheetController extends Controller
         return response()->json(['message' => 'Entry deleted successfully']);
     }
 
+    /** Saves the written article (headline, author, content) on a sheet entry and notifies the Editors-in-Chief. */
     public function uploadArticle(Request $request, MonitoringSheet $monitoringSheet, MonitoringSheetEntry $entry)
     {
         if ($entry->monitoring_sheet_id !== $monitoringSheet->id) {

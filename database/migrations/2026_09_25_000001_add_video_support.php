@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Schema;
 // get their own task types.
 return new class extends Migration
 {
+    /**
+     * Adds what videos need: the video link and category on articles, and the videography / video editing task
+     * types.
+     */
     public function up(): void
     {
         Schema::table('articles', function (Blueprint $table) {
@@ -28,6 +32,7 @@ return new class extends Migration
         EnumColumn::change('tasks', 'type', ['writing', 'illustration', 'photography', 'layout', 'editing', 'videography', 'video_editing'], 'writing');
     }
 
+    /** Turns videos and video crew tasks back into plain articles and layout tasks. */
     public function down(): void
     {
         DB::table('tasks')->whereIn('type', ['videography', 'video_editing'])->update(['type' => 'layout']);

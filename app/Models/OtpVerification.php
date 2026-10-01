@@ -15,6 +15,7 @@ class OtpVerification extends Model
         'expires_at',
     ];
 
+    /** Converts the expires_at column to a date object. */
     protected function casts(): array
     {
         return [
@@ -22,6 +23,7 @@ class OtpVerification extends Model
         ];
     }
 
+    /** True when the code is past its expiry time. */
     public function isExpired(): bool
     {
         return now()->isAfter($this->expires_at);

@@ -93,6 +93,7 @@ class ArticleController extends Controller
         return response()->json(PublicCache::remember($request, 'articles', ['category', 'page'], fn () => $this->categoryPage($request)));
     }
 
+    /** Builds one page of published articles for the reader site, optionally limited to one category (section). */
     private function categoryPage(Request $request): array
     {
         $category = strtolower(trim((string) $request->query('category', '')));
@@ -126,6 +127,7 @@ class ArticleController extends Controller
         return response()->json(PublicCache::remember($request, 'articles', ['limit', 'page'], fn () => $this->videoList($request)));
     }
 
+    /** Builds the list of published videos for the reader site (newest first, optionally one video category). */
     private function videoList(Request $request): array
     {
         $this->publishDueSchedules();
@@ -708,6 +710,7 @@ class ArticleController extends Controller
         return response()->json(['urls' => $urls], 201);
     }
 
+    /** Sends an in-app notification to every active section editor (and EICs who also hold an editor title). */
     private function notifySectionEditors(Article $article, string $title, string $message): void
     {
         // (users no longer have a section_id column, so every section editor is notified; so is an
@@ -740,6 +743,7 @@ class ArticleController extends Controller
         }
     }
 
+    /** Sends an in-app notification to every active Editor-in-Chief. */
     private function notifyEICs(Article $article, string $title, string $message): void
     {
         $eics = \App\Models\User::where('role', 'eic')->where('is_active', true)->get();

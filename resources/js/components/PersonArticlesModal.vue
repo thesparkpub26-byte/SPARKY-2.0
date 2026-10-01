@@ -80,6 +80,7 @@ const hasMore = computed(() => page.value > 0 && page.value < lastPage.value);
 const firstName = computed(() => (props.person.name || '').split(' ')[0]);
 const initials = computed(() => (props.person.name || '').split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2) || '?');
 
+// Loads the next page of the person's articles.
 const load = async () => {
   if (loading.value) return;
   loading.value = true;
@@ -110,11 +111,13 @@ const loadMoreIfNeeded = () => {
   if (el.scrollHeight - el.scrollTop - el.clientHeight < LOAD_AHEAD) load();
 };
 
+// Closes the modal and opens the clicked article.
 const open = (article) => {
   emit('close');
   router.push(`/article/${article.id}`);
 };
 
+// Closes the modal when Escape is pressed.
 const onKeydown = (event) => {
   if (event.key === 'Escape') emit('close');
 };

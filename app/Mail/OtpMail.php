@@ -19,6 +19,7 @@ class OtpMail extends Mailable
         public string $purpose = 'signup',
     ) {}
 
+    /** Sets the subject: "Verification Code" for a sign-up or "Reset your password" for a password reset. */
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -26,6 +27,7 @@ class OtpMail extends Mailable
         );
     }
 
+    /** Chooses the code email's template and gives it the code and the recipient's name. */
     public function content(): Content
     {
         return new Content(

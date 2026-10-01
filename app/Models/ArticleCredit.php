@@ -30,11 +30,13 @@ class ArticleCredit extends Model
         });
     }
 
+    /** The article the credit belongs to. */
     public function article()
     {
         return $this->belongsTo(Article::class);
     }
 
+    /** The credited person. */
     public function user()
     {
         return $this->belongsTo(User::class);

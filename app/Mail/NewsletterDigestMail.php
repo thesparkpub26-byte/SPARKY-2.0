@@ -16,11 +16,13 @@ class NewsletterDigestMail extends Mailable
     /** @param array<int, array{title: string, excerpt: string, category: ?string, date: ?string, url: string, image: ?string}> $stories */
     public function __construct(public NewsletterSubscriber $subscriber, public array $stories) {}
 
+    /** Sets the subject of the weekly digest email. */
     public function envelope(): Envelope
     {
         return new Envelope(subject: 'The latest from TheSPARK');
     }
 
+    /** Chooses the digest email's template and gives it the stories and the unsubscribe link. */
     public function content(): Content
     {
         return new Content(

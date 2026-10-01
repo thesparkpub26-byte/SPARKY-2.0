@@ -50,6 +50,7 @@ const loadPage = async (next) => {
   lastPage.value = body.last_page;
 };
 
+// Loads the next page of videos and adds them to the grid.
 const loadMore = async () => {
   loadingMore.value = true;
   try {

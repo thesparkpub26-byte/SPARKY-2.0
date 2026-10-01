@@ -15,18 +15,22 @@ export const extractYouTubeId = (url) => {
     return match ? match[1] : '';
 };
 
+// True when the link is a YouTube video link.
 export const isYouTubeUrl = (url) => Boolean(extractYouTubeId(url));
 
+// The thumbnail image address of a YouTube video link, or an empty string.
 export const youtubeThumbnail = (url) => {
     const id = extractYouTubeId(url);
     return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
 };
 
+// The embeddable player address of a YouTube video link, or an empty string.
 export const youtubeEmbedUrl = (url) => {
     const id = extractYouTubeId(url);
     return id ? `https://www.youtube.com/embed/${id}` : '';
 };
 
+// Reads one "Key: value" field out of a task's notes text (fields are separated by "|").
 export const parseNotesField = (notes, key) => {
     if (!notes || typeof notes !== 'string') return '';
     const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
@@ -43,9 +47,11 @@ export const isVideoTask = (task = {}) => {
     return section.toLowerCase() === VIDEO_SECTION.toLowerCase();
 };
 
+// True for the video crew's tasks (videographer, video editor) and for layout tasks linked to a video.
 export const isVideoCrewTask = (task = {}) => VIDEO_CREW_TYPES.includes(task.type)
     || (task.type === 'layout' && isVideoTask(task));
 
+// True for a section editor whose title is a broadcaster one (the Head Broadcaster).
 export const isBroadcastHead = (user = {}) => {
     const roles = `${user.secondary_role || ''} ${user.tertiary_role || ''}`.toLowerCase();
     return user.role === 'section_editor' && roles.includes('broadcaster');

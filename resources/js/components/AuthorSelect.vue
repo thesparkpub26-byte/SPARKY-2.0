@@ -59,17 +59,21 @@ const isOpen = ref(false);
 
 const selected = computed(() => props.options.find(o => o.id === props.modelValue) || null);
 
+// The title shown under an artist's name in the list.
 const roleLabel = (a) => a.role === 'staff_artist' ? (a.secondary_role || 'Staff Artist') : 'Art Editor';
 
+// The picture address for an author: the uploaded photo, otherwise a generated avatar.
 const avatarFor = (a) => a.profile_picture
     ? `/storage/${a.profile_picture}`
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(a.name || 'User')}&background=dbeafe&color=1d4ed8`;
 
+// Picks an author, tells the parent and closes the list.
 const select = (option) => {
     emit('update:modelValue', option.id);
     isOpen.value = false;
 };
 
+// Closes the list when the user clicks anywhere outside it.
 const closeOnOutsideClick = (event) => {
     if (isOpen.value && root.value && !root.value.contains(event.target)) isOpen.value = false;
 };

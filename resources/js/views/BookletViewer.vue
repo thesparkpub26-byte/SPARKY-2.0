@@ -108,6 +108,7 @@ const flip = ref({ active: false, direction: 'forward', frontSrc: '', backSrc: '
 // back face is already paintable the instant the CSS rotation reveals it, instead of
 // flashing in late mid-flip. Once a src has been decoded here it stays fast on reuse.
 const decodedSrcs = new Set();
+// Loads and decodes a page image ahead of time so flipping pages does not flicker.
 const preloadImage = (src) => {
     if (!src || decodedSrcs.has(src)) return Promise.resolve();
     const img = new Image();
@@ -124,6 +125,7 @@ const isCoverSpread = computed(() => spreadIndex.value === 0);
 // Plain functions (not computeds) so the same left/right-for-a-given-spread logic can be
 // reused to preload the pages a turn is *about* to reveal, before spreadIndex actually moves.
 const leftSrcFor = (L) => (L === 0 ? pages.value[0] || null : pages.value[L * 2 - 1] || null);
+// The image shown on the right page of a spread (none on the cover spread).
 const rightSrcFor = (L) => (L === 0 ? null : pages.value[L * 2] || null);
 
 const leftPageSrc = computed(() => leftSrcFor(spreadIndex.value));
@@ -138,6 +140,7 @@ const pageLabel = computed(() => {
     return `Page ${leftNum}${rightNum > leftNum ? '-' + rightNum : ''} of ${pages.value.length}`;
 });
 
+// Flips forward to the next two-page spread with the page-turn animation.
 const nextSpread = () => {
     if (flip.value.active || isLastSpread.value) return;
     const wasCover = isCoverSpread.value;
@@ -164,6 +167,7 @@ const nextSpread = () => {
     }, FLIP_DURATION);
 };
 
+// Flips back to the previous two-page spread with the page-turn animation.
 const prevSpread = () => {
     if (flip.value.active || spreadIndex.value === 0) return;
     const targetIsCover = spreadIndex.value - 1 === 0;
@@ -189,6 +193,7 @@ const handleKeydown = (e) => {
 
 // ── PDF.js loading + rendering ──────────────────────────────────────────────
 const PDFJS_VERSION = '3.11.174';
+// Loads the PDF.js library (once) and returns it.
 const loadPdfJs = () => {
     return new Promise((resolve, reject) => {
         if (window.pdfjsLib) {
@@ -206,6 +211,7 @@ const loadPdfJs = () => {
     });
 };
 
+// Renders every page of the issue's PDF into an image.
 const renderPdfToImages = async (pdfUrl) => {
     const pdfjsLib = await loadPdfJs();
     const pdf = await pdfjsLib.getDocument(pdfUrl).promise;

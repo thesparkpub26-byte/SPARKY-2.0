@@ -46,8 +46,10 @@ const error = ref(false);
 const page = ref(0);
 const lastPage = ref(1);
 
+// Request headers with the sign-in token.
 const headers = () => ({ Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem('sparky_token')}` });
 
+// Loads one page of the reader's saved articles.
 const loadPage = async (next) => {
   const res = await fetch(`/api/reader/bookmarks?page=${next}`, { headers: headers() });
   if (!res.ok) throw new Error('failed');
@@ -57,6 +59,7 @@ const loadPage = async (next) => {
   lastPage.value = body.last_page;
 };
 
+// Loads the next page of saved articles.
 const loadMore = async () => {
   loadingMore.value = true;
   try {
@@ -68,6 +71,7 @@ const loadMore = async () => {
   }
 };
 
+// Removes an article from the reader's saved list.
 const remove = async (item) => {
   try {
     const res = await fetch(`/api/reader/articles/${item.id}/bookmark`, { method: 'DELETE', headers: headers() });

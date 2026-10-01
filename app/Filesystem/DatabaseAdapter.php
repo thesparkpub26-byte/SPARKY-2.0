@@ -24,6 +24,7 @@ class DatabaseAdapter implements FilesystemAdapter
     /** Small enough for MySQL's default 1 MB packet limit. */
     public const CHUNK_SIZE = 262144;
 
+    /** Creates the adapter; $urlPrefix is the address under which stored files are served. */
     public function __construct(private string $urlPrefix = '/storage')
     {
     }
@@ -34,16 +35,19 @@ class DatabaseAdapter implements FilesystemAdapter
         return rtrim($this->urlPrefix, '/') . '/' . ltrim($path, '/');
     }
 
+    /** Tells whether a file with this path is stored. */
     public function fileExists(string $path): bool
     {
         return StoredFile::where('path', $path)->exists();
     }
 
+    /** Tells whether any stored file lives under this folder path (folders are only path prefixes). */
     public function directoryExists(string $path): bool
     {
         return StoredFile::where('path', 'like', $this->prefixPattern($path))->exists();
     }
 
+    /** Stores a string as a file by wrapping it in a stream. */
     public function write(string $path, string $contents, Config $config): void
     {
         $stream = fopen('php://temp', 'r+');
@@ -53,6 +57,7 @@ class DatabaseAdapter implements FilesystemAdapter
         fclose($stream);
     }
 
+    /** Stores a file by splitting it into chunks in the database, replacing any file with the same path. */
     public function writeStream(string $path, $contents, Config $config): void
     {
         DB::transaction(function () use ($path, $contents) {
@@ -75,11 +80,13 @@ class DatabaseAdapter implements FilesystemAdapter
         });
     }
 
+    /** Reads a whole stored file into a string. */
     public function read(string $path): string
     {
         return stream_get_contents($this->readStream($path));
     }
 
+    /** Reads a stored file's chunks back into one stream. */
     public function readStream(string $path)
     {
         $file = StoredFile::where('path', $path)->first() ?? throw UnableToReadFile::fromLocation($path, 'File not found.');
@@ -93,46 +100,55 @@ class DatabaseAdapter implements FilesystemAdapter
         return $stream;
     }
 
+    /** Deletes one stored file and its chunks. */
     public function delete(string $path): void
     {
         $this->deleteWhere(StoredFile::where('path', $path));
     }
 
+    /** Deletes every stored file under a folder path. */
     public function deleteDirectory(string $path): void
     {
         $this->deleteWhere(StoredFile::where('path', 'like', $this->prefixPattern($path)));
     }
 
+    /** Does nothing: folders exist only as part of file paths. */
     public function createDirectory(string $path, Config $config): void
     {
         // Directories are only a prefix of the path; nothing to create
     }
 
+    /** Does nothing: every stored file is public. */
     public function setVisibility(string $path, string $visibility): void
     {
         // Every upload is public (the same as the old "public" disk)
     }
 
+    /** Reports every stored file as public. */
     public function visibility(string $path): FileAttributes
     {
         return new FileAttributes($path, null, 'public');
     }
 
+    /** Returns the file's MIME type. */
     public function mimeType(string $path): FileAttributes
     {
         return new FileAttributes($path, null, null, null, $this->find($path)->mime_type);
     }
 
+    /** Returns when the file was last changed. */
     public function lastModified(string $path): FileAttributes
     {
         return new FileAttributes($path, null, null, $this->find($path)->updated_at->getTimestamp());
     }
 
+    /** Returns the file's size in bytes. */
     public function fileSize(string $path): FileAttributes
     {
         return new FileAttributes($path, (int) $this->find($path)->size);
     }
 
+    /** Lists the files (and, from their paths, the folders) under a path, optionally all levels deep. */
     public function listContents(string $path, bool $deep): iterable
     {
         $prefix = trim($path, '/') === '' ? '' : trim($path, '/') . '/';
@@ -152,6 +168,7 @@ class DatabaseAdapter implements FilesystemAdapter
         }
     }
 
+    /** Moves a file to a new path, replacing whatever was there. */
     public function move(string $source, string $destination, Config $config): void
     {
         $file = StoredFile::where('path', $source)->first() ?? throw UnableToMoveFile::fromLocationTo($source, $destination);
@@ -162,6 +179,7 @@ class DatabaseAdapter implements FilesystemAdapter
         });
     }
 
+    /** Copies a file by streaming it into a new path. */
     public function copy(string $source, string $destination, Config $config): void
     {
         if (!$this->fileExists($source)) {
@@ -173,11 +191,13 @@ class DatabaseAdapter implements FilesystemAdapter
         fclose($stream);
     }
 
+    /** Finds the stored file for a path, or fails with a "metadata unavailable" error. */
     private function find(string $path): StoredFile
     {
         return StoredFile::where('path', $path)->first() ?? throw UnableToRetrieveMetadata::create($path, 'metadata', 'File not found.');
     }
 
+    /** Deletes the files matched by a query together with their chunks. */
     private function deleteWhere($query): void
     {
         foreach ($query->pluck('id') as $id) {

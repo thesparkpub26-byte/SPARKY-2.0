@@ -1410,10 +1410,12 @@ const managementSortLabels = {
     section_desc: 'Section Z-A',
 };
 
+// Opens or closes one of the user-management filter menus (role, section, sort).
 const toggleManagementDropdown = (dropdown) => {
     activeManagementDropdown.value = activeManagementDropdown.value === dropdown ? null : dropdown;
 };
 
+// Applies a user-management filter and closes its menu.
 const selectManagementFilter = (filter, value) => {
     if (filter === 'role') managementRole.value = value;
     if (filter === 'section') managementSection.value = value;
@@ -1421,10 +1423,12 @@ const selectManagementFilter = (filter, value) => {
     activeManagementDropdown.value = null;
 };
 
+// Opens or closes one of the article filter menus.
 const toggleArticleDropdown = (filter) => {
     activeArticleDropdown.value = activeArticleDropdown.value === filter ? null : filter;
 };
 
+// Applies an article filter and closes its menu.
 const selectArticleFilter = (filter, value) => {
     articleFilters[filter] = value;
     activeArticleDropdown.value = null;
@@ -1436,10 +1440,12 @@ const analyticsPeriodLabels = {
     90: 'Last 90 days',
 };
 
+// Opens or closes the analytics period menu.
 const toggleAnalyticsDropdown = () => {
     activeAnalyticsDropdown.value = !activeAnalyticsDropdown.value;
 };
 
+// Chooses the analytics period (7, 30 or 90 days) and reloads the report.
 const selectAnalyticsPeriod = (period) => {
     analyticsPeriod.value = period;
     activeAnalyticsDropdown.value = false;
@@ -1478,6 +1484,7 @@ const searchPlaceholder = computed(() => activeTab.value === 'archive-year'
                             ? 'Search publications and traffic'
                             : 'Search');
 
+// True when any of the given values contains the text typed in the search box (or the box is empty).
 const matchesSearch = (...values) => !normalizedSearch.value
     || values.some(value => String(value ?? '').toLowerCase().includes(normalizedSearch.value));
 const filteredOverviewActivities = computed(() => overview.value.activities.filter(activity => matchesSearch(
@@ -1507,8 +1514,10 @@ const archiveGallery = ref([]);
 const archiveIssues = ref([]);
 const archiveVideos = ref([]);
 
+// Loads the gallery photos, published issues and videos shown in the Archive.
 const loadArchiveExtras = async () => {
     const headers = { Authorization: `Bearer ${localStorage.getItem('sparky_token')}`, Accept: 'application/json' };
+    // Fetches one list into a target, keeping what is already loaded if the request fails.
     const load = async (url, target) => {
         try {
             const response = await fetch(url, { headers });
@@ -1527,6 +1536,7 @@ const loadArchiveExtras = async () => {
 // The latest things to go live, whatever the kind (article, video, gallery photo or published issue)
 const RECENT_PUBLICATIONS_LIMIT = 3;
 const recentPublications = computed(() => {
+    // True for an item that is published.
     const live = (item) => item.status === 'published';
     return [
         ...articles.value.filter(live).map(article => ({
@@ -1833,6 +1843,7 @@ const articleFilterDefinitions = computed(() => [
         ],
     },
 ]);
+// The label of the option currently chosen for an article filter.
 const articleFilterLabel = (filter) => articleFilterDefinitions.value
     .find(definition => definition.key === filter)?.options
     .find(option => option.value === articleFilters[filter])?.label || filter;
@@ -1940,8 +1951,10 @@ const updatedLabel = computed(() => overview.value.updated_at
     ? `Updated ${new Date(overview.value.updated_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
     : 'Loading...');
 
+// Formats a number with thousands separators.
 const formatCount = (value) => Number(value || 0).toLocaleString();
 
+// Turns a role key such as staff_writer into a readable title such as Staff Writer.
 const formatRole = (role) => {
     if (role === 'system') return 'System';
     if (role === 'eic') return 'Editor in Chief';
@@ -1949,11 +1962,14 @@ const formatRole = (role) => {
     return (role || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
+// Formats a date and time for display ("—" when empty).
 const formatDate = (date) => date
     ? new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
     : '—';
 
+// Shows an article status as a readable label.
 const articleStatusLabel = (status) => (status || 'unknown').replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+// The CSS class that colours an article status label.
 const articleStatusClass = (status) => ({
     published: 'published',
     draft: 'draft',
@@ -1964,8 +1980,10 @@ const articleStatusClass = (status) => ({
     approved: 'approved',
 }[status] || 'draft');
 
+// A generated picture for a user without a photo.
 const avatarFallback = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=dbeafe&color=1d4ed8`;
 
+// Loads the overview summary (counts, user activity, workflow, latest activities).
 const loadOverview = async () => {
     try {
         const response = await fetch('/api/admin/overview', {
@@ -1980,6 +1998,7 @@ const loadOverview = async () => {
     }
 };
 
+// Loads all users.
 const loadUsers = async () => {
     try {
         const response = await fetch('/api/users', {
@@ -1994,6 +2013,7 @@ const loadUsers = async () => {
     }
 };
 
+// Loads all articles.
 const loadArticles = async () => {
     try {
         const response = await fetch('/api/articles', {
@@ -2008,6 +2028,7 @@ const loadArticles = async () => {
     }
 };
 
+// Loads the analytics report for the chosen period.
 const loadAnalytics = async () => {
     analyticsError.value = '';
 
@@ -2031,6 +2052,7 @@ const loadAnalytics = async () => {
     }
 };
 
+// Loads the academic years with their monitoring sheets and opens the first one.
 const loadPressWorks = async () => {
     try {
         const token = localStorage.getItem('sparky_token');
@@ -2124,6 +2146,7 @@ const isNewUserStep2Valid = computed(() => {
         && newUserForm.value.password === newUserForm.value.passwordConfirmation;
 });
 
+// Opens the Add New User form at step 1 with the passwords hidden.
 const openNewUserModal = () => {
     newUserStep.value = 1;
     showNewUserPassword.value = false;
@@ -2132,18 +2155,21 @@ const openNewUserModal = () => {
     isNewUserModalOpen.value = true;
 };
 
+// Closes the Add New User form and clears it.
 const closeNewUserModal = () => {
     isNewUserModalOpen.value = false;
     newUserImagePreview.value = '';
     newUserForm.value = { name: '', email: '', role: '', secondary_role: '', tertiary_role: '', status: '', password: '', passwordConfirmation: '', program: '', year_section: '', image: null };
 };
 
+// Remembers the photo picked for the new user and shows its preview.
 const handleNewUserImage = (event) => {
     const image = event.target.files?.[0] || null;
     newUserForm.value.image = image;
     newUserImagePreview.value = image ? URL.createObjectURL(image) : '';
 };
 
+// Opens the Edit User form filled with the user's current details.
 const openEditUser = (member) => {
     selectedUser.value = member;
     showEditUserPassword.value = false;
@@ -2164,8 +2190,10 @@ const openEditUser = (member) => {
     isEditUserModalOpen.value = true;
 };
 
+// Closes the Edit User form.
 const closeEditUser = () => { isEditUserModalOpen.value = false; };
 
+// Remembers the photo picked while editing a user and shows its preview.
 const handleEditUserImage = (event) => {
     const image = event.target.files?.[0] || null;
     if (!image) return;
@@ -2173,6 +2201,7 @@ const handleEditUserImage = (event) => {
     editUserImagePreview.value = URL.createObjectURL(image);
 };
 
+// Saves the edited user's details (and photo or new password if given).
 const saveEditedUser = async () => {
     if (!selectedUser.value) return;
     editUserSaving.value = true;
@@ -2207,14 +2236,17 @@ const saveEditedUser = async () => {
     }
 };
 
+// Asks to confirm deleting a user.
 const openDeleteUser = (member) => {
     selectedUser.value = member;
     deleteUserError.value = '';
     isDeleteUserModalOpen.value = true;
 };
 
+// Closes the delete-user confirmation.
 const closeDeleteUser = () => { isDeleteUserModalOpen.value = false; };
 
+// Deletes the chosen user after confirmation.
 const deleteSelectedUser = async () => {
     if (!selectedUser.value) return;
     deleteUserSaving.value = true;
@@ -2240,9 +2272,11 @@ const deleteSelectedUser = async () => {
 const isArchivePreviewOpen = ref(false);
 const archivePreviewArticle = ref({});
 
+// Builds the read-only preview of an archived article (with its files and artist) and opens it.
 const openArchivePreview = (article = {}) => {
     const tasks = Array.isArray(article.tasks) ? article.tasks : [];
     const artist = tasks.find(t => ['illustration', 'photography', 'layout'].includes(t.type))?.assignee || null;
+    // The file name at the end of a file address.
     const fileName = (url) => String(url).split('/').pop() || 'file';
     const files = [];
     if (article.cover_image) files.push({ name: fileName(article.cover_image), type: 'image', url: article.cover_image });
@@ -2258,11 +2292,13 @@ const openArchivePreview = (article = {}) => {
     isArchivePreviewOpen.value = true;
 };
 
+// Closes the archive preview and opens the article for editing.
 const handleArchiveEdit = (article) => {
     isArchivePreviewOpen.value = false;
     openEditArticle(article);
 };
 
+// After an archived article was deleted: closes the preview and removes it from the lists.
 const handleArchiveDeleted = () => {
     const deletedId = archivePreviewArticle.value?.id;
     isArchivePreviewOpen.value = false;
@@ -2270,6 +2306,7 @@ const handleArchiveDeleted = () => {
     archiveVideos.value = archiveVideos.value.filter(video => video.id !== deletedId);
 };
 
+// Opens the Edit Article form filled with the article's details.
 const openEditArticle = (article) => {
     selectedArticle.value = article;
     editArticleForm.value = { title: article.title, status: article.status, excerpt: article.excerpt || '' };
@@ -2277,8 +2314,10 @@ const openEditArticle = (article) => {
     isEditArticleModalOpen.value = true;
 };
 
+// Closes the Edit Article form.
 const closeEditArticle = () => { isEditArticleModalOpen.value = false; };
 
+// Saves the edited article (title, status, excerpt).
 const saveEditedArticle = async () => {
     if (!selectedArticle.value) return;
     editArticleSaving.value = true;
@@ -2301,14 +2340,17 @@ const saveEditedArticle = async () => {
     }
 };
 
+// Asks to confirm deleting an article.
 const openDeleteArticle = (article) => {
     selectedArticle.value = article;
     deleteArticleError.value = '';
     isDeleteArticleModalOpen.value = true;
 };
 
+// Closes the delete-article confirmation.
 const closeDeleteArticle = () => { isDeleteArticleModalOpen.value = false; };
 
+// Deletes the chosen article after confirmation.
 const deleteSelectedArticle = async () => {
     if (!selectedArticle.value) return;
     deleteArticleSaving.value = true;
@@ -2329,6 +2371,7 @@ const deleteSelectedArticle = async () => {
     }
 };
 
+// Checks the Add New User form, then creates the user.
 const saveNewUser = async () => {
     newUserError.value = '';
     if (!newUserForm.value.name || !newUserForm.value.email || !newUserForm.value.role || !newUserForm.value.password) {
@@ -2382,6 +2425,7 @@ const saveNewUser = async () => {
     }
 };
 
+// Builds the selected task from the given data (with defaults) and opens its details.
 const openTaskModal = (task = {}) => {
     selectedTask.value = {
         title: task.title || 'Enrollment Update for Second Semester',
@@ -2395,12 +2439,14 @@ const openTaskModal = (task = {}) => {
     isAssignedTaskModalOpen.value = true;
 };
 
+// Closes the task details and opens the task's workspace.
 const handleOpenWorkspace = (taskData) => {
     isAssignedTaskModalOpen.value = false;
     selectedTask.value = taskData || selectedTask.value;
     isWorkspaceModalOpen.value = true;
 };
 
+// The CSS class that colours a publication type (Newsletter, Tabloid, Magazine, Litfolio).
 const pressworkBadgeClass = (type) => ({
     Newsletter: 'pub-newsletter',
     Tabloid: 'pub-tabloid',
@@ -2408,14 +2454,17 @@ const pressworkBadgeClass = (type) => ({
     Litfolio: 'pub-litfolio',
 }[type] || 'pub-newsletter');
 
+// Opens the form for creating an academic year.
 const openPressworkModal = () => {
     pressworkForm.value = { academic_year: '2025-2026' };
     pressworkError.value = '';
     isPressworkModalOpen.value = true;
 };
 
+// Closes the form for creating an academic year.
 const closePressworkModal = () => { isPressworkModalOpen.value = false; };
 
+// Creates the academic year with its four monitoring sheets (a year can exist only once).
 const createPresswork = async () => {
     // Check for duplicate before making API call
     if (yearAlreadyExists.value) {
@@ -2453,38 +2502,45 @@ const createPresswork = async () => {
     }
 };
 
+// Opens a monitoring sheet in a new tab.
 const openMonitoringSheet = (sheet) => {
     window.open(`/monitoring-sheet/${sheet.id}`, '_blank');
 };
 
+// Expands or collapses an academic year.
 const toggleYear = (year) => {
     expandedYears.value[year] = !expandedYears.value[year];
 };
 
+// Opens one academic year's archive folder.
 const openArchiveFolder = (folder) => {
     selectedArchiveFolder.value = folder;
     archiveYearPage.value = 1;
     activeTab.value = 'archive-year';
 };
 
+// Returns from a year's archive folder to the archive list.
 const closeArchiveFolder = () => {
     activeTab.value = 'archive';
     selectedArchiveFolder.value = null;
     archiveYearPage.value = 1;
 };
 
+// Asks to confirm deleting an academic year.
 const openDeleteYearModal = (year) => {
     yearToDelete.value = year;
     deleteYearError.value = '';
     isDeleteYearModalOpen.value = true;
 };
 
+// Closes the delete-year confirmation.
 const closeDeleteYearModal = () => {
     isDeleteYearModalOpen.value = false;
     yearToDelete.value = '';
     deleteYearError.value = '';
 };
 
+// Deletes the academic year with its monitoring sheets.
 const deleteYear = async () => {
     deleteYearSaving.value = true;
     deleteYearError.value = '';

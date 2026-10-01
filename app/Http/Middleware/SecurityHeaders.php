@@ -9,6 +9,10 @@ use Symfony\Component\HttpFoundation\Response;
 /** Browser-side protections added to every response. */
 class SecurityHeaders
 {
+    /**
+     * Adds the browser security headers (content type, framing, referrer, content security policy) to every
+     * response.
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);

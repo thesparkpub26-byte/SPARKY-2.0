@@ -294,6 +294,7 @@ const formatPriorityLabel = (priority) => {
     return p ? p.charAt(0).toUpperCase() + p.slice(1) : 'Moderate';
 };
 
+// The CSS class that colours a task card by its priority.
 const getPriorityClass = (priority) => {
     const p = (priority || '').toLowerCase();
     if (p === 'low') return 'card-low';
@@ -302,6 +303,7 @@ const getPriorityClass = (priority) => {
     return 'card-moderate';
 };
 
+// Formats a task's deadline date and due time for its card ("No deadline" when empty).
 const formatDeadline = (dateStr, dueTimeStr) => {
     if (!dateStr) return 'No deadline';
     const cleanDate = String(dateStr).split('T')[0].split(' ')[0];
@@ -327,11 +329,13 @@ const formatDeadline = (dateStr, dueTimeStr) => {
     return timePart ? `${datePart} • ${timePart}` : datePart;
 };
 
+// Formats a date as "Oct 1, 2026" (empty when invalid).
 const formatDate = (dateStr) => {
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
+// Formats a date and time as "Oct 1 • 3:00 PM" (empty when invalid).
 const formatDateTime = (dateStr) => {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '';
@@ -339,12 +343,15 @@ const formatDateTime = (dateStr) => {
         + ' • ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
+// The picture address for a person: the uploaded photo, otherwise a generated avatar.
 const avatarFor = (person, background = 'ffd5dc') => {
     if (person?.profile_picture) return `/storage/${person.profile_picture}`;
     if (person?.profile_picture_url) return person.profile_picture_url;
     return `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(person?.name || 'broadcaster')}&backgroundColor=${background}`;
 };
 
+// A task title without a crew suffix such as "(Visuals)", lower-cased, so crew tasks can be matched to the
+// presenter's task.
 const cleanBaseTitle = (title) => String(title || '')
     .replace(/\s*\([^)]*(visuals|video|graphics|photo|illustration|pj)[^)]*\)/i, '')
     .trim()
@@ -375,6 +382,7 @@ const presenterTaskFor = (task) => {
     return allTasks.value.find(o => o.type === 'writing' && cleanBaseTitle(o.title) === base) || null;
 };
 
+// The article a task belongs to, looked up through the presenter's task when needed.
 const linkedArticleFor = (task) => {
     const articleId = task.article_id || presenterTaskFor(task)?.article_id;
     return task.article || (articleId ? articleById.value[articleId] : null) || null;
@@ -424,6 +432,7 @@ const kanbanColumns = computed(() => [
     { key: 'submitted', label: 'Submitted', empty: 'No submitted tasks', avatarBg: 'fecdd3', tasks: myTasks.value.filter(t => ['submitted', 'completed'].includes(t.status)) },
 ]);
 
+// Loads the tasks.
 const fetchTasks = async () => {
     if (!token) return;
     try {
@@ -437,6 +446,7 @@ const fetchTasks = async () => {
     }
 };
 
+// Loads the videos.
 const fetchVideos = async () => {
     if (!token) return;
     try {
@@ -450,6 +460,7 @@ const fetchVideos = async () => {
     }
 };
 
+// Reloads the tasks and the videos.
 const refreshAll = async () => {
     await fetchTasks();
     await fetchVideos();
@@ -472,6 +483,7 @@ const videoFilterOptions = [
 ];
 const videoFilterLabel = computed(() => videoFilterOptions.find(o => o.value === selectedVideoFilter.value)?.label || 'Status');
 
+// Applies a filter to the videos list and goes back to the first page.
 const selectVideoFilter = (value) => {
     selectedVideoFilter.value = value;
     activeVideoFilter.value = false;
@@ -518,9 +530,12 @@ watch([searchQuery], () => { videosPage.value = 1; });
 
 const VIDEO_STATUS_LABELS = { draft: 'Draft', submitted: 'For Review', under_review: 'Under Review', endorsed: 'Endorsed', approved: 'Approved', rejected: 'Returned', scheduled: 'Scheduled', published: 'Published' };
 const VIDEO_STATUS_CLASSES = { draft: 'status-draft', submitted: 'status-for-review', under_review: 'status-under-revision', endorsed: 'status-endorsed', approved: 'status-approved', rejected: 'status-rejected', scheduled: 'status-for-review', published: 'status-published' };
+// Shows a video status as a readable label.
 const formatVideoStatus = (status) => VIDEO_STATUS_LABELS[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Draft');
+// The CSS class that colours a video status label.
 const getVideoStatusClass = (status) => VIDEO_STATUS_CLASSES[status] || 'status-draft';
 
+// The file name at the end of a file address.
 const extractFileName = (url) => String(url || '').split('/').pop() || 'file';
 
 // Same read-only preview shape the other dashboards use
@@ -535,6 +550,7 @@ const buildPreviewData = (item) => {
     };
 };
 
+// Opens a video: published ones (and ones the user is only credited on) as a preview, others through their task.
 const openVideo = (video) => {
     // Published videos, and ones I'm only credited on (no task of my own), open as a preview
     if (video.status === 'published' || !video.task) {
@@ -566,6 +582,7 @@ const openTaskModal = (task = {}) => {
     isAssignedTaskModalOpen.value = true;
 };
 
+// Closes the task details and opens the workspace (only the assigned presenter may).
 const handleOpenWorkspace = (taskData) => {
     // Only the assigned news presenter may open the workspace
     if (taskData?.canOpenWorkspace === false) return;
@@ -579,6 +596,7 @@ const staffAcademicYears = ref([]);
 const shownAcademicYears = computed(() => searchAcademicYears(staffAcademicYears.value, matches));
 const staffExpandedYears = ref({});
 
+// Loads the academic years with their monitoring sheets.
 const fetchPressWorks = async () => {
     if (!token) return;
     try {
@@ -595,10 +613,12 @@ const fetchPressWorks = async () => {
     }
 };
 
+// Expands or collapses an academic year.
 const toggleStaffYear = (year) => {
     staffExpandedYears.value[year] = !staffExpandedYears.value[year];
 };
 
+// Opens a monitoring sheet in a new tab.
 const openMonitoringSheet = (sheet) => {
     window.open(sheet?.id ? `/monitoring-sheet/${sheet.id}` : '/monitoring-sheet', '_blank');
 };
@@ -608,10 +628,12 @@ watch(activeTab, (tab) => {
     if (tab === 'tasks' || tab === 'videos') refreshAll();
 });
 
+// Shows the new profile details when the profile page announces an update.
 const onProfileUpdated = (e) => {
     if (e.detail) user.value = e.detail;
 };
 
+// Closes the video filter menu when the user clicks outside it.
 const closeVideoFilter = (event) => {
     if (activeVideoFilter.value && !event.target.closest('.custom-filter')) activeVideoFilter.value = false;
 };

@@ -112,6 +112,7 @@ const creditLines = computed(() => Object.entries(CREDIT_LABELS)
     }))
     .filter(line => line.names));
 
+// Switches to edit mode with the video's current details.
 const startEdit = () => {
     form.value = {
         title: props.video?.title || '',
@@ -123,6 +124,7 @@ const startEdit = () => {
     mode.value = 'edit';
 };
 
+// Leaves edit mode (closing the modal if it was opened straight into editing).
 const cancelEdit = () => {
     if (props.startInEdit) closeModal();
     else mode.value = 'detail';
@@ -136,21 +138,25 @@ watch(() => [props.isOpen, props.video, props.startInEdit], () => {
     else mode.value = 'detail';
 }, { immediate: true });
 
+// Formats a date as "Oct 1, 2026" (empty when invalid).
 const formatDate = (dateStr) => {
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
+// Request headers with the sign-in token and a JSON content type.
 const authHeaders = () => ({
     Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
     Accept: 'application/json',
     'Content-Type': 'application/json'
 });
 
+// Opens the video's YouTube link in a new tab.
 const viewVideo = () => {
     if (props.video?.video_url) window.open(props.video.video_url, '_blank', 'noopener');
 };
 
+// Saves the video's changes (it needs a valid YouTube link).
 const saveEdit = async () => {
     if (!extractYouTubeId(form.value.video_url)) {
         errorMessage.value = 'Please enter a valid YouTube link.';
@@ -190,6 +196,7 @@ const saveEdit = async () => {
     }
 };
 
+// Deletes the video.
 const confirmDelete = async () => {
     saving.value = true;
     errorMessage.value = '';
@@ -208,6 +215,7 @@ const confirmDelete = async () => {
     }
 };
 
+// Closes the modal.
 const closeModal = () => emit('close');
 </script>
 

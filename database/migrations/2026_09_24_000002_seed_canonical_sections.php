@@ -14,6 +14,7 @@ return new class extends Migration
         'DevCom', 'Sports', 'Literary', 'Video',
     ];
 
+    /** Creates the standard sections if they do not exist yet. */
     public function up(): void
     {
         // Without events: saving a section clears the reader cache, and on a fresh database with
@@ -25,6 +26,7 @@ return new class extends Migration
         });
     }
 
+    /** Does nothing: other records may already use the seeded sections. */
     public function down(): void
     {
         // Leave the seeded rows in place — other records may now reference them.

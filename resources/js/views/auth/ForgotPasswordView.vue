@@ -48,6 +48,7 @@ const loading = ref(false);
 const errorMsg = ref('');
 const router = useRouter();
 
+// Asks the server to email a reset code, then opens the code page.
 const handleForgot = async () => {
   errorMsg.value = '';
   loading.value = true;

@@ -166,11 +166,14 @@ const authHeaders = () => ({
     Accept: 'application/json',
 });
 
+// Formats a date as "Oct 1, 2026".
 const formatDate = (iso) => iso
     ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '';
 
+// Pads a number to two digits.
 const pad = (n) => String(n).padStart(2, '0');
+// Formats a date for a datetime-local input (yyyy-mm-ddThh:mm).
 const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const nowLocal = computed(() => toLocalInput(new Date()));
 
@@ -187,8 +190,10 @@ const shownPhotos = computed(() => {
 const loading = ref(true);
 const artists = ref([]);
 
+// Picks the first validation error (or the message) from an error response, else the fallback text.
 const errorFrom = (data, fallback) => (data.errors ? Object.values(data.errors)[0]?.[0] : data.message) || fallback;
 
+// Loads all gallery photos.
 const loadPhotos = async () => {
     loading.value = true;
     try {
@@ -201,6 +206,7 @@ const loadPhotos = async () => {
     }
 };
 
+// Loads the artists a photo can be credited to.
 const loadArtists = async () => {
     try {
         const response = await fetch('/api/gallery/artists', { headers: authHeaders() });
@@ -219,6 +225,7 @@ const uploadFileInput = ref(null);
 const uploadError = ref('');
 const uploadSaving = ref(false);
 
+// Opens the upload form with empty fields.
 const openUploadModal = () => {
     loadArtists();
     uploadForm.value = { title: '', artist_id: '', published_at: toLocalInput(new Date()) };
@@ -228,12 +235,14 @@ const openUploadModal = () => {
     isUploadOpen.value = true;
 };
 
+// Shows a preview of the file picked for upload.
 const handleUploadFileChange = (event) => {
     const file = event.target.files?.[0] || null;
     uploadFile.value = file;
     uploadPreview.value = file ? URL.createObjectURL(file) : '';
 };
 
+// Checks the upload form, then uploads the new photo.
 const submitUpload = async () => {
     uploadError.value = '';
     if (!uploadForm.value.title.trim()) {
@@ -284,17 +293,20 @@ const editFileInput = ref(null);
 const editError = ref('');
 const editSaving = ref(false);
 
+// Opens the photo viewer for one photo.
 const openViewModal = (photo) => {
     viewingPhoto.value = photo;
     isEditing.value = false;
     isViewOpen.value = true;
 };
 
+// Closes the photo viewer.
 const closeViewModal = () => {
     isViewOpen.value = false;
     isEditing.value = false;
 };
 
+// Switches the viewer to edit mode with the photo's current details.
 const startEdit = () => {
     loadArtists();
     editForm.value = {
@@ -308,6 +320,7 @@ const startEdit = () => {
     isEditing.value = true;
 };
 
+// Shows a preview of the replacement image picked while editing.
 const handleEditFileChange = (event) => {
     const file = event.target.files?.[0] || null;
     if (!file) return;
@@ -315,6 +328,7 @@ const handleEditFileChange = (event) => {
     editPreview.value = URL.createObjectURL(file);
 };
 
+// Checks the edit form, then saves the photo's changes.
 const submitEdit = async () => {
     editError.value = '';
     if (!editForm.value.title.trim()) {
@@ -357,12 +371,14 @@ const photoToDelete = ref(null);
 const deleteError = ref('');
 const deleteSaving = ref(false);
 
+// Asks the user to confirm deleting the photo being viewed.
 const confirmDelete = () => {
     photoToDelete.value = viewingPhoto.value;
     deleteError.value = '';
     closeViewModal();
 };
 
+// Deletes the photo after confirmation.
 const deletePhoto = async () => {
     if (!photoToDelete.value) return;
     deleteSaving.value = true;

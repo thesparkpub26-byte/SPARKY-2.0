@@ -11,6 +11,10 @@ class PressWorkController extends Controller
 {
     private const TYPES = ['Newsletter', 'Tabloid', 'Magazine', 'Litfolio'];
 
+    /**
+     * Lists the academic years with their monitoring sheets (Newsletter, Tabloid, Magazine, Litfolio), newest
+     * first.
+     */
     public function index()
     {
         $user = auth()->user();
@@ -53,6 +57,10 @@ class PressWorkController extends Controller
         return response()->json(['academic_years' => $grouped]);
     }
 
+    /**
+     * Creates an academic year with its four monitoring sheets and notifies the Editors-in-Chief; a year can
+     * exist only once.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -107,6 +115,7 @@ class PressWorkController extends Controller
         ], 201);
     }
 
+    /** Deletes an academic year together with its monitoring sheets and entries. */
     public function destroyByYear(Request $request, $year)
     {
         $pressWork = PressWork::where('academic_year', $year)->first();

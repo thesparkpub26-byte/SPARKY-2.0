@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Widens the cover image column so long paths fit. */
     public function up(): void
     {
         Schema::table('articles', function (Blueprint $table) {
@@ -14,6 +15,7 @@ return new class extends Migration
         });
     }
 
+    /** Narrows the cover image column back. */
     public function down(): void
     {
         Schema::table('articles', function (Blueprint $table) {

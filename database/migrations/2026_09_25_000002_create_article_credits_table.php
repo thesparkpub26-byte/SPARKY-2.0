@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 // Each role can hold several people; a credited user sees the video in their own list.
 return new class extends Migration
 {
+    /** Creates the table that credits contributors on an article. */
     public function up(): void
     {
         Schema::create('article_credits', function (Blueprint $table) {
@@ -22,6 +23,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the article credits table. */
     public function down(): void
     {
         Schema::dropIfExists('article_credits');

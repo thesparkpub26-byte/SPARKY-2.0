@@ -90,10 +90,12 @@ const video = ref(null);
 const loading = ref(true);
 const notFound = ref(false);
 
+// Formats a date as "October 1, 2026".
 const formatLongDate = (iso) => iso
   ? new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   : '';
 
+// Loads the video for the page; shows "not found" when it does not exist.
 const load = async () => {
   loading.value = true;
   notFound.value = false;

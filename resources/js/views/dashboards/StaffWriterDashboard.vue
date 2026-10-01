@@ -508,6 +508,7 @@ const isCopyreader = computed(() => {
     return roles.includes('Copy Editor') || roles.includes('Copyreader');
 });
 
+// The title to show for a user: their own title, otherwise a readable form of their role.
 const formatRole = (role, secondaryRole) => {
     if (secondaryRole) return secondaryRole;
     if (!role) return 'Staff Writer';
@@ -523,6 +524,7 @@ const formatRole = (role, secondaryRole) => {
     return map[role] || role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
+// Shows a task priority as Low, Moderate, High or Urgent.
 const formatPriorityLabel = (priority) => {
     const p = (priority || '').toLowerCase();
     if (p === 'medium') return 'Moderate';
@@ -532,6 +534,7 @@ const formatPriorityLabel = (priority) => {
     return priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Moderate';
 };
 
+// The CSS class that colours a task card by its priority.
 const getPriorityClass = (priority) => {
     const p = (priority || '').toLowerCase();
     if (p === 'low') return 'card-low';
@@ -540,6 +543,7 @@ const getPriorityClass = (priority) => {
     return 'card-moderate';
 };
 
+// Formats a task's deadline date and due time for its card ("No deadline" when empty).
 const formatDeadline = (dateStr, dueTimeStr) => {
     if (!dateStr) return 'No deadline';
     if (typeof dateStr === 'string' && dateStr.includes('•')) return dateStr;
@@ -587,6 +591,7 @@ const formatDeadline = (dateStr, dueTimeStr) => {
     return timePart ? `${datePart} • ${timePart}` : datePart;
 };
 
+// Reads one "Key: value" field out of a task's notes text.
 const parseNotesField = (notes, key) => {
     if (!notes || typeof notes !== 'string') return '';
     const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
@@ -719,11 +724,13 @@ const articleToDelete = ref(null);
 const deletingArticle = ref(false);
 const deleteArticleError = ref('');
 
+// Asks the writer to confirm deleting one of their articles.
 const confirmDeleteArticle = (article) => {
     articleToDelete.value = article;
     deleteArticleError.value = '';
 };
 
+// Deletes the chosen article after confirmation.
 const doDeleteArticle = async () => {
     if (!articleToDelete.value) return;
     deletingArticle.value = true;
@@ -752,6 +759,7 @@ const doDeleteArticle = async () => {
     }
 };
 
+// Loads the writer's articles (loading the tasks first if they are not there yet).
 const fetchArticles = async () => {
     if (!token || !user.value?.id) return;
     try {
@@ -863,6 +871,7 @@ const totalArticlesPages = computed(() => {
     return Math.ceil(filteredArticles.value.length / articlesPerPage);
 });
 
+// Formats an article's date and time for the list.
 const formatArticleDate = (dateStr) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
@@ -870,12 +879,14 @@ const formatArticleDate = (dateStr) => {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
+// Moves the articles list to another page.
 const changeArticlesPage = (page) => {
     if (page >= 1 && page <= totalArticlesPages.value) {
         articlesCurrentPage.value = page;
     }
 };
 
+// Shows an article status as a readable label (Draft, For Review, Published...).
 const formatStatus = (status) => {
     const statusMap = {
         'draft': 'Draft',
@@ -889,6 +900,7 @@ const formatStatus = (status) => {
     return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
 };
 
+// The CSS class that colours an article status label.
 const getStatusClass = (status) => {
     const classMap = {
         'draft': 'status-draft',
@@ -919,10 +931,12 @@ const statusFilterLabel = computed(() => {
     return option ? option.label : 'Status';
 });
 
+// Opens or closes the status filter menu.
 const toggleStatusFilter = () => {
     activeStatusFilter.value = !activeStatusFilter.value;
 };
 
+// Applies a status filter and goes back to the first page.
 const selectStatusFilter = (value) => {
     selectedStatusFilter.value = value;
     activeStatusFilter.value = false;
@@ -953,12 +967,14 @@ const openTaskModal = (task = {}) => {
     isAssignedTaskModalOpen.value = true;
 };
 
+// Closes the task details and opens the task's workspace.
 const handleOpenWorkspace = (taskData) => {
     isAssignedTaskModalOpen.value = false;
     selectedTask.value = taskData || selectedTask.value;
     isWorkspaceModalOpen.value = true;
 };
 
+// Updates the task in the list after a draft was saved in the workspace.
 const handleTaskSavedAsDraft = (draftTask) => {
     const targetId = draftTask.id || selectedTask.value.id;
     const index = tasks.value.findIndex(t => t.id === targetId || t.title === draftTask.title);
@@ -995,6 +1011,7 @@ const handleTaskSavedAsDraft = (draftTask) => {
     // The backend only stores status, not article content/media
 };
 
+// Updates the task in the list after it was submitted (it moves to Submitted).
 const handleTaskSubmitted = (submittedTask) => {
     const targetId = submittedTask.id || selectedTask.value.id;
     const index = tasks.value.findIndex(t => t.id === targetId || t.title === submittedTask.title);
@@ -1025,16 +1042,19 @@ const handleTaskSubmitted = (submittedTask) => {
     fetchArticles();
 };
 
+// Switches to the tasks tab to show the submissions.
 const handleViewSubmissions = () => {
     activeTab.value = 'tasks';
 };
 
+// The file name at the end of a file address.
 const extractFileNameSW = (url) => {
     if (!url || typeof url !== 'string') return 'file';
     const parts = url.split('/');
     return parts[parts.length - 1] || 'file';
 };
 
+// The title shown for an artist or broadcaster crew member.
 const staffRoleLabelSW = (role) => (role === 'staff_broadcaster' ? 'Staff Broadcaster' : 'Staff Artist');
 
 // Builds the same article-preview shape EditorInChiefDashboard uses, so a writer's
@@ -1067,6 +1087,7 @@ const buildArticlePreviewData = (item = {}) => {
     };
 };
 
+// Opens an article: published ones and videos as a read-only preview, others through their task's details.
 const openArticleModal = (article) => {
     // Videos have no writing workspace here, so they always open as the read-only preview
     if (article.raw?.type === 'video' || (article.status === 'published' && article.raw)) {
@@ -1115,6 +1136,7 @@ const openArticleModal = (article) => {
     }
 };
 
+// Shows the new profile details when the profile page announces an update.
 const onProfileUpdated = (e) => {
     if (e.detail) {
         user.value = e.detail;

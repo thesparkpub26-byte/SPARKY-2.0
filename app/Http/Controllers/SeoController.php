@@ -65,6 +65,7 @@ class SeoController extends Controller
         ]]);
     }
 
+    /** Serves robots.txt: search engines may read the public site but not the staff dashboards. */
     public function robots()
     {
         // Staff pages are for staff; the rest of the site is open to search engines
@@ -87,6 +88,7 @@ class SeoController extends Controller
         return response($body, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
     }
 
+    /** Serves sitemap.xml listing the public pages and every published article for search engines. */
     public function sitemap()
     {
         Article::publishDue();

@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Schema;
 // each task its assignee's, and each video credit its crew member's, as of when it was created.
 return new class extends Migration
 {
+    /**
+     * Adds columns that remember the role / title someone held when they wrote or were credited on an article,
+     * and fills existing rows with the person's current title.
+     */
     public function up(): void
     {
         Schema::table('articles', function (Blueprint $table) {
@@ -34,6 +38,7 @@ return new class extends Migration
         }
     }
 
+    /** Removes the role snapshot columns. */
     public function down(): void
     {
         Schema::table('article_credits', function (Blueprint $table) {

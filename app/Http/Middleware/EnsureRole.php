@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsureRole
 {
+    /** Allows the request only if the signed-in, active user has one of the roles the route asks for. */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $user = $request->user();

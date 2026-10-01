@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Adds the profile picture column to users. */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
@@ -13,6 +14,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the profile picture column from users. */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {

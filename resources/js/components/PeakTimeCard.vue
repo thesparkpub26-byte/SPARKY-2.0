@@ -60,6 +60,7 @@ const props = defineProps({
 const showGraph = ref(false);
 const hovered = ref(null);
 
+// Turns an hourly list into exactly 24 numbers (missing hours count as 0).
 const pad = (list) => Array.from({ length: 24 }, (_, i) => Number(list?.[i] || 0));
 const views = computed(() => pad(props.hourly?.views));
 const visitors = computed(() => pad(props.hourly?.visitors));
@@ -70,7 +71,9 @@ const peakHour = computed(() => views.value.indexOf(Math.max(...views.value)));
 
 const ticks = [0, 3, 6, 9, 12, 15, 18, 21];
 
+// The 12-hour label of an hour, for example "3 PM".
 const hourLabel = (h) => `${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? 'AM' : 'PM'}`;
+// The label of a one-hour range, for example "3 PM – 4 PM".
 const hourRange = (h) => `${hourLabel(h)} – ${hourLabel((h + 1) % 24)}`;
 </script>
 

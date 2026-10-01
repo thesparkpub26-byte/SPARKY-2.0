@@ -8,6 +8,7 @@ class NewsletterSubscriber extends Model
 {
     protected $fillable = ['email', 'unsubscribe_token', 'unsubscribed_at'];
 
+    /** Converts the unsubscribed_at column to a date object. */
     protected function casts(): array
     {
         return [
@@ -15,6 +16,7 @@ class NewsletterSubscriber extends Model
         ];
     }
 
+    /** Limits a query to subscribers who have not unsubscribed. */
     public function scopeActive($query)
     {
         return $query->whereNull('unsubscribed_at');

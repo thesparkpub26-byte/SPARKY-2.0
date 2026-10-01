@@ -767,6 +767,7 @@ const token = localStorage.getItem('sparky_token');
 const activeTab = ref('overview');
 const { input: searchInput, query: searchQuery } = useDebouncedSearch();
 
+// True when any of the given values contains the text typed in the search box (or when the box is empty).
 const matchesSearch = (...fields) => {
     if (!searchQuery.value || !searchQuery.value.trim()) return true;
     const query = searchQuery.value.toLowerCase().trim();
@@ -816,6 +817,7 @@ const statusLabelMap = {
     published: 'Published',
 };
 
+// Shows a status as a readable label.
 const statusLabel = (status) => {
     const map = {
         pending: 'Pending',
@@ -830,6 +832,7 @@ const statusLabel = (status) => {
     return map[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending');
 };
 
+// The CSS class that colours a status label.
 const statusBadgeClass = (status) => {
     const map = {
         pending: 'status-draft',
@@ -844,12 +847,14 @@ const statusBadgeClass = (status) => {
     return map[status] || 'status-draft';
 };
 
+// Reads one "Key: value" field out of a task's notes text.
 const parseNotesField = (notes, key) => {
     if (!notes || typeof notes !== 'string') return '';
     const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
     return match ? match[1].trim() : '';
 };
 
+// Formats a task's deadline date and due time for display ("No deadline" when empty).
 const formatDeadline = (dateStr, dueTimeStr) => {
     if (!dateStr) return 'No deadline';
     if (typeof dateStr === 'string' && dateStr.includes('•')) return dateStr;
@@ -927,6 +932,7 @@ const seArticlesPaged = computed(() => {
     return seArticlesFiltered.value.slice(start, start + articlesPerPage);
 });
 
+// Loads the signed-in editor's own articles (videos for the Head Broadcaster) and their tasks.
 const loadSEArticles = async () => {
     if (!token) return;
     seArticlesLoading.value = true;
@@ -1084,8 +1090,10 @@ const contributorsStatusOptions = [
 ];
 const contributorsStatusLabelMap = { active: 'Active', inactive: 'Inactive' };
 
+// A generated picture for a contributor without a photo.
 const contributorAvatarFallback = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=dbeafe&color=1d4ed8`;
 
+// Loads the user list shown on the Contributors tab.
 const loadSEContributors = async () => {
     if (!token) return;
     contributorsLoading.value = true;
@@ -1134,6 +1142,7 @@ watch([searchQuery, contributorsStatusFilter], () => {
     contributorsPage.value = 1;
 });
 
+// Formats a date and time for display ("—" when empty).
 const formatDateSE = (date) => date
     ? new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
     : '—';
@@ -1232,6 +1241,7 @@ const isArticlePreviewOpen = ref(false);
 const selectedArticlePreview = ref({});
 
 
+// Opens an article or task: videos and published articles as a read-only preview, others as task details.
 const openArticleOrTaskModal = (item) => {
     const matchedTask = item.matchedTask || (item.isTask ? item.raw : null);
 
@@ -1288,6 +1298,7 @@ const openArticleOrTaskModal = (item) => {
     isAssignedTaskModalOpen.value = true;
 };
 
+// Builds the selected task from the given data (with defaults) and opens its details.
 const openTaskModal = (task = {}) => {
     selectedTask.value = {
         title: task.title || 'Enrollment Update for Second Semester',
@@ -1301,6 +1312,7 @@ const openTaskModal = (task = {}) => {
     isAssignedTaskModalOpen.value = true;
 };
 
+// Closes the task details and opens the workspace (the video workspace for the Head Broadcaster).
 const handleOpenWorkspace = (taskData) => {
     isAssignedTaskModalOpen.value = false;
     selectedTask.value = taskData || selectedTask.value;
@@ -1311,6 +1323,7 @@ const handleOpenWorkspace = (taskData) => {
     isWorkspaceModalOpen.value = true;
 };
 
+// Opens a monitoring sheet in a new tab.
 const openMonitoringSheet = (sheet) => {
     if (sheet && sheet.id) {
         window.open(`/monitoring-sheet/${sheet.id}`, '_blank');
@@ -1357,6 +1370,7 @@ watch(searchQuery, () => {
     articlesPage.value = 1;
 });
 
+// The CSS class that colours a publication type (Newsletter, Tabloid, Magazine, Litfolio).
 const pressworkBadgeClass = (type) => ({
     Newsletter: 'pub-newsletter',
     Tabloid: 'pub-tabloid',
@@ -1364,16 +1378,19 @@ const pressworkBadgeClass = (type) => ({
     Litfolio: 'pub-litfolio',
 }[type] || 'pub-newsletter');
 
+// Opens the form for creating an academic year.
 const openPressworkModal = () => {
     pressworkForm.value = { academic_year: '2025-2026' };
     pressworkError.value = '';
     isPressworkModalOpen.value = true;
 };
 
+// Closes the form for creating an academic year.
 const closePressworkModal = () => {
     isPressworkModalOpen.value = false;
 };
 
+// Creates the academic year with its four monitoring sheets (a year can exist only once).
 const createPresswork = async () => {
     if (yearAlreadyExists.value) {
         pressworkError.value = 'An academic year with this name already exists.';
@@ -1410,18 +1427,21 @@ const createPresswork = async () => {
     }
 };
 
+// Asks to confirm deleting an academic year.
 const openDeleteYearModal = (year) => {
     yearToDelete.value = year;
     deleteYearError.value = '';
     isDeleteYearModalOpen.value = true;
 };
 
+// Closes the delete-year confirmation.
 const closeDeleteYearModal = () => {
     isDeleteYearModalOpen.value = false;
     yearToDelete.value = '';
     deleteYearError.value = '';
 };
 
+// Deletes the academic year with its monitoring sheets.
 const deleteYear = async () => {
     deleteYearSaving.value = true;
     deleteYearError.value = '';
@@ -1447,6 +1467,7 @@ const deleteYear = async () => {
     }
 };
 
+// Loads the academic years with their monitoring sheets.
 const loadSEPressWorks = async () => {
     try {
         const currentToken = localStorage.getItem('sparky_token') || token;
@@ -1470,6 +1491,7 @@ const loadSEPressWorks = async () => {
     }
 };
 
+// Expands or collapses an academic year.
 const toggleSeYear = (academicYear) => {
     seExpandedYears.value[academicYear] = !seExpandedYears.value[academicYear];
 };
@@ -1490,6 +1512,7 @@ const seSubmissionsLoading = ref(false);
 const isSEReviewModalOpen = ref(false);
 const seReviewTarget = ref(null);
 
+// Loads the writing tasks this editor assigned.
 const loadSEAssigned = async () => {
     if (!token || !seUser.value?.id) return;
     seAssignedLoading.value = true;
@@ -1546,11 +1569,13 @@ const seAssignedPaged = computed(() => {
     return seAssignedFiltered.value.slice(start, start + seAssignedPerPage);
 });
 
+// Opens the form for editing an assigned task.
 const openEditTask = (task) => {
     editTaskTarget.value = task;
     isEditTaskModalOpen.value = true;
 };
 
+// After a task was edited: closes the form and reloads the lists.
 const onTaskUpdated = () => {
     isEditTaskModalOpen.value = false;
     editTaskTarget.value = null;
@@ -1558,10 +1583,12 @@ const onTaskUpdated = () => {
     loadSEOverview();
 };
 
+// Asks to confirm deleting an assigned task.
 const confirmDeleteTask = (task) => {
     deleteTaskTarget.value = task;
 };
 
+// Deletes the chosen task after confirmation.
 const doDeleteTask = async () => {
     if (!deleteTaskTarget.value) return;
     deletingTask.value = true;
@@ -1585,6 +1612,7 @@ const doDeleteTask = async () => {
     }
 };
 
+// Shows a task priority as Low, Moderate, High or Urgent.
 const formatPriorityLabel = (priority) => {
     const map = {
         low: 'Low',
@@ -1595,6 +1623,7 @@ const formatPriorityLabel = (priority) => {
     return map[priority] || (priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Moderate');
 };
 
+// Shows an assigned task's status as a readable label.
 const assignedStatusLabel = (status) => {
     const map = {
         pending: 'Pending',
@@ -1606,6 +1635,7 @@ const assignedStatusLabel = (status) => {
     return map[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending');
 };
 
+// The CSS class that colours an assigned task's status label.
 const assignedStatusClass = (status) => {
     const map = {
         pending: 'status-draft',
@@ -1617,6 +1647,7 @@ const assignedStatusClass = (status) => {
     return map[status] || 'status-draft';
 };
 
+// Loads the articles and tasks submitted for this editor's review.
 const loadSESubmissions = async () => {
     if (!token) return;
     seSubmissionsLoading.value = true;
@@ -1691,6 +1722,7 @@ const loadSESubmissions = async () => {
     }
 };
 
+// Opens the review for a submission (the video review for the Head Broadcaster).
 const openSEReview = (sub) => {
     seReviewTarget.value = sub;
     if (isBroadcastHeadUser.value) {
@@ -1700,6 +1732,7 @@ const openSEReview = (sub) => {
     isSEReviewModalOpen.value = true;
 };
 
+// After a review: reloads the submissions, assignments, overview and articles.
 const onSEReviewed = () => {
     loadSESubmissions();
     loadSEAssigned();
@@ -1724,6 +1757,7 @@ const onProfileUpdated = (e) => {
     }
 };
 
+// Closes the status filter menus when the user clicks outside them.
 const closeStatusDropdown = (e) => {
     // Close if click is outside a .eic-custom-filter
     if (!e.target.closest('.eic-custom-filter')) {

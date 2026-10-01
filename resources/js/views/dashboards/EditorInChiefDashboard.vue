@@ -1712,6 +1712,7 @@ const myArticlesStatusLabelMap = {
     published: 'Published',
 };
 
+// Shows a status on the My Articles tab as a readable label.
 const myArticlesStatusLabel = (status) => {
     const map = {
         pending: 'Pending',
@@ -1726,6 +1727,7 @@ const myArticlesStatusLabel = (status) => {
     return map[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending');
 };
 
+// The CSS class that colours a My Articles status label.
 const myArticlesStatusBadgeClass = (status) => {
     const map = {
         pending: 'status-draft',
@@ -1814,17 +1816,22 @@ const issueThumbnailLoading = ref(false);
 const selectedTask = ref({});
 const selectedArticle = ref({});
 
+// Formats a number with thousands separators.
 const formatCount = (value) => Number(value || 0).toLocaleString();
+// Turns a role key such as staff_writer into a readable title such as Staff Writer.
 const formatRole = (role) => {
     if (role === 'eic') return 'Editor in Chief';
     if (role === 'system') return 'System';
     if (role === 'staff_broadcaster') return 'Staff Broadcaster';
     return (role || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
+// Formats a date and time for display ("—" when empty).
 const formatDate = (date) => date
     ? new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
     : '—';
+// Pads a number to two digits.
 const pad2 = (n) => String(n).padStart(2, '0');
+// Formats a date for a datetime-local input (yyyy-mm-ddThh:mm).
 const toLocalInput = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 const nowLocal = computed(() => toLocalInput(new Date()));
 const updatedLabel = computed(() => eicOverview.value.updated_at
@@ -1850,6 +1857,7 @@ const searchPlaceholder = computed(() => {
     }
 });
 
+// True when any of the given values contains the text typed in the search box (or the box is empty).
 const matchesSearch = (...fields) => {
     if (!searchQuery.value || !searchQuery.value.trim()) return true;
     const query = searchQuery.value.toLowerCase().trim();
@@ -1896,6 +1904,7 @@ watch(() => pressworkForm.value.academic_year, () => {
     pressworkError.value = '';
 });
 
+// The CSS class that colours a publication type (Newsletter, Tabloid, Magazine, Litfolio).
 const pressworkBadgeClass = (type) => ({
     Newsletter: 'pub-newsletter',
     Tabloid: 'pub-tabloid',
@@ -1903,16 +1912,19 @@ const pressworkBadgeClass = (type) => ({
     Litfolio: 'pub-litfolio',
 }[type] || 'pub-newsletter');
 
+// Opens the form for creating an academic year.
 const openPressworkModal = () => {
     pressworkForm.value = { academic_year: '2025-2026' };
     pressworkError.value = '';
     isPressworkModalOpen.value = true;
 };
 
+// Closes the form for creating an academic year.
 const closePressworkModal = () => {
     isPressworkModalOpen.value = false;
 };
 
+// Creates the academic year with its four monitoring sheets (a year can exist only once).
 const createPresswork = async () => {
     if (yearAlreadyExists.value) {
         pressworkError.value = 'An academic year with this name already exists.';
@@ -1949,18 +1961,21 @@ const createPresswork = async () => {
     }
 };
 
+// Asks to confirm deleting an academic year.
 const openDeleteYearModal = (year) => {
     yearToDelete.value = year;
     deleteYearError.value = '';
     isDeleteYearModalOpen.value = true;
 };
 
+// Closes the delete-year confirmation.
 const closeDeleteYearModal = () => {
     isDeleteYearModalOpen.value = false;
     yearToDelete.value = '';
     deleteYearError.value = '';
 };
 
+// Deletes the academic year with its monitoring sheets.
 const deleteYear = async () => {
     deleteYearSaving.value = true;
     deleteYearError.value = '';
@@ -2019,6 +2034,7 @@ const loadGalleryArtists = async () => {
     }
 };
 
+// Opens the gallery upload form with empty fields.
 const openGalleryUploadModal = () => {
     loadGalleryArtists();
     galleryUploadForm.value = { title: '', artist_id: '', published_at: toLocalInput(new Date()) };
@@ -2028,16 +2044,19 @@ const openGalleryUploadModal = () => {
     isGalleryUploadModalOpen.value = true;
 };
 
+// Closes the gallery upload form.
 const closeGalleryUploadModal = () => {
     isGalleryUploadModalOpen.value = false;
 };
 
+// Shows a preview of the photo picked for upload.
 const handleGalleryPhotoChange = (event) => {
     const file = event.target.files?.[0] || null;
     galleryUploadFile.value = file;
     galleryUploadPreview.value = file ? URL.createObjectURL(file) : '';
 };
 
+// Checks the gallery upload form, then uploads the new photo.
 const submitGalleryUpload = async () => {
     galleryUploadError.value = '';
     if (!galleryUploadForm.value.title.trim()) {
@@ -2087,11 +2106,13 @@ const submitGalleryUpload = async () => {
     }
 };
 
+// Asks to confirm deleting a gallery photo.
 const confirmDeleteGalleryPhoto = (photo) => {
     photoToDelete.value = photo;
     deletePhotoError.value = '';
 };
 
+// Deletes the chosen gallery photo after confirmation.
 const deleteGalleryPhoto = async () => {
     if (!photoToDelete.value) return;
     deletePhotoSaving.value = true;
@@ -2117,17 +2138,20 @@ const deleteGalleryPhoto = async () => {
     }
 };
 
+// Opens the viewer for one gallery photo.
 const openGalleryViewModal = (photo) => {
     viewingPhoto.value = photo;
     isEditingGalleryPhoto.value = false;
     isGalleryViewModalOpen.value = true;
 };
 
+// Closes the gallery photo viewer.
 const closeGalleryViewModal = () => {
     isGalleryViewModalOpen.value = false;
     isEditingGalleryPhoto.value = false;
 };
 
+// Switches the viewer to edit mode with the photo's current details.
 const startEditGalleryPhoto = () => {
     loadGalleryArtists();
     editGalleryForm.value = {
@@ -2141,10 +2165,12 @@ const startEditGalleryPhoto = () => {
     isEditingGalleryPhoto.value = true;
 };
 
+// Leaves gallery photo edit mode.
 const cancelEditGalleryPhoto = () => {
     isEditingGalleryPhoto.value = false;
 };
 
+// Shows a preview of the replacement image picked while editing.
 const handleEditGalleryPhotoChange = (event) => {
     const file = event.target.files?.[0] || null;
     if (!file) return;
@@ -2152,6 +2178,7 @@ const handleEditGalleryPhotoChange = (event) => {
     editGalleryPreview.value = URL.createObjectURL(file);
 };
 
+// Checks the gallery edit form, then saves the photo's changes.
 const submitEditGalleryPhoto = async () => {
     editGalleryError.value = '';
     if (!editGalleryForm.value.title.trim()) {
@@ -2201,6 +2228,7 @@ const submitEditGalleryPhoto = async () => {
     }
 };
 
+// Asks to confirm deleting the photo being viewed.
 const deletePhotoFromViewModal = () => {
     photoToDelete.value = viewingPhoto.value;
     closeGalleryViewModal();
@@ -2225,6 +2253,7 @@ const loadArchiveExtras = async () => {
     }
 };
 
+// Loads the published issues.
 const loadPublishedIssues = async () => {
     issuesLoading.value = true;
     try {
@@ -2245,6 +2274,7 @@ const loadPublishedIssues = async () => {
     }
 };
 
+// Opens the issue upload form with empty fields.
 const openIssueUploadModal = () => {
     issueUploadForm.value = { title: '', published_at: toLocalInput(new Date()) };
     issueUploadFile.value = null;
@@ -2253,16 +2283,19 @@ const openIssueUploadModal = () => {
     isIssueUploadModalOpen.value = true;
 };
 
+// Closes the issue upload form.
 const closeIssueUploadModal = () => {
     isIssueUploadModalOpen.value = false;
 };
 
+// Remembers the PDF picked for upload and shows its file name.
 const handleIssuePdfChange = (event) => {
     const file = event.target.files?.[0] || null;
     issueUploadFile.value = file;
     issueUploadFileName.value = file ? file.name : '';
 };
 
+// Checks the issue upload form, then uploads the new issue.
 const submitIssueUpload = async () => {
     issueUploadError.value = '';
     if (!issueUploadForm.value.title.trim()) {
@@ -2308,11 +2341,13 @@ const submitIssueUpload = async () => {
     }
 };
 
+// Asks to confirm deleting an issue.
 const confirmDeleteIssue = (issue) => {
     issueToDelete.value = issue;
     deleteIssueError.value = '';
 };
 
+// Deletes the chosen issue after confirmation.
 const deleteIssue = async () => {
     if (!issueToDelete.value) return;
     deleteIssueSaving.value = true;
@@ -2340,6 +2375,7 @@ const deleteIssue = async () => {
 
 // PDF.js (CDN, free) — used to render a first-page thumbnail for the issue detail modal.
 const PDFJS_VERSION_EIC = '3.11.174';
+// Loads the PDF.js library (once) and returns it.
 const loadPdfJsForThumbnail = () => {
     return new Promise((resolve, reject) => {
         if (window.pdfjsLib) {
@@ -2357,6 +2393,7 @@ const loadPdfJsForThumbnail = () => {
     });
 };
 
+// Draws the first page of an issue's PDF as its cover thumbnail.
 const renderIssueThumbnail = async (issue) => {
     if (!issue?.id || !issue?.pdf_url || issueThumbnails.value[issue.id]) return;
     issueThumbnailLoading.value = true;
@@ -2378,6 +2415,7 @@ const renderIssueThumbnail = async (issue) => {
     }
 };
 
+// Opens the details of one issue.
 const openIssueDetailModal = (issue) => {
     viewingIssue.value = issue;
     isEditingIssue.value = false;
@@ -2385,11 +2423,13 @@ const openIssueDetailModal = (issue) => {
     renderIssueThumbnail(issue);
 };
 
+// Closes the issue details.
 const closeIssueDetailModal = () => {
     isIssueDetailModalOpen.value = false;
     isEditingIssue.value = false;
 };
 
+// Switches the issue details to edit mode with the issue's current values.
 const startEditIssue = () => {
     editIssueForm.value = {
         title: viewingIssue.value?.title || '',
@@ -2401,10 +2441,12 @@ const startEditIssue = () => {
     isEditingIssue.value = true;
 };
 
+// Leaves issue edit mode.
 const cancelEditIssue = () => {
     isEditingIssue.value = false;
 };
 
+// Remembers the replacement PDF picked while editing.
 const handleEditIssuePdfChange = (event) => {
     const file = event.target.files?.[0] || null;
     if (!file) return;
@@ -2412,6 +2454,7 @@ const handleEditIssuePdfChange = (event) => {
     editIssueFileName.value = file.name;
 };
 
+// Checks the issue edit form, then saves the issue's changes.
 const submitEditIssue = async () => {
     editIssueError.value = '';
     if (!editIssueForm.value.title.trim()) {
@@ -2462,11 +2505,13 @@ const submitEditIssue = async () => {
     }
 };
 
+// Asks to confirm deleting the issue being viewed.
 const deleteIssueFromDetailModal = () => {
     issueToDelete.value = viewingIssue.value;
     closeIssueDetailModal();
 };
 
+// Opens the issue in the booklet viewer in a new tab.
 const viewIssueBooklet = () => {
     if (viewingIssue.value?.id) {
         window.open(`/booklet/${viewingIssue.value.id}`, '_blank');
@@ -2481,14 +2526,18 @@ const eicEditorTitles = computed(() => [eicUser.value.secondary_role, eicUser.va
 const isEicSectionEditor = computed(() => eicEditorTitles.value.length > 0);
 // "News Editor" -> News. Editors without a section of their own (the Managing Editor...) review every section.
 const eicEditorSections = computed(() => eicEditorTitles.value.map(deriveSectionFromRole).filter(Boolean));
+// True when the article is a submitted, non-video article from a section the EIC edits, so the EIC reviews it as a
+// section editor first.
 const needsSectionReview = (article) => isEicSectionEditor.value
     && article.status === 'submitted'
     && article.type !== 'video'
     && (!eicEditorSections.value.length || eicEditorSections.value.includes(resolveArticleSection(article)));
+// The status label of an endorsement row ("For Section Review" when the EIC reviews it as section editor).
 const eicRowStatusLabel = (article) => needsSectionReview(article) ? 'For Section Review' : eicStatusLabel(article.status);
 
 const isEicSectionReviewOpen = ref(false);
 const eicSectionReviewTarget = ref(null);
+// Opens an endorsement row: the section review for the EIC's own sections, otherwise the article details.
 const openEndorsementRow = (article) => {
     if (!needsSectionReview(article)) return openArticleDetails(article);
 
@@ -2503,7 +2552,9 @@ const openEndorsementRow = (article) => {
     isEicSectionReviewOpen.value = true;
 };
 
+// Shows an article status as a readable label.
 const eicStatusLabel = (status) => (status || 'unknown').replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+// The CSS class that colours an endorsement status label.
 const eicStatusClass = (status) => ({
     submitted: 'status-for-approval',
     under_review: 'status-for-approval',
@@ -2542,6 +2593,7 @@ const eicEndorsementFilterDefinitions = computed(() => [
         options: [{ value: 'newest', label: 'Newest' }, { value: 'oldest', label: 'Oldest' }],
     },
 ]);
+// The label of the option currently chosen for an endorsements filter.
 const eicFilterLabel = (filter) => eicEndorsementFilterDefinitions.value.find(definition => definition.key === filter)?.options.find(option => option.value === eicFilters[filter])?.label || filter;
 const filteredEicEndorsements = computed(() => {
     const filtered = eicEndorsementCandidates.value.filter(article =>
@@ -2569,9 +2621,11 @@ const paginatedEicEndorsements = computed(() => {
     return filteredEicEndorsements.value.slice(start, start + eicEndorsementPageSize);
 });
 
+// Opens or closes one endorsements filter menu.
 const toggleEicFilter = (filter) => {
     activeEicFilter.value = activeEicFilter.value === filter ? null : filter;
 };
+// Applies an endorsements filter and closes its menu.
 const selectEicFilter = (filter, value) => {
     eicFilters[filter] = value;
     activeEicFilter.value = null;
@@ -2607,15 +2661,18 @@ const eicPublishedFilterDefinitions = computed(() => [
     },
 ]);
 
+// The label of the option currently chosen for a published-articles filter.
 const eicPublishedFilterLabel = (filterKey) => {
     const def = eicPublishedFilterDefinitions.value.find(d => d.key === filterKey);
     return def?.options.find(opt => opt.value === eicPublishedFilters[filterKey])?.label || filterKey;
 };
 
+// Opens or closes one published-articles filter menu.
 const toggleEicPublishedFilter = (filterKey) => {
     activeEicPublishedFilter.value = activeEicPublishedFilter.value === filterKey ? null : filterKey;
 };
 
+// Applies a published-articles filter and closes its menu.
 const selectEicPublishedFilter = (filterKey, value) => {
     eicPublishedFilters[filterKey] = value;
     activeEicPublishedFilter.value = null;
@@ -2665,23 +2722,29 @@ const filteredEicVideos = computed(() => eicPublishedVideos.value
         return secondDate - firstDate;
     }));
 
+// The thumbnail of a video: its YouTube thumbnail, otherwise its cover image.
 const videoThumbnailFor = (video) => youtubeThumbnail(video.video_url) || video.cover_image || '';
+// Opens or closes the video category filter menu.
 const toggleVideoCategoryFilter = () => { activeVideoCategoryFilter.value = !activeVideoCategoryFilter.value; };
+// Applies a video category filter and closes its menu.
 const selectVideoCategory = (value) => {
     videoCategoryFilter.value = value;
     activeVideoCategoryFilter.value = false;
 };
 
+// Opens the manage dialog for a video.
 const openVideoManage = (video) => {
     manageVideo.value = video;
     manageVideoStartInEdit.value = false;
     isVideoManageOpen.value = true;
 };
+// Closes the video manage dialog.
 const closeVideoManage = () => {
     isVideoManageOpen.value = false;
     manageVideo.value = null;
     manageVideoStartInEdit.value = false;
 };
+// Merges an updated video into the videos list.
 const handleVideoUpdated = (updated) => {
     if (updated?.id) {
         const merged = { ...(eicVideos.value.find(v => v.id === updated.id) || {}), ...updated };
@@ -2690,6 +2753,7 @@ const handleVideoUpdated = (updated) => {
     }
     loadEicArticles();
 };
+// After a video was deleted: reloads the articles and the overview.
 const handleVideoDeleted = () => {
     loadEicArticles();
     loadEicOverview();
@@ -2768,6 +2832,7 @@ const editUserForm = ref({
     password: '',
 });
 
+// Opens the Edit Contributor form filled with the person's current details.
 const openEditUser = (user) => {
     selectedUser.value = user;
     editUserForm.value = {
@@ -2787,6 +2852,7 @@ const openEditUser = (user) => {
     isEditUserModalOpen.value = true;
 };
 
+// Remembers the photo picked while editing a contributor and shows its preview.
 const handleEditUserImage = (event) => {
     const image = event.target.files?.[0] || null;
     if (!image) return;
@@ -2794,12 +2860,14 @@ const handleEditUserImage = (event) => {
     editUserImagePreview.value = URL.createObjectURL(image);
 };
 
+// Closes the Edit Contributor form.
 const closeEditUser = () => {
     isEditUserModalOpen.value = false;
     selectedUser.value = null;
     editUserError.value = '';
 };
 
+// Saves the edited contributor's details (and photo or new password if given).
 const saveEditedUser = async () => {
     if (!selectedUser.value) return;
     editUserSaving.value = true;
@@ -2840,6 +2908,7 @@ const saveEditedUser = async () => {
     }
 };
 
+// A generated picture for a user without a photo.
 const avatarFallback = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=dbeafe&color=1d4ed8`;
 
 const isNewContributorModalOpen = ref(false);
@@ -2874,6 +2943,7 @@ const isNewContributorStep2Valid = computed(() => {
         && newContributorForm.value.password === newContributorForm.value.passwordConfirmation;
 });
 
+// Opens the Add Contributor form at step 1.
 const openNewContributorModal = () => {
     newContributorStep.value = 1;
     newContributorError.value = '';
@@ -2894,18 +2964,21 @@ const openNewContributorModal = () => {
     isNewContributorModalOpen.value = true;
 };
 
+// Closes the Add Contributor form.
 const closeNewContributorModal = () => {
     isNewContributorModalOpen.value = false;
     newContributorImagePreview.value = '';
     newContributorError.value = '';
 };
 
+// Remembers the photo picked for the new contributor and shows its preview.
 const handleNewContributorImage = (event) => {
     const file = event.target.files?.[0] || null;
     newContributorForm.value.image = file;
     newContributorImagePreview.value = file ? URL.createObjectURL(file) : '';
 };
 
+// Checks the name and email, then moves to step 2 of the Add Contributor form.
 const goToNewContributorStep2 = () => {
     newContributorError.value = '';
     if (!newContributorForm.value.name.trim() || !newContributorForm.value.email.trim()) {
@@ -2915,6 +2988,7 @@ const goToNewContributorStep2 = () => {
     newContributorStep.value = 2;
 };
 
+// Checks the Add Contributor form, then creates the account.
 const saveNewContributor = async () => {
     newContributorError.value = '';
     if (!newContributorForm.value.name || !newContributorForm.value.email || !newContributorForm.value.role || !newContributorForm.value.password) {
@@ -3006,6 +3080,7 @@ const eicContributorSectionOptions = computed(() => {
     ];
 });
 
+// The label shown on a contributors filter button.
 const eicContributorFilterLabel = (filterKey) => {
     if (filterKey === 'role') {
         const opt = eicContributorRoleOptions.find(o => o.value === eicContributorRole.value);
@@ -3023,10 +3098,12 @@ const eicContributorFilterLabel = (filterKey) => {
     return '';
 };
 
+// Opens or closes one contributors filter menu.
 const toggleEicContributorFilter = (filterKey) => {
     activeEicContributorFilter.value = activeEicContributorFilter.value === filterKey ? null : filterKey;
 };
 
+// Applies a contributors filter (changing the role resets the section) and closes its menu.
 const selectEicContributorFilter = (filterKey, value) => {
     if (filterKey === 'role') {
         eicContributorRole.value = value;
@@ -3179,12 +3256,14 @@ const archivePageNumbers = computed(() => {
     return [...new Set(pages.filter(page => page >= 1 && page <= totalPages))].slice(0, 5);
 });
 
+// Opens one academic year's archive folder.
 const openArchiveFolder = (folder) => {
     selectedArchiveFolder.value = folder;
     archiveYearPage.value = 1;
     activeTab.value = 'archive-year';
 };
 
+// Returns from a year's archive folder to the archive list.
 const closeArchiveFolder = () => {
     activeTab.value = 'archive';
     selectedArchiveFolder.value = null;
@@ -3204,7 +3283,9 @@ const paginatedArchiveArticles = computed(() => {
     return selectedArchiveArticles.value.slice(start, start + archiveYearPageSize);
 });
 
+// Shows an article status as a readable label.
 const articleStatusLabel = (status) => (status || 'unknown').replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+// The CSS class that colours an article status label.
 const articleStatusClass = (status) => ({
     published: 'published',
     draft: 'draft',
@@ -3232,10 +3313,12 @@ const analytics = ref({
 });
 const analyticsError = ref('');
 
+// Opens or closes the analytics period menu.
 const toggleAnalyticsDropdown = () => {
     activeAnalyticsDropdown.value = !activeAnalyticsDropdown.value;
 };
 
+// Chooses the analytics period (7, 30 or 90 days) and reloads the report.
 const selectAnalyticsPeriod = (period) => {
     analyticsPeriod.value = period;
     activeAnalyticsDropdown.value = false;
@@ -3289,6 +3372,7 @@ watch(archivePageCount, (pageCount) => {
     if (archivePage.value > pageCount) archivePage.value = pageCount;
 });
 
+// Closes every open filter menu.
 const closeAllEicFilters = () => {
     activeEicFilter.value = null;
     activeEicPublishedFilter.value = null;
@@ -3298,6 +3382,7 @@ const closeAllEicFilters = () => {
     activeVideoCategoryFilter.value = false;
 };
 
+// Loads the overview summary (counts, endorsements, ready to publish, latest activities).
 const loadEicOverview = async () => {
     try {
         const response = await fetch('/api/eic/overview', {
@@ -3312,6 +3397,7 @@ const loadEicOverview = async () => {
     }
 };
 
+// Loads the articles (including videos) the EIC works with.
 const loadEicArticles = async () => {
     const headers = {
         Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
@@ -3333,6 +3419,7 @@ const loadEicArticles = async () => {
     }
 };
 
+// Loads all users.
 const loadEicUsers = async () => {
     try {
         const response = await fetch('/api/users', {
@@ -3349,6 +3436,7 @@ const loadEicUsers = async () => {
     }
 };
 
+// Loads the academic years with their monitoring sheets.
 const loadEicPressWorks = async () => {
     try {
         const token = localStorage.getItem('sparky_token');
@@ -3372,10 +3460,12 @@ const loadEicPressWorks = async () => {
     }
 };
 
+// Expands or collapses an academic year.
 const toggleEicYear = (academicYear) => {
     eicExpandedYears.value[academicYear] = !eicExpandedYears.value[academicYear];
 };
 
+// Loads the analytics report for the chosen period.
 const loadEicAnalytics = async () => {
     analyticsError.value = '';
 
@@ -3444,6 +3534,7 @@ watch(searchQuery, () => {
     archiveYearPage.value = 1;
 });
 
+// Reads one "Key: value" field out of a task's notes text.
 const parseNotesField = (notes, key) => {
     if (!notes || typeof notes !== 'string') return '';
     const match = notes.match(new RegExp(`${key}:\\s*([^|]+)`, 'i'));
@@ -3462,6 +3553,7 @@ const deriveSectionFromRole = (secondaryRole) => {
     return KNOWN_SECTIONS.includes(mapped) ? mapped : '';
 };
 
+// The section name of an article ("Video" for videos).
 const resolveArticleSection = (article = {}) => {
     if (article.type === 'video') return 'Video';
     if (article.section?.name) return article.section.name;
@@ -3476,6 +3568,7 @@ const resolveArticleSection = (article = {}) => {
     return '';
 };
 
+// Formats a task's deadline date and due time for display ("No deadline" when empty).
 const formatDeadline = (dateStr, dueTimeStr) => {
     if (!dateStr) return 'No deadline';
     if (typeof dateStr === 'string' && dateStr.includes('•')) return dateStr;
@@ -3540,6 +3633,7 @@ const paginatedEicMyArticles = computed(() => {
     return filteredEicMyArticles.value.slice(start, start + eicMyArticlesPerPage);
 });
 
+// Loads the EIC's own articles and tasks.
 const loadEicMyArticles = async () => {
     const token = localStorage.getItem('sparky_token');
     if (!token || !eicUser.value?.id) return;
@@ -3647,6 +3741,7 @@ const editTaskTarget = ref(null);
 const deleteTaskTarget = ref(null);
 const deletingTask = ref(false);
 
+// Loads the writing tasks the EIC assigned.
 const loadEicAssigned = async () => {
     const token = localStorage.getItem('sparky_token');
     if (!token || !eicUser.value?.id) return;
@@ -3703,11 +3798,13 @@ const eicAssignedPaged = computed(() => {
     return eicAssignedFiltered.value.slice(start, start + eicAssignedPerPage);
 });
 
+// Opens the form for editing an assigned task.
 const openEditTask = (task) => {
     editTaskTarget.value = task;
     isEditTaskModalOpen.value = true;
 };
 
+// After a task was edited: closes the form and reloads the assigned tasks.
 const onTaskUpdated = () => {
     isEditTaskModalOpen.value = false;
     editTaskTarget.value = null;
@@ -3715,10 +3812,12 @@ const onTaskUpdated = () => {
     loadEicOverview();
 };
 
+// Asks to confirm deleting an assigned task.
 const confirmDeleteTask = (task) => {
     deleteTaskTarget.value = task;
 };
 
+// Deletes the chosen task after confirmation.
 const doDeleteTask = async () => {
     if (!deleteTaskTarget.value) return;
     deletingTask.value = true;
@@ -3743,6 +3842,7 @@ const doDeleteTask = async () => {
     }
 };
 
+// Shows a task priority as Low, Moderate, High or Urgent.
 const formatPriorityLabel = (priority) => {
     const map = {
         low: 'Low',
@@ -3753,6 +3853,7 @@ const formatPriorityLabel = (priority) => {
     return map[priority] || (priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Moderate');
 };
 
+// Shows an assigned task's status as a readable label.
 const assignedStatusLabel = (status) => {
     const map = {
         pending: 'Pending',
@@ -3769,6 +3870,7 @@ const assignedStatusLabel = (status) => {
 };
 const formatStatus = assignedStatusLabel;
 
+// The CSS class that colours an assigned task's status label.
 const assignedStatusClass = (status) => {
     const map = {
         pending: 'status-available',
@@ -3785,6 +3887,7 @@ const assignedStatusClass = (status) => {
 };
 const getStatusClass = assignedStatusClass;
 
+// Opens an article or task: videos and published articles as a read-only preview, others as task details.
 const openArticleOrTaskModal = (item) => {
     const matchedTask = item.matchedTask || (item.isTask ? item.raw : null);
 
@@ -3832,6 +3935,7 @@ const openArticleOrTaskModal = (item) => {
     isAssignedTaskModalOpen.value = true;
 };
 
+// Builds the selected task from the given data (with defaults) and opens its details.
 const openTaskModal = (task = {}) => {
     selectedTask.value = {
         title: task.title || 'Enrollment Update for Second Semester',
@@ -3845,12 +3949,14 @@ const openTaskModal = (task = {}) => {
     isAssignedTaskModalOpen.value = true;
 };
 
+// The file name at the end of a file address.
 const extractFileName = (url) => {
     if (!url || typeof url !== 'string') return 'file';
     const parts = url.split('/');
     return parts[parts.length - 1] || 'file';
 };
 
+// Lists an item's cover image and media uploads as attached files.
 const buildAttachedFiles = (item) => {
     const files = [];
     if (item.cover_image) {
@@ -3864,8 +3970,11 @@ const buildAttachedFiles = (item) => {
     return files;
 };
 
+// The title shown for an artist or broadcaster crew member.
 const staffRoleLabel = (role) => (role === 'staff_broadcaster' ? 'Staff Broadcaster' : 'Staff Artist');
 
+// Builds the data the article details and preview dialogs show (section, writer, crew, credits, files) from an
+// article or task.
 const buildSelectedArticle = (item = {}) => {
     const rawSection = resolveArticleSection(item) || 'Unassigned';
     const tasks = Array.isArray(item.tasks) ? item.tasks : [];
@@ -3877,6 +3986,7 @@ const buildSelectedArticle = (item = {}) => {
     // The video crew (videographer / video editor) shown in the review modal's Assigned Team
     const crewRoles = { videography: 'Videographer', video_editing: 'Video Editor' };
     const creditRoles = { reporter: 'Reporter', scriptwriter: 'Scriptwriter', videographer: 'Videographer', video_editor: 'Video Editor' };
+    // The picture address for a person: their photo, otherwise a generated avatar.
     const avatarFor = (person) => person.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=ffd5dc&color=9f1239&size=100`;
     const credits = Array.isArray(item.credits) ? item.credits.filter(c => c.user) : [];
     // The Head's final credits win; before they exist, fall back to the crew assigned on the tasks
@@ -3908,11 +4018,13 @@ const buildSelectedArticle = (item = {}) => {
     };
 };
 
+// Opens the article details dialog (review, endorse or return).
 const openArticleDetails = (item = {}) => {
     selectedArticle.value = buildSelectedArticle(item);
     isArticleDetailsOpen.value = true;
 };
 
+// Opens the publish preview of an article.
 const openArticlePreview = (item = {}) => {
     selectedArticle.value = buildSelectedArticle(item);
     isArticlePreviewOpen.value = true;
@@ -3926,17 +4038,20 @@ const openArchiveItem = (item = {}) => {
     return openArchivePreview(item);
 };
 
+// Opens the read-only preview of an archived article.
 const openArchivePreview = (item = {}) => {
     selectedArticle.value = buildSelectedArticle(item);
     isArchivePreviewOpen.value = true;
 };
 
+// Closes the article details and opens the publish preview.
 const handleRequestPublishPreview =(articleData) => {
     isArticleDetailsOpen.value = false;
     selectedArticle.value = articleData || selectedArticle.value;
     isArticlePreviewOpen.value = true;
 };
 
+// Merges the updated article into the open one.
 const handleArticleUpdated = (updated) => {
     if (updated && selectedArticle.value) {
         selectedArticle.value = {
@@ -3951,6 +4066,7 @@ const handleArticleUpdated = (updated) => {
     loadEicArticles();
 };
 
+// After an article was deleted: closes the previews and reloads the overview.
 const handleArticleDeleted = () => {
     isArticlePreviewOpen.value = false;
     isArchivePreviewOpen.value = false;
@@ -3958,6 +4074,7 @@ const handleArticleDeleted = () => {
     loadEicArticles();
 };
 
+// Opens the editor for an article from its preview (videos open the video editor).
 const handleEditArticleFromPreview = (articleData = {}) => {
     // Videos have their own editor (headline, details, YouTube link, section)
     if (articleData.type === 'video') {
@@ -3993,6 +4110,7 @@ const handleEditArticleFromPreview = (articleData = {}) => {
     isWorkspaceModalOpen.value = true;
 };
 
+// Closes the task details and opens the task's workspace.
 const handleOpenWorkspace = (taskData) => {
     isAssignedTaskModalOpen.value = false;
     isArticleDetailsOpen.value = false;
@@ -4001,6 +4119,7 @@ const handleOpenWorkspace = (taskData) => {
     isWorkspaceModalOpen.value = true;
 };
 
+// Opens a monitoring sheet in a new tab.
 const openMonitoringSheet = (sheet) => {
     if (sheet && sheet.id) {
         window.open(`/monitoring-sheet/${sheet.id}`, '_blank');

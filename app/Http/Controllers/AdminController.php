@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    /** Admin dashboard overview: system totals, user activity, workflow status and the latest activities. */
     public function overview(Request $request)
     {
         abort_unless($request->user()->isAdmin(), 403);
@@ -55,6 +56,10 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Editor-in-Chief dashboard overview: article, endorsement, ready-to-publish and published counts, plus the
+     * latest activities.
+     */
     public function eicOverview(Request $request)
     {
         abort_unless($request->user()->isEIC(), 403);
@@ -102,6 +107,7 @@ class AdminController extends Controller
         ]);
     }
 
+    /** Section Editor dashboard overview: summary cards and latest activities (the EIC and admin may open it too). */
     public function sectionEditorOverview(Request $request)
     {
         abort_unless($request->user()->isEIC() || $request->user()->isSectionEditor() || $request->user()->isAdmin(), 403);

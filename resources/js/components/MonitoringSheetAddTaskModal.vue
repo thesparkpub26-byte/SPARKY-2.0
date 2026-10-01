@@ -334,6 +334,7 @@ const form = ref({
     description: ''
 });
 
+// Turns a role key such as staff_writer into a readable title such as Staff Writer.
 const formatRole = (role) => {
     if (role === 'eic') return 'Editor-in-Chief';
     if (role === 'section_editor') return 'Section Editor';
@@ -346,6 +347,7 @@ const availableTypes = computed(() => {
     return articleTypesMap[form.value.section] || [];
 });
 
+// Resets the article type to the first one available for the chosen section.
 const onSectionChange = () => {
     const types = availableTypes.value;
     form.value.article_type = types.length > 0 ? types[0] : '';
@@ -394,28 +396,33 @@ const filteredArtistOptions = computed(() => {
     return artists.filter(u => u.name.toLowerCase().includes(query));
 });
 
+// Opens or closes the writer list (and closes the artist list).
 const toggleWriterMenu = () => {
     isWriterMenuOpen.value = !isWriterMenuOpen.value;
     if (isWriterMenuOpen.value) isArtistMenuOpen.value = false;
 };
 
+// Chooses the writer for the entry and closes the list.
 const selectWriter = (user) => {
     form.value.writer_assigned = user.name;
     writerSearchQuery.value = user.name;
     isWriterMenuOpen.value = false;
 };
 
+// Opens or closes the artist list (and closes the writer list).
 const toggleArtistMenu = () => {
     isArtistMenuOpen.value = !isArtistMenuOpen.value;
     if (isArtistMenuOpen.value) isWriterMenuOpen.value = false;
 };
 
+// Chooses the artist for the entry and closes the list.
 const selectArtist = (user) => {
     form.value.artist_assigned = user.name;
     artistSearchQuery.value = user.name;
     isArtistMenuOpen.value = false;
 };
 
+// When "No Graphics" is ticked, sets the artist and media to "none" and clears the artist search.
 const handleNoGraphicsChange = () => {
     if (noGraphics.value) {
         form.value.artist_assigned = 'No Graphics';
@@ -428,6 +435,7 @@ const handleNoGraphicsChange = () => {
     }
 };
 
+// Checks the task details (phase 1) and moves on to choosing the contributors (phase 2).
 const goToPhase2 = () => {
     phase1Error.value = '';
     if (!form.value.topic || !form.value.topic.trim()) {
@@ -437,6 +445,7 @@ const goToPhase2 = () => {
     currentPhase.value = 2;
 };
 
+// Adds the entry to the monitoring sheet with the chosen writer and artist.
 const submitTask = async () => {
     try {
         isSubmitting.value = true;
@@ -485,11 +494,13 @@ const submitTask = async () => {
     }
 };
 
+// Tells the parent an entry was added and closes the modal.
 const handleFinish = () => {
     emit('entry-added');
     closeModal();
 };
 
+// Closes the modal, then returns it to phase 1 once the closing animation is done.
 const closeModal = () => {
     emit('close');
     setTimeout(() => {
@@ -497,6 +508,7 @@ const closeModal = () => {
     }, 200);
 };
 
+// Closes the writer and artist lists when the user clicks outside them.
 const handleClickOutside = (event) => {
     if (writerDropdownRef.value && !writerDropdownRef.value.contains(event.target)) {
         isWriterMenuOpen.value = false;

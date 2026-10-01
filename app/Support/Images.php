@@ -25,6 +25,7 @@ class Images
         return $file->store($directory, 'public');
     }
 
+    /** Scales an uploaded image down in place when its longer side is above the limit (JPEG, PNG and WebP only). */
     private static function shrink(string $path, int $maxSide): void
     {
         $info = @getimagesize($path);

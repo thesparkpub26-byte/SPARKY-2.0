@@ -25,6 +25,7 @@ class Task extends Model
         'notes',
     ];
 
+    /** Converts the deadline to a date and completed_at to a date object. */
     protected function casts(): array
     {
         return [
@@ -93,16 +94,19 @@ class Task extends Model
         return $this->belongsTo(Article::class);
     }
 
+    /** The person the task is assigned to. */
     public function assignee()
     {
         return $this->belongsTo(User::class, 'assignee_id');
     }
 
+    /** The person who assigned the task. */
     public function assignedBy()
     {
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
+    /** The section the task belongs to. */
     public function section()
     {
         return $this->belongsTo(Section::class);

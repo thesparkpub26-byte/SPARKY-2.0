@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the gallery photos table. */
     public function up(): void
     {
         Schema::create('gallery_photos', function (Blueprint $table) {
@@ -17,6 +18,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the gallery photos table. */
     public function down(): void
     {
         Schema::dropIfExists('gallery_photos');

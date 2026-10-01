@@ -33,6 +33,7 @@ return new class extends Migration
         ],
     ];
 
+    /** Adds database indexes that speed up the common lists and searches. */
     public function up(): void
     {
         foreach (self::INDEXES as $table => $indexes) {
@@ -50,6 +51,7 @@ return new class extends Migration
         }
     }
 
+    /** Removes those indexes. */
     public function down(): void
     {
         foreach (self::INDEXES as $table => $indexes) {

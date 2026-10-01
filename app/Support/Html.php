@@ -18,6 +18,7 @@ class Html
     private const ALLOWED = 'p,br,b,strong,i,em,u,s,strike,span[style],font[color],div,'
         . 'a[href],ul,ol,li,blockquote,h1,h2,h3,h4,h5,h6';
 
+    /** Removes unsafe HTML (scripts, event handlers...) from user-written article content, keeping the formatting. */
     public static function clean(?string $html): ?string
     {
         if ($html === null || trim($html) === '') {
@@ -27,6 +28,7 @@ class Html
         return self::purifier()->purify($html);
     }
 
+    /** Builds the HTML cleaner once, with the tags and attributes articles may use, and reuses it. */
     private static function purifier(): HTMLPurifier
     {
         if (self::$purifier) {

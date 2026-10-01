@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the academic years (press works) and monitoring sheets tables. */
     public function up(): void
     {
         Schema::create('press_works', function (Blueprint $table) {
@@ -27,6 +28,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the monitoring sheets and academic years tables. */
     public function down(): void
     {
         Schema::dropIfExists('monitoring_sheets');

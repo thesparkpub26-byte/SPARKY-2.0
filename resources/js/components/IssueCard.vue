@@ -25,6 +25,7 @@ const props = defineProps({
 
 const emit = defineEmits(['explore']);
 
+// Tells the parent the user wants to open this issue.
 const onExplore = () => {
   emit('explore', props.issue);
 };

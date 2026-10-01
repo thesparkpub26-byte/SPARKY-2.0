@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
  */
 return new class extends Migration
 {
+    /** Reopens the writers' completed tasks of articles that were returned, so they can be revised again. */
     public function up(): void
     {
         DB::table('tasks')
@@ -18,6 +19,7 @@ return new class extends Migration
             ->update(['status' => 'returned', 'completed_at' => null]);
     }
 
+    /** Does nothing: it is not known which tasks were stuck. */
     public function down(): void
     {
         // Not reversible: it is not known which tasks were stuck

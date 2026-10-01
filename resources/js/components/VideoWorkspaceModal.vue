@@ -132,6 +132,7 @@ const returnedByLabel = computed(() => {
     return 'A reviewer';
 });
 
+// Request headers with the sign-in token (and a JSON content type unless told otherwise).
 const authHeaders = (json = true) => {
     const token = localStorage.getItem('sparky_token');
     const headers = { Authorization: `Bearer ${token}`, Accept: 'application/json' };
@@ -139,6 +140,7 @@ const authHeaders = (json = true) => {
     return headers;
 };
 
+// Finds the id of the video section (once).
 const loadVideoSection = async () => {
     if (videoSectionId.value) return;
     try {
@@ -152,6 +154,7 @@ const loadVideoSection = async () => {
     }
 };
 
+// Shows a message (or an error) for a few seconds.
 const showFeedback = (message, isError = false, ms = 3000) => {
     saveFeedback.value = message;
     saveFeedbackIsError.value = isError;
@@ -252,6 +255,7 @@ const persistArticle = async () => {
     return articleId;
 };
 
+// Saves the video as a draft (a valid YouTube link is needed if one is entered).
 const saveAsDraft = async () => {
     if (videoUrl.value && !isValidLink.value) {
         showFeedback('✗ Enter a valid YouTube link', true, 4000);
@@ -273,6 +277,7 @@ const saveAsDraft = async () => {
     }
 };
 
+// Checks that the video is complete, then opens the submit confirmation.
 const openSubmitConfirm = () => {
     errorMessage.value = '';
     if (!headline.value.trim()) {
@@ -290,6 +295,7 @@ const openSubmitConfirm = () => {
     isSubmitConfirmOpen.value = true;
 };
 
+// Saves the video and submits it for review.
 const confirmSubmit = async () => {
     isSubmitting.value = true;
     errorMessage.value = '';
@@ -319,11 +325,13 @@ const confirmSubmit = async () => {
     }
 };
 
+// Closes the success dialog and the workspace.
 const finishSuccess = () => {
     isSuccessOpen.value = false;
     closeModal();
 };
 
+// Closes the workspace.
 const closeModal = () => emit('close');
 </script>
 

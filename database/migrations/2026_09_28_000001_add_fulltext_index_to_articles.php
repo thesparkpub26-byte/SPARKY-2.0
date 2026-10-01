@@ -19,6 +19,7 @@ return new class extends Migration
         });
     }
 
+    /** Removes the full-text search index from articles (MySQL / MariaDB only). */
     public function down(): void
     {
         if (!in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {

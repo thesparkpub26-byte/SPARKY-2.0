@@ -22,6 +22,7 @@ export const dashboardFor = (role) => DASHBOARDS[role] || '/';
 const FRESH_FOR_MS = 30 * 1000;
 let cached = { token: null, user: null, at: 0 };
 
+// Forgets the cached answer about who is signed in, so the next check asks the server again.
 export const forgetSession = () => { cached = { token: null, user: null, at: 0 }; };
 
 // The signed-in user according to the server, or null (no token, expired token, deactivated, or server down).

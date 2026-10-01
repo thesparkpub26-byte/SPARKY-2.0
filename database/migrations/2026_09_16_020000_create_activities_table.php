@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the activity log table. */
     public function up(): void
     {
         Schema::create('activities', function (Blueprint $table) {
@@ -21,6 +22,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the activity log table. */
     public function down(): void
     {
         Schema::dropIfExists('activities');

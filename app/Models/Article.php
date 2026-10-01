@@ -33,6 +33,10 @@ class Article extends Model
         'published_at',
     ];
 
+    /**
+     * Converts the workflow timestamps (submitted, endorsed, approved, rejected, scheduled, published) to date
+     * objects and media_files to an array.
+     */
     protected function casts(): array
     {
         return [
@@ -106,26 +110,31 @@ class Article extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    /** The section the article belongs to. */
     public function section()
     {
         return $this->belongsTo(Section::class);
     }
 
+    /** The tasks (writing, artwork, video crew) linked to the article. */
     public function tasks()
     {
         return $this->hasMany(Task::class);
     }
 
+    /** The likes readers gave the article. */
     public function likes()
     {
         return $this->hasMany(ArticleLike::class);
     }
 
+    /** The comments readers wrote on the article. */
     public function comments()
     {
         return $this->hasMany(ArticleComment::class);
     }
 
+    /** The contributors credited on the article. */
     public function credits()
     {
         return $this->hasMany(ArticleCredit::class);
@@ -139,8 +148,12 @@ class Article extends Model
 
     // Status helpers
     public function isDraft(): bool { return $this->status === self::STATUS_DRAFT; }
+    /** True when the article has been submitted for review. */
     public function isSubmitted(): bool { return $this->status === self::STATUS_SUBMITTED; }
+    /** True when a section editor / copyreader has endorsed the article to the EIC. */
     public function isEndorsed(): bool { return $this->status === self::STATUS_ENDORSED; }
+    /** True when the EIC has approved the article. */
     public function isApproved(): bool { return $this->status === self::STATUS_APPROVED; }
+    /** True when the article is live on the reader site. */
     public function isPublished(): bool { return $this->status === self::STATUS_PUBLISHED; }
 }

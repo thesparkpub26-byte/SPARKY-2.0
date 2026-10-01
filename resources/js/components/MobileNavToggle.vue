@@ -17,18 +17,23 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 const OPEN_CLASS = 'mobile-nav-open';
 const open = ref(false);
 
+// Opens or closes the drawer by switching a class on the page.
 const set = (value) => {
   open.value = value;
   document.documentElement.classList.toggle(OPEN_CLASS, value);
 };
+// Opens the drawer if it is closed, closes it if it is open.
 const toggle = () => set(!open.value);
+// Closes the drawer.
 const close = () => set(false);
 
 // Picking a destination (not a menu that only expands) closes the drawer.
 const DESTINATION = '.nav-item:not(.has-dropdown), .sub-item, .settings-btn, .sign-out-btn';
+// Closes the drawer when a destination inside the sidebar is clicked.
 const onDocumentClick = (event) => {
   if (open.value && event.target.closest && event.target.closest('.sidebar') && event.target.closest(DESTINATION)) close();
 };
+// Closes the drawer when Escape is pressed.
 const onKeydown = (event) => {
   if (event.key === 'Escape') close();
 };

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Removes user columns nothing uses (email verified time, section, remember token). */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
@@ -14,6 +15,7 @@ return new class extends Migration
         });
     }
 
+    /** Puts the removed user columns back. */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {

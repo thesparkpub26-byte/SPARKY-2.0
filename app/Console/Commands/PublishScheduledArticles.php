@@ -11,6 +11,7 @@ class PublishScheduledArticles extends Command
 
     protected $description = 'Publish scheduled articles and videos whose publish time has arrived';
 
+    /** Publishes the scheduled articles and videos whose publish time has arrived. */
     public function handle(): int
     {
         $count = Article::publishDue();

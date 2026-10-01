@@ -143,6 +143,7 @@ const credits = reactive({ reporter: [], scriptwriter: [], videographer: [], vid
 const allUsers = ref([]);
 const loadingUsers = ref(false);
 
+// Request headers with the sign-in token and a JSON content type.
 const authHeaders = () => ({
     Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
     Accept: 'application/json',
@@ -152,6 +153,7 @@ const authHeaders = () => ({
 // The broadcasting team: every staff broadcaster plus the Head / Assistant Head Broadcaster
 const isBroadcastTeam = (u) => u.role === 'staff_broadcaster'
     || (u.role === 'section_editor' && `${u.secondary_role || ''} ${u.tertiary_role || ''}`.toLowerCase().includes('broadcaster'));
+// Sorts users by name.
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
 
 const broadcastTeam = computed(() => allUsers.value.filter(isBroadcastTeam).sort(byName));
@@ -160,6 +162,7 @@ const scriptwriterOptions = computed(() => allUsers.value
     .filter(u => isBroadcastTeam(u) || ['staff_writer', 'section_editor', 'eic'].includes(u.role))
     .sort(byName));
 
+// Loads the users for the crew drop-downs (once).
 const loadUsers = async () => {
     if (allUsers.value.length) return;
     loadingUsers.value = true;
@@ -235,6 +238,7 @@ watch(() => [props.isOpen, props.submission], () => {
     prefillCredits();
 }, { immediate: true, deep: true });
 
+// Formats a date and time for display.
 const formatDate = (d) => {
     const date = new Date(d);
     if (isNaN(date.getTime())) return d;
@@ -242,8 +246,10 @@ const formatDate = (d) => {
         + ' • ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
+// Closes the review modal.
 const handleClose = () => emit('close');
 
+// Checks the video details, then moves to the confirm step.
 const goToConfirm = () => {
     errorMsg.value = '';
     if (!edit.title.trim()) {
@@ -261,6 +267,7 @@ const goToConfirm = () => {
     step.value = 'confirm';
 };
 
+// Saves the reviewed video and credits, endorses it to the EIC and completes the presenter's task.
 const confirmSend = async () => {
     acting.value = true;
     errorMsg.value = '';

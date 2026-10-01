@@ -108,6 +108,8 @@ const roleDashboard = {
   reader:            '/',
 };
 
+// Sends the sign-up details: signs the new reader in straight away, or goes to the code page when email verification
+// is on.
 const handleSignUp = async () => {
   if (!isFormValid.value) return;
 

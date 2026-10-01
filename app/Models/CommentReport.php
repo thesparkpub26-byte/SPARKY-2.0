@@ -10,6 +10,7 @@ class CommentReport extends Model
 
     protected $fillable = ['article_comment_id', 'user_id', 'reason', 'details'];
 
+    /** The comment that was reported. */
     public function comment()
     {
         return $this->belongsTo(ArticleComment::class, 'article_comment_id');

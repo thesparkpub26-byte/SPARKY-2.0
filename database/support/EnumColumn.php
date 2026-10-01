@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
  */
 class EnumColumn
 {
+    /** Changes the allowed values of an ENUM column in a way that works on both MySQL and PostgreSQL. */
     public static function change(string $table, string $column, array $values, string $default, bool $nullable = false): void
     {
         // Table and column names cannot be bound as "?" values, so only plain names are accepted

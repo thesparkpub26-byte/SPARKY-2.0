@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** Creates the table that records page visits for analytics. */
     public function up(): void
     {
         Schema::create('page_views', function (Blueprint $table) {
@@ -20,6 +21,7 @@ return new class extends Migration
         });
     }
 
+    /** Drops the page visits table. */
     public function down(): void
     {
         Schema::dropIfExists('page_views');

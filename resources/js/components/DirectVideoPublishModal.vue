@@ -113,6 +113,7 @@ const errorMessage = ref('');
 const isValidLink = computed(() => Boolean(extractYouTubeId(videoUrl.value)));
 const embedUrl = computed(() => youtubeEmbedUrl(videoUrl.value));
 
+// Request headers with the sign-in token and a JSON content type.
 const authHeaders = () => ({
     Authorization: `Bearer ${localStorage.getItem('sparky_token')}`,
     Accept: 'application/json',
@@ -122,6 +123,7 @@ const authHeaders = () => ({
 // The broadcasting team: every staff broadcaster plus the Head / Assistant Head Broadcaster
 const isBroadcastTeam = (u) => u.role === 'staff_broadcaster'
     || (u.role === 'section_editor' && `${u.secondary_role || ''} ${u.tertiary_role || ''}`.toLowerCase().includes('broadcaster'));
+// Sorts users by name.
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
 const broadcastTeam = computed(() => users.value.filter(isBroadcastTeam).sort(byName));
 // Scriptwriters can also be staff writers, section editors or the EIC
@@ -129,7 +131,9 @@ const scriptwriterOptions = computed(() => users.value
     .filter(u => isBroadcastTeam(u) || ['staff_writer', 'section_editor', 'eic'].includes(u.role))
     .sort(byName));
 
+// Pads a number to two digits.
 const pad = (n) => String(n).padStart(2, '0');
+// Formats a date for a datetime-local input (yyyy-mm-ddThh:mm).
 const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const nowLocal = computed(() => toLocalInput(new Date()));
 const isPast = computed(() => publishedAt.value && new Date(publishedAt.value).getTime() < Date.now() - 5 * 60 * 1000);
@@ -137,6 +141,7 @@ const formattedPublishedAt = computed(() => publishedAt.value
     ? new Date(publishedAt.value).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : '');
 
+// Loads the users for the crew drop-downs (once).
 const loadUsers = async () => {
     if (users.value.length) return;
     try {
@@ -163,6 +168,7 @@ watch(() => props.isOpen, (open) => {
     loadUsers();
 });
 
+// Checks that the form is complete and the link is a YouTube link, then opens the publish confirmation.
 const openConfirm = () => {
     errorMessage.value = '';
     if (!headline.value.trim()) return (errorMessage.value = 'Please add a headline.');
@@ -174,6 +180,7 @@ const openConfirm = () => {
     isConfirmOpen.value = true;
 };
 
+// Publishes the video straight to the reader site, skipping the review steps.
 const publish = async () => {
     isPublishing.value = true;
     errorMessage.value = '';
@@ -203,6 +210,7 @@ const publish = async () => {
     }
 };
 
+// Closes the modal (not while publishing).
 const closeModal = () => {
     if (isPublishing.value) return;
     emit('close');

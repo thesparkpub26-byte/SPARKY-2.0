@@ -106,6 +106,7 @@ watch(() => [props.isOpen, props.task], () => {
     }
 }, { immediate: true, deep: true });
 
+// Saves the edited task details.
 const saveTask = async () => {
     if (!form.value.title.trim()) {
         errorMsg.value = 'Title is required.';

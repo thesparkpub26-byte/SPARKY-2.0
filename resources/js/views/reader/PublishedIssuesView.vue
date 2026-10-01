@@ -47,6 +47,7 @@ const loadingMore = ref(false);
 const page = ref(0);
 const lastPage = ref(1);
 
+// Formats a date as "October 1, 2026".
 const formatDate = (iso) => iso
   ? new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   : '';
@@ -75,6 +76,7 @@ const loadPage = async (next) => {
   lastPage.value = body.last_page;
 };
 
+// Loads the next page of issues and adds them to the grid.
 const loadMore = async () => {
   loadingMore.value = true;
   try {
@@ -98,6 +100,7 @@ onMounted(async () => {
   renderCovers();
 });
 
+// Opens an issue in the booklet viewer in a new tab.
 const openIssue = (issue) => {
   window.open(`/booklet/${issue.id}`, '_blank');
 };

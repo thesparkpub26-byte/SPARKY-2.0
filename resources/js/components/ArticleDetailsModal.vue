@@ -238,6 +238,7 @@ const returnError = ref('');
 const isReturnSuccessOpen = ref(false);
 const isSubmitting = ref(false);
 
+// Opens the "return to writer" form with empty notes.
 const openReturnModal = () => {
     returnNotes.value = '';
     returnError.value = '';
@@ -280,6 +281,7 @@ const writerAvatarUrl = computed(() => {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayWriter.value)}&background=dbeafe&color=1e40af&size=100`;
 });
 
+// Formats a date and time for display ("—" when there is none).
 const formatDateTime = (dateVal) => {
     if (!dateVal) return '—';
     try {
@@ -384,12 +386,14 @@ const displayAttachedFiles = computed(() => {
     return [];
 });
 
+// Closes the return dialogs and the modal, and tells the parent.
 const closeModal = () => {
     isReturnModalOpen.value = false;
     isReturnSuccessOpen.value = false;
     emit('close');
 };
 
+// Opens the full article for reading (a video opens its link in a new tab).
 const handleViewFullArticle = () => {
     if (isVideo.value) {
         if (article.value.video_url) window.open(article.value.video_url, '_blank', 'noopener');
@@ -398,10 +402,12 @@ const handleViewFullArticle = () => {
     emit('view-full-article', article.value);
 };
 
+// Asks the parent to open the publish preview for this article.
 const requestPublishPreview = () => {
     emit('request-publish-preview', article.value);
 };
 
+// Sends the article back to the writer with the reviewer's revision notes.
 const submitReturnToWriter = async () => {
     const token = localStorage.getItem('sparky_token');
     const articleId = article.value.id;
@@ -435,6 +441,7 @@ const submitReturnToWriter = async () => {
     }
 };
 
+// Closes everything after a return and tells the parent the action is complete.
 const finishAll = () => {
     isReturnModalOpen.value = false;
     isReturnSuccessOpen.value = false;
