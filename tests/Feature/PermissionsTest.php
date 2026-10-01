@@ -88,7 +88,7 @@ class PermissionsTest extends TestCase
         $eic = $this->makeUser('eic');
         $stranger = $this->makeUser('staff_writer');
         $copyreader = $this->makeUser('staff_writer', ['secondary_role' => 'Copyreader']);
-        $draft = $this->makeArticle(['author_id' => $writer->id, 'status' => Article::STATUS_DRAFT]);
+        $draft = $this->makeArticle(['author_id' => $writer->id, 'status' => Article::STATUS_DRAFT, 'cover_image' => 'article-media/cover.jpg', 'media_files' => ['article-media/photo.jpg']]);
 
         Sanctum::actingAs($stranger);
         $this->putJson("/api/articles/{$draft->id}", ['title' => 'Pwned'])->assertForbidden();

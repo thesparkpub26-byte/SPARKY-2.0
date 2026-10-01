@@ -87,7 +87,7 @@ class EditorInChiefTest extends TestCase
         $plainEic = $this->person('eic');
         $inactiveEic = $this->person('eic', ['secondary_role' => 'News Editor', 'is_active' => false]);
         $editor = $this->person('section_editor', ['secondary_role' => 'News Editor']);
-        $article = $this->makeArticle(['author_id' => $writer->id, 'status' => Article::STATUS_DRAFT]);
+        $article = $this->makeArticle(['author_id' => $writer->id, 'status' => Article::STATUS_DRAFT, 'cover_image' => 'article-media/cover.jpg', 'media_files' => ['article-media/photo.jpg']]);
 
         Sanctum::actingAs($writer);
         $this->postJson("/api/articles/{$article->id}/submit")->assertOk();

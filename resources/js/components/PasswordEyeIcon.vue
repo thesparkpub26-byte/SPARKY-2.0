@@ -1,6 +1,6 @@
 <template>
   <!-- The show / hide eye for a password box. Styled by `.input-icon`; the parent flips `visible` on click. -->
-  <svg class="input-icon" role="button" tabindex="0" :aria-label="visible ? 'Hide password' : 'Show password'"
+  <svg class="input-icon password-eye" role="button" tabindex="0" :aria-label="visible ? 'Hide password' : 'Show password'"
     xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <template v-if="!visible">

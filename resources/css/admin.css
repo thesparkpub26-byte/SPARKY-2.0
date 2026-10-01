@@ -1428,6 +1428,13 @@ td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
     pointer-events: none;
 }
 
+/* The show / hide password eye is a button: unlike the decorative dropdown arrows above, it must receive clicks */
+.input-icon.password-eye,
+.new-user-step .input-icon-wrap .input-icon.password-eye {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
 .new-user-step .modal-footer {
     display: flex;
     align-items: center;

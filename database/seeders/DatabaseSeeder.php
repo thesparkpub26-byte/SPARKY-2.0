@@ -35,7 +35,6 @@ class DatabaseSeeder extends Seeder
             'email'    => 'eic@sparky.com',
             'password' => Hash::make('password'),
             'role'     => 'eic',
-            'bio'      => 'Editor-in-Chief of The SPARK Publication.',
         ]);
 
         $sectionEditorNews = User::create([
@@ -43,8 +42,6 @@ class DatabaseSeeder extends Seeder
             'email'      => 'editor.news@sparky.com',
             'password'   => Hash::make('password'),
             'role'       => 'section_editor',
-            'section_id' => $news->id,
-            'bio'        => 'News Section Editor with 3 years of experience.',
         ]);
 
         $sectionEditorFeatures = User::create([
@@ -52,7 +49,6 @@ class DatabaseSeeder extends Seeder
             'email'      => 'editor.features@sparky.com',
             'password'   => Hash::make('password'),
             'role'       => 'section_editor',
-            'section_id' => $features->id,
         ]);
 
         $sectionEditorSports = User::create([
@@ -60,7 +56,6 @@ class DatabaseSeeder extends Seeder
             'email'      => 'editor.sports@sparky.com',
             'password'   => Hash::make('password'),
             'role'       => 'section_editor',
-            'section_id' => $sports->id,
         ]);
 
         $writer1 = User::create([
@@ -68,7 +63,6 @@ class DatabaseSeeder extends Seeder
             'email'      => 'writer1@sparky.com',
             'password'   => Hash::make('password'),
             'role'       => 'staff_writer',
-            'section_id' => $news->id,
         ]);
 
         $writer2 = User::create([
@@ -76,7 +70,6 @@ class DatabaseSeeder extends Seeder
             'email'      => 'writer2@sparky.com',
             'password'   => Hash::make('password'),
             'role'       => 'staff_writer',
-            'section_id' => $features->id,
         ]);
 
         $artist1 = User::create([
@@ -84,7 +77,6 @@ class DatabaseSeeder extends Seeder
             'email'      => 'artist1@sparky.com',
             'password'   => Hash::make('password'),
             'role'       => 'staff_artist',
-            'section_id' => $arts->id,
         ]);
 
         $artist2 = User::create([
@@ -92,7 +84,6 @@ class DatabaseSeeder extends Seeder
             'email'      => 'artist2@sparky.com',
             'password'   => Hash::make('password'),
             'role'       => 'staff_artist',
-            'section_id' => $news->id,
         ]);
 
         // ── Articles ──────────────────────────────────────────────
@@ -158,7 +149,6 @@ class DatabaseSeeder extends Seeder
             'priority'          => Task::PRIORITY_HIGH,
             'status'            => Task::STATUS_IN_PROGRESS,
             'deadline'          => now()->addDays(5)->toDateString(),
-            'word_count_target' => 800,
         ]);
 
         $task2 = Task::create([
@@ -196,7 +186,6 @@ class DatabaseSeeder extends Seeder
             'status'      => Task::STATUS_COMPLETED,
             'deadline'    => now()->subDays(2)->toDateString(),
             'completed_at' => now()->subDays(1),
-            'word_count_target' => 600,
         ]);
 
         $this->command->info('✅ Database seeded successfully!');

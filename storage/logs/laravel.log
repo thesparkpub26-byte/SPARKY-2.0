@@ -7341,3 +7341,6 @@ CONTEXT:  unnamed portal parameter $1 = '...' at C:/Users/emher/Desktop/Sparky/v
 [2026-10-01 12:41:35] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
 [2026-10-01 12:41:35] testing.WARNING: The cron address was called with a wrong key {"ip":"127.0.0.1"} 
 [2026-10-01 12:41:35] testing.ERROR: Sign-up verification email failed: Connection timed out  
+[2026-10-01 15:29:30] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-10-01 15:29:30] testing.WARNING: Sign-in blocked after repeated failures {"email":"reader1@example.test","ip":"127.0.0.1"} 
+[2026-10-01 15:29:31] testing.ERROR: Sign-up verification email failed: Connection timed out  

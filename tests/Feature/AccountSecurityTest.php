@@ -116,7 +116,7 @@ class AccountSecurityTest extends TestCase
 
     public function test_signup_creates_the_account_straight_away_while_the_email_code_is_off(): void
     {
-        config(['security.signup_otp' => false]);
+        $this->assertFalse(config('security.signup_otp'), 'the email code is switched off by default for now');
         $signup = fn (string $email) => $this->postJson('/api/register/send-otp', [
             'name' => 'Maria Santos', 'email' => $email, 'password' => 'Gentle-river-5821', 'password_confirmation' => 'Gentle-river-5821',
         ]);
@@ -136,9 +136,9 @@ class AccountSecurityTest extends TestCase
         $this->assertFalse($gone->fresh()->is_active);
     }
 
-    public function test_signup_sends_a_code_by_default(): void
+    public function test_signup_still_sends_a_code_when_the_email_code_is_switched_on(): void
     {
-        $this->assertTrue(config('security.signup_otp'), 'the email code is on by default');
+        config(['security.signup_otp' => true]);
         Mail::fake();
 
         $this->postJson('/api/register/send-otp', [

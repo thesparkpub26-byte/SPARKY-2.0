@@ -12,7 +12,8 @@ class CopyDataToDatabase extends Command
 {
     protected $signature = 'data:copy
         {url : Where to copy to, e.g. "postgresql://postgres.abc:PASSWORD@host.pooler.supabase.com:5432/postgres" (special characters in the password must be percent-encoded)}
-        {--force : Copy even if the target already has rows in some tables}';
+        {--force : Copy even if the target already has rows in some tables}
+        {--resume : Carry on after an interrupted copy: tables that already have all their rows are skipped, the others are redone}';
 
     protected $description = 'Copy every row (and uploaded file) from this site\'s current database into another one, e.g. MySQL to Supabase';
 
@@ -60,29 +61,41 @@ class CopyDataToDatabase extends Command
 
         // `migrate` itself puts the standard sections into a new database; those are replaced by the copied ones
         $filled = array_filter($tables, fn ($table) => !in_array($table, self::SEEDED, true) && $target->table($table)->exists());
-        if ($filled && !$this->option('force')) {
-            $this->error('The target already has rows in: ' . implode(', ', $filled) . '. Nothing was copied (use --force to replace them).');
+        if ($filled && !$this->option('force') && !$this->option('resume')) {
+            $this->error('The target already has rows in: ' . implode(', ', $filled) . '. Nothing was copied (use --force to replace them, or --resume after an interrupted copy).');
 
             return self::FAILURE;
         }
 
-        $counts = [];
-        $target->transaction(function () use ($source, $target, $tables, &$counts) {
+        // Every table is copied in its own transaction and tried again if the connection drops, so one long
+        // transfer over a slow link does not have to survive in one piece.
+        if (!$this->option('resume')) {
             foreach (array_reverse($tables) as $table) {
                 $target->table($table)->delete();
             }
-            foreach ($tables as $table) {
-                $counts[$table] = $this->copyTable($source, $target, $table);
+        }
+
+        $counts = [];
+        foreach ($tables as $table) {
+            $total = $source->table($table)->count();
+            if ($this->option('resume') && !in_array($table, self::SEEDED, true) && $target->table($table)->count() === $total) {
+                $counts[$table] = $total;
+                $this->line("  {$table}: already complete ({$total})");
+
+                continue;
             }
-            if ($target->getDriverName() === 'pgsql') {
-                foreach ($tables as $table) {
-                    if (Schema::connection('copy_target')->hasColumn($table, 'id')) {
-                        // so the next row the site creates gets an id after the copied ones
-                        $target->table($table)->selectRaw('setval(pg_get_serial_sequence(?, ?), coalesce(max(id), 1), max(id) is not null)', [$table, 'id'])->first();
-                    }
+            $counts[$table] = $this->copyTableWithRetry($source, $target, $table);
+            $this->line("  {$table}: copied {$counts[$table]}");
+        }
+
+        if ($target->getDriverName() === 'pgsql') {
+            foreach ($tables as $table) {
+                if (Schema::connection('copy_target')->hasColumn($table, 'id')) {
+                    // so the next row the site creates gets an id after the copied ones
+                    $target->table($table)->selectRaw('setval(pg_get_serial_sequence(?, ?), coalesce(max(id), 1), max(id) is not null)', [$table, 'id'])->first();
                 }
             }
-        });
+        }
 
         $rows = [];
         $bad = 0;
@@ -126,6 +139,27 @@ class CopyDataToDatabase extends Command
         }
 
         return $ordered;
+    }
+
+    /** One table in one transaction; if the connection drops, reconnects and starts that table over (up to 5 tries). */
+    private function copyTableWithRetry(Connection $source, Connection $target, string $table): int
+    {
+        for ($try = 1; ; $try++) {
+            try {
+                return $target->transaction(function () use ($source, $target, $table) {
+                    $target->table($table)->delete();
+
+                    return $this->copyTable($source, $target, $table);
+                });
+            } catch (\Throwable $e) {
+                if ($try >= 5) {
+                    throw $e;
+                }
+                $this->warn("  {$table}: attempt {$try} failed ({$e->getMessage()}); trying again");
+                $target->disconnect();
+                $target->reconnect();
+            }
+        }
     }
 
     /** Copies the rows of one table to the target database in batches, keeping binary columns (file chunks) intact. */
