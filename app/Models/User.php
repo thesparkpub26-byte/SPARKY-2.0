@@ -156,6 +156,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Which review stage this person acts as ('eic', 'section_editor' or 'copyreader'), or their account role
+     * when they are not a reviewer. Review comments, versions and returned tasks record it.
+     */
+    public function reviewRole(): string
+    {
+        if ($this->role === self::ROLE_EIC) return 'eic';
+        if ($this->role === self::ROLE_SECTION_EDITOR) return 'section_editor';
+        if ($this->isCopyreader()) return 'copyreader';
+        return (string) $this->role;
+    }
+
+    /**
      * The title shown for this person right now (e.g. "News Writer", "News Editor", "Photojournalist").
      * Work records copy this when they are created, so later promotions don't rewrite history.
      */

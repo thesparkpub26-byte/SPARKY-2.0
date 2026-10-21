@@ -86,54 +86,19 @@
                         </button>
 
                         <!-- Return to Writer -->
-                        <button class="review-action-btn return" @click="step = 'return-notes'" :disabled="acting">
+                        <button class="review-action-btn return" @click="openReturnReview" :disabled="acting">
                             <div class="review-action-icon return-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
                             </div>
                             <div class="review-action-text">
                                 <span class="review-action-label">Return to Writer</span>
-                                <span class="review-action-sub">Send back with revision notes</span>
+                                <span class="review-action-sub">Highlight what to change and send it back</span>
                             </div>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                         </button>
                     </div>
 
                     <p v-if="errorMsg" class="se-error-msg">{{ errorMsg }}</p>
-                </div>
-            </div>
-
-            <!-- Return to Writer: notes step -->
-            <div v-if="step === 'return-notes'" class="review-body">
-                <button class="back-btn" @click="step = 'review'">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                    Back
-                </button>
-                <h3 class="review-step-heading">Return to Writer</h3>
-                <p class="review-step-sub">Provide revision notes to <strong>{{ submissionData.authorName }}</strong>. They will be notified and the task will appear as <em>Returned</em> in their dashboard.</p>
-
-                <div class="et-field-group" style="margin-top: 16px;">
-                    <label class="et-label">Revision Notes <span style="color: #dc2626;">*</span></label>
-                    <div class="et-textarea-wrap">
-                        <textarea
-                            v-model="returnNotes"
-                            class="et-textarea"
-                            maxlength="800"
-                            rows="5"
-                            placeholder="E.g. Please add more context to the second paragraph. Revise the lead..."
-                        ></textarea>
-                        <div class="et-char-count">{{ returnNotes.length }}/800</div>
-                    </div>
-                </div>
-
-                <p v-if="errorMsg" class="se-error-msg">{{ errorMsg }}</p>
-
-                <div class="review-step-footer">
-                    <button class="btn-grey-pill" @click="step = 'review'" :disabled="acting">Cancel</button>
-                    <button class="btn-return-pill" @click="confirmReturn" :disabled="acting || !returnNotes.trim()">
-                        <svg v-if="acting" class="spin-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
-                        {{ acting ? 'Returning...' : 'Return to Writer' }}
-                    </button>
                 </div>
             </div>
 
@@ -218,12 +183,25 @@
             </div>
 
         </div>
+
+        <!-- Highlight what needs changing, then send the article back to the writer -->
+        <ReviewSubmissionModal
+            :is-open="returnReviewOpen"
+            :article-id="submissionData.articleId"
+            :acting="acting"
+            :error="errorMsg"
+            @close="returnReviewOpen = false; errorMsg = '';"
+            @submit="confirmReturn"
+        />
     </div>
 </template>
 
 <script setup>
 import { requireOk, followUp, followUpNote } from '../utils/http';
+import { lazyModal } from '../utils/lazyModal';
 import { ref, computed, watch, nextTick } from 'vue';
+
+const ReviewSubmissionModal = lazyModal(() => import('./ReviewSubmissionModal.vue'));
 
 const props = defineProps({
     isOpen: { type: Boolean, default: false },
@@ -232,8 +210,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'reviewed']);
 
-const step = ref('review'); // 'review' | 'return-notes' | 'select-copyreader' | 'confirm-endorse' | 'success'
-const returnNotes = ref('');
+const step = ref('review'); // 'review' | 'select-copyreader' | 'confirm-endorse' | 'success'
+const returnReviewOpen = ref(false);
 const acting = ref(false);
 const errorMsg = ref('');
 const successTitle = ref('');
@@ -322,7 +300,7 @@ watch(() => [props.isOpen, props.submission], () => {
             coverImage: props.submission.cover_image || props.submission.raw?.cover_image || '',
         };
         step.value = 'review';
-        returnNotes.value = '';
+        returnReviewOpen.value = false;
         errorMsg.value = '';
         selectedCopyreaderId.value = null;
         editableTitle.value = submissionData.value.title || '';
@@ -350,13 +328,44 @@ const handleClose = () => {
     emit('close');
 };
 
-// Returns the article to the writer with the revision notes (the writer's task is returned too).
-const confirmReturn = async () => {
-    if (!returnNotes.value.trim()) {
-        errorMsg.value = 'Please provide revision notes.';
+// Saves the section editor's own edits to the headline and text, so the highlighted comments are written on
+// the text the writer will get back, then opens the screen where the passages are highlighted and commented on.
+const openReturnReview = async () => {
+    const articleId = submissionData.value.articleId;
+    if (!articleId) {
+        errorMsg.value = 'Missing article ID.';
         return;
     }
 
+    const title = editableTitle.value || submissionData.value.title;
+    const changed = articleContent.value !== (submissionData.value.content || '') || title !== submissionData.value.title;
+
+    acting.value = true;
+    errorMsg.value = '';
+    try {
+        if (changed) {
+            const token = localStorage.getItem('sparky_token');
+            await requireOk(await fetch(`/api/articles/${articleId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ title, content: articleContent.value, word_count: liveWordCount.value })
+            }), 'Your edits could not be saved.');
+            submissionData.value = { ...submissionData.value, title, content: articleContent.value };
+        }
+        returnReviewOpen.value = true;
+    } catch (e) {
+        errorMsg.value = e.message || 'An error occurred.';
+    } finally {
+        acting.value = false;
+    }
+};
+
+// Returns the article to the writer with the highlighted comments (the writer's task is returned too).
+const confirmReturn = async ({ notes }) => {
     // Prefer task-based return (sets task status = returned + notifies writer)
     const taskId = submissionData.value.taskId;
     const articleId = submissionData.value.articleId;
@@ -366,27 +375,25 @@ const confirmReturn = async () => {
 
     try {
         const token = localStorage.getItem('sparky_token');
-        let success = false;
 
-        if (taskId) {
-            // Return via task route — status = 'returned', notifies assignee
-            const res = await fetch(`/api/tasks/${taskId}/return`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ notes: returnNotes.value.trim() })
-            });
-            if (!res.ok) {
-                const d = await res.json().catch(() => ({}));
-                throw new Error(d.message || 'Failed to return task.');
-            }
-            success = true;
+        if (!taskId) throw new Error('Could not find task to return.');
+
+        // Return via task route — status = 'returned', notifies assignee
+        const res = await fetch(`/api/tasks/${taskId}/return`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ notes })
+        });
+        if (!res.ok) {
+            const d = await res.json().catch(() => ({}));
+            throw new Error(d.message || 'Failed to return task.');
         }
 
-        // Save the section editor's edits and reset article status back to draft
+        // Reset article status back to draft (the section editor's edits were already saved)
         if (articleId) {
             await requireOk(await fetch(`/api/articles/${articleId}`, {
                 method: 'PUT',
@@ -395,19 +402,13 @@ const confirmReturn = async () => {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    title: editableTitle.value || submissionData.value.title,
-                    content: articleContent.value,
-                    word_count: liveWordCount.value,
-                    status: 'draft',
-                })
+                body: JSON.stringify({ status: 'draft' })
             }), 'The writer was notified, but the article could not be moved back to draft.');
         }
 
-        if (!taskId && !success) throw new Error('Could not find task to return.');
-
         successTitle.value = 'Article Returned';
-        successMessage.value = `"${editableTitle.value || submissionData.value.title}" has been returned to ${submissionData.value.authorName} with your revision notes. They will be notified.`;
+        successMessage.value = `"${editableTitle.value || submissionData.value.title}" has been returned to ${submissionData.value.authorName} with your highlighted comments. They will be notified.`;
+        returnReviewOpen.value = false;
         step.value = 'success';
         emit('reviewed', { action: 'returned' });
     } catch (e) {
@@ -974,25 +975,6 @@ const confirmEndorse = async () => {
     flex-shrink: 0;
 }
 
-.et-field-group { display: flex; flex-direction: column; gap: 6px; }
-.et-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-.et-textarea-wrap { position: relative; }
-.et-textarea {
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 12px 14px;
-    font-size: 14px;
-    color: #1e293b;
-    width: 100%;
-    resize: vertical;
-    outline: none;
-    box-sizing: border-box;
-    font-family: inherit;
-    transition: border-color 0.15s;
-}
-.et-textarea:focus { border-color: #2563eb; }
-.et-char-count { font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px; }
-
 .review-step-footer {
     display: flex;
     gap: 12px;
@@ -1030,23 +1012,6 @@ const confirmEndorse = async () => {
 }
 .btn-blue-pill:hover:not(:disabled) { background: #1d4ed8; }
 .btn-blue-pill:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.btn-return-pill {
-    padding: 10px 22px;
-    border-radius: 50px;
-    border: none;
-    background: #f59e0b;
-    color: white;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.15s;
-}
-.btn-return-pill:hover:not(:disabled) { background: #d97706; }
-.btn-return-pill:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-endorse-pill {
     padding: 10px 22px;

@@ -59,72 +59,98 @@
 
             <!-- TAB 1: ARTICLE CONTENT -->
             <div class="tab-content-body" v-if="currentTab === 'content'">
-                <!-- Headline Input Bar -->
-                <div class="headline-bar-card">
-                    <label class="headline-label">Article Headline</label>
-                    <input 
-                        type="text" 
-                        v-model="articleHeadline" 
-                        class="headline-input" 
-                        placeholder="Enter a captivating headline for your article..."
-                    />
+                <!-- A reviewer's returned note, from before comments could be highlighted -->
+                <div v-if="legacyRevisionNote" class="legacy-note-banner">
+                    <strong>Revision notes{{ legacyNoteFrom }}:</strong> {{ legacyRevisionNote }}
                 </div>
 
-                <div class="editor-container-card">
-                    <!-- Rich Text Toolbar -->
-                    <div class="rich-toolbar">
-                        <select class="toolbar-select" @change="applyFormatBlock($event.target.value)">
-                            <option value="p">Paragraph</option>
-                            <option value="h1">Heading 1</option>
-                            <option value="h2">Heading 2</option>
-                            <option value="h3">Heading 3</option>
-                        </select>
-                        <div class="toolbar-divider"></div>
-                        <button class="tool-btn" type="button" title="Bold" @click="formatDoc('bold')"><b>B</b></button>
-                        <button class="tool-btn" type="button" title="Italic" @click="formatDoc('italic')"><i>I</i></button>
-                        <button class="tool-btn" type="button" title="Underline" @click="formatDoc('underline')"><u>U</u></button>
-                        <button v-if="isCopyreader" class="tool-btn" type="button" title="Highlight" @click="formatDoc('hiliteColor', '#fef08a')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
-                        </button>
-                        <button v-if="isCopyreader" class="tool-btn" type="button" title="Remove Highlight" @click="formatDoc('hiliteColor', 'transparent')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg><line x1="3" y1="3" x2="21" y2="21"/>
-                        </button>
-                        <div class="toolbar-divider"></div>
-                        <button class="tool-btn" type="button" title="Align Left" @click="formatDoc('justifyLeft')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
-                        </button>
-                        <button class="tool-btn" type="button" title="Align Center" @click="formatDoc('justifyCenter')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
-                        </button>
-                        <button class="tool-btn" type="button" title="Align Right" @click="formatDoc('justifyRight')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
-                        </button>
-                        <div class="toolbar-divider"></div>
-                        <button class="tool-btn" type="button" title="Insert Link" @click="promptLink">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                        </button>
-                        <div class="toolbar-divider"></div>
-                        <button class="tool-btn" type="button" title="Undo" @click="formatDoc('undo')">↶</button>
-                        <button class="tool-btn" type="button" title="Redo" @click="formatDoc('redo')">↷</button>
-                    </div>
-
-                    <!-- Article Text Editor Area -->
-                    <div 
-                        ref="editorRef"
-                        class="article-text-body" 
-                        contenteditable="true"
-                        @input="handleEditorInput"
-                        placeholder="Write your article draft here..."
-                    ></div>
-
-                    <!-- Author & Live Word Count Bar -->
-                    <div class="editor-footer-bar">
-                        <div class="author-pill">
-                            <img :src="authorAvatar" class="author-avatar" :alt="authorName" />
-                            <span>{{ authorName }}</span>
+                <div class="content-split" :class="{ 'has-comments': hasReviewComments }">
+                    <div class="content-main">
+                        <!-- Headline Input Bar -->
+                        <div class="headline-bar-card">
+                            <label class="headline-label">Article Headline</label>
+                            <input 
+                                type="text" 
+                                v-model="articleHeadline" 
+                                class="headline-input" 
+                                placeholder="Enter a captivating headline for your article..."
+                            />
                         </div>
-                        <span class="word-count-text">{{ wordCount }} {{ wordCount === 1 ? 'word' : 'words' }}</span>
+
+                        <div class="editor-container-card">
+                            <!-- Rich Text Toolbar -->
+                            <div class="rich-toolbar">
+                                <select class="toolbar-select" @change="applyFormatBlock($event.target.value)">
+                                    <option value="p">Paragraph</option>
+                                    <option value="h1">Heading 1</option>
+                                    <option value="h2">Heading 2</option>
+                                    <option value="h3">Heading 3</option>
+                                </select>
+                                <div class="toolbar-divider"></div>
+                                <button class="tool-btn" type="button" title="Bold" @click="formatDoc('bold')"><b>B</b></button>
+                                <button class="tool-btn" type="button" title="Italic" @click="formatDoc('italic')"><i>I</i></button>
+                                <button class="tool-btn" type="button" title="Underline" @click="formatDoc('underline')"><u>U</u></button>
+                                <button v-if="isCopyreader" class="tool-btn" type="button" title="Highlight" @click="formatDoc('hiliteColor', '#fef08a')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+                                </button>
+                                <button v-if="isCopyreader" class="tool-btn" type="button" title="Remove Highlight" @click="formatDoc('hiliteColor', 'transparent')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg><line x1="3" y1="3" x2="21" y2="21"/>
+                                </button>
+                                <div class="toolbar-divider"></div>
+                                <button class="tool-btn" type="button" title="Align Left" @click="formatDoc('justifyLeft')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+                                </button>
+                                <button class="tool-btn" type="button" title="Align Center" @click="formatDoc('justifyCenter')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
+                                </button>
+                                <button class="tool-btn" type="button" title="Align Right" @click="formatDoc('justifyRight')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
+                                </button>
+                                <div class="toolbar-divider"></div>
+                                <button class="tool-btn" type="button" title="Insert Link" @click="promptLink">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                </button>
+                                <div class="toolbar-divider"></div>
+                                <button class="tool-btn" type="button" title="Undo" @click="formatDoc('undo')">↶</button>
+                                <button class="tool-btn" type="button" title="Redo" @click="formatDoc('redo')">↷</button>
+                            </div>
+
+                            <!-- Article Text Editor Area -->
+                            <div 
+                                ref="editorRef"
+                                class="article-text-body" 
+                                contenteditable="true"
+                                @input="handleEditorInput"
+                                @click="onEditorClick"
+                                placeholder="Write your article draft here..."
+                            ></div>
+
+                            <!-- Author & Live Word Count Bar -->
+                            <div class="editor-footer-bar">
+                                <div class="author-pill">
+                                    <img :src="authorAvatar" class="author-avatar" :alt="authorName" />
+                                    <span>{{ authorName }}</span>
+                                </div>
+                                <span class="word-count-text">{{ wordCount }} {{ wordCount === 1 ? 'word' : 'words' }}</span>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- What reviewers highlighted: the writer marks each one Done while revising -->
+                    <ReviewCommentsPanel
+                        v-if="hasReviewComments"
+                        class="content-comments"
+                        :comments="reviewComments"
+                        :active-id="activeCommentId"
+                        :busy-id="commentBusyId"
+                        :current-user-id="currentUser.id ?? null"
+                        :lost-ids="lostCommentIds"
+                        can-resolve
+                        :can-reopen="isCopyreader || isSectionEditor"
+                        @select="selectReviewComment"
+                        @resolve="setCommentStatus($event, 'resolved')"
+                        @reopen="setCommentStatus($event, 'open')"
+                    />
                 </div>
 
                 <!-- Action Footer Buttons for Article Content -->
@@ -349,56 +375,8 @@
                         <span class="workflow-step-pill">3. EIC Approval</span>
                     </div>
 
-                    <!-- 1. Section Editor Notes (Only shown if NOT section editor) -->
-                    <div class="notes-card-box" v-if="!isSectionEditor">
-                        <div class="notes-hdr-row">
-                            <h4 class="notes-hdr">
-                                <span class="role-icon-circle blue">SE</span>
-                                Section Editor Notes
-                            </h4>
-                            <span class="review-step-label">Initial Review</span>
-                        </div>
-                        <div class="notes-body-text" v-if="sectionEditorNotes">
-                            {{ sectionEditorNotes }}
-                        </div>
-                        <div class="notes-content-empty" v-else>
-                            Notes and revisions from the Section Editor will appear here once submitted for review.
-                        </div>
-                    </div>
-
-                    <!-- 2. Copyreader Notes -->
-                    <div class="notes-card-box">
-                        <div class="notes-hdr-row">
-                            <h4 class="notes-hdr">
-                                <span class="role-icon-circle purple">CR</span>
-                                Copyreader Notes
-                            </h4>
-                            <span class="review-step-label">Copyreading & Style</span>
-                        </div>
-                        <div class="notes-body-text" v-if="copyreaderNotes">
-                            {{ copyreaderNotes }}
-                        </div>
-                        <div class="notes-content-empty" v-else>
-                            Notes and suggestions from the Copyreader will appear here during editorial review.
-                        </div>
-                    </div>
-
-                    <!-- 3. EIC Notes -->
-                    <div class="notes-card-box">
-                        <div class="notes-hdr-row">
-                            <h4 class="notes-hdr">
-                                <span class="role-icon-circle amber">EIC</span>
-                                Editor-in-Chief Notes
-                            </h4>
-                            <span class="review-step-label">Final Approval</span>
-                        </div>
-                        <div class="notes-body-text" v-if="eicNotes">
-                            {{ eicNotes }}
-                        </div>
-                        <div class="notes-content-empty" v-else>
-                            Notes from the Editor-in-Chief will appear here once endorsed by the editorial desk.
-                        </div>
-                    </div>
+                    <!-- What happened to the article, its saved versions and the assignment at a glance -->
+                    <ReviewDetailsPanel :article-id="detailsArticleId" :article="loadedArticle" :refresh-key="detailsRefresh" />
 
                     <!-- Footer Action Bar for Details -->
                     <div class="visuals-actions-footer">
@@ -459,33 +437,35 @@
         <!-- COPYREADER ACTION CONFIRMATION MODAL -->
         <div class="submodal-overlay" v-if="isCopyreaderModalOpen" @click.self="closeCopyreaderModal">
             <div class="submodal-card">
-                <div :class="copyreaderAction === 'endorse' ? 'submit-icon-circle' : 'return-icon-circle'">
-                    <svg v-if="copyreaderAction === 'endorse'" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                <div class="submit-icon-circle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 </div>
 
-                <h3 class="submodal-title">{{ copyreaderAction === 'endorse' ? 'Submit to Editor-in-Chief?' : 'Return to Writer?' }}</h3>
-                <p class="submodal-desc" v-if="copyreaderAction === 'endorse'">
+                <h3 class="submodal-title">Submit to Editor-in-Chief?</h3>
+                <p class="submodal-desc">
                     <strong>"{{ articleHeadline || task.title }}"</strong> along with your edits will be sent to the <strong>Editor-in-Chief</strong> for final approval.
                 </p>
-                <template v-else>
-                    <p class="submodal-desc" style="margin-bottom: 14px;">Provide revision notes for the writer. They'll be notified and the article goes back to draft.</p>
-                    <div class="ws-field-group">
-                        <label class="ws-field-label">Revision Notes <span style="color: #dc2626;">*</span></label>
-                        <textarea v-model="copyreaderReturnNotes" class="ws-textarea" rows="4" maxlength="800" placeholder="E.g. Please fix the grammar in paragraph 2..."></textarea>
-                    </div>
-                </template>
 
                 <p v-if="copyreaderError" class="ws-error-msg">{{ copyreaderError }}</p>
 
                 <div class="submodal-actions">
                     <button type="button" class="btn-grey-pill" @click="closeCopyreaderModal" :disabled="isCopyreaderActing">Cancel</button>
-                    <button type="button" class="btn-blue-pill btn-full-width" @click="confirmCopyreaderAction" :disabled="isCopyreaderActing || (copyreaderAction === 'return' && !copyreaderReturnNotes.trim())">
-                        {{ isCopyreaderActing ? 'Submitting...' : (copyreaderAction === 'endorse' ? 'Yes, Submit to EIC' : 'Yes, Return to Writer') }}
+                    <button type="button" class="btn-blue-pill btn-full-width" @click="confirmCopyreaderAction()" :disabled="isCopyreaderActing">
+                        {{ isCopyreaderActing ? 'Submitting...' : 'Yes, Submit to EIC' }}
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- COPYREADER: highlight what needs changing, then send the article back to the writer -->
+        <ReviewSubmissionModal
+            :is-open="isReturnReviewOpen"
+            :article-id="detailsArticleId"
+            :acting="isCopyreaderActing"
+            :error="copyreaderError"
+            @close="isReturnReviewOpen = false; copyreaderError = '';"
+            @submit="confirmCopyreaderReturn"
+        />
 
         <!-- SUBMISSION SUCCESS MODAL -->
         <div class="submodal-overlay" v-if="isSuccessModalOpen">
@@ -513,7 +493,14 @@
 
 <script setup>
 import { requireOk, followUp, followUpNote } from '../utils/http';
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { lazyModal } from '../utils/lazyModal';
+import { caretOffset, clearHighlights, commentAt, paintHighlights, scrollToComment } from '../utils/reviewHighlights';
+import { roleInfo } from '../utils/reviewRoles';
+import ReviewCommentsPanel from './ReviewCommentsPanel.vue';
+import ReviewDetailsPanel from './ReviewDetailsPanel.vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+
+const ReviewSubmissionModal = lazyModal(() => import('./ReviewSubmissionModal.vue'));
 
 const props = defineProps({
     isOpen: {
@@ -538,8 +525,8 @@ const isSuccessModalOpen = ref(false);
 const isSubmitting = ref(false);
 
 const isCopyreaderModalOpen = ref(false);
-const copyreaderAction = ref('endorse'); // 'endorse' | 'return'
-const copyreaderReturnNotes = ref('');
+const copyreaderAction = ref('endorse');
+const isReturnReviewOpen = ref(false);
 const isCopyreaderActing = ref(false);
 const copyreaderError = ref('');
 const copyreaderSuccessMessage = ref('');
@@ -721,20 +708,23 @@ const taskRevisionNotes = computed(() => {
     return parseNotesField(notes, 'Revision Notes');
 });
 
-const sectionEditorNotes = computed(() => {
-    if (returnedByRole.value === 'section_editor' && taskRevisionNotes.value) return taskRevisionNotes.value;
-    return task.value?.sectionEditorNotes || task.value?.editorNotes || null;
-});
+// The article the workspace belongs to, and the review comments highlighted on it
+const loadedArticle = ref(null);
+const reviewComments = ref([]);
+const activeCommentId = ref(null);
+const commentBusyId = ref(null);
+const lostCommentIds = ref(new Set());
+const detailsRefresh = ref(0);
 
-const copyreaderNotes = computed(() => {
-    if (returnedByRole.value === 'copyreader' && taskRevisionNotes.value) return taskRevisionNotes.value;
-    return task.value?.copyreaderNotes || task.value?.copyNotes || null;
-});
+const detailsArticleId = computed(() => task.value?.article_id || task.value?.raw?.article_id || task.value?.article?.id || null);
+const hasReviewComments = computed(() => reviewComments.value.length > 0);
 
-const eicNotes = computed(() => {
-    if (returnedByRole.value === 'eic' && taskRevisionNotes.value) return taskRevisionNotes.value;
-    return task.value?.eicNotes || null;
+// A note returned as plain text, from before reviewers could highlight comments
+const legacyRevisionNote = computed(() => {
+    if (hasReviewComments.value || task.value?.status !== 'returned') return '';
+    return taskRevisionNotes.value;
 });
+const legacyNoteFrom = computed(() => (returnedByRole.value ? ` from the ${roleInfo(returnedByRole.value).label}` : ''));
 
 // Live Word Count calculation
 const wordCount = computed(() => {
@@ -842,8 +832,10 @@ watch(() => props.isOpen, async (newVal) => {
         saveFeedback.value = '';
         articleHeadline.value = task.value?.title || '';
         isCopyreaderModalOpen.value = false;
+        isReturnReviewOpen.value = false;
         copyreaderError.value = '';
         copyreaderSuccessMessage.value = '';
+        detailsRefresh.value++;
 
         // Load article content from backend if article exists
         const articleId = task.value?.article_id || task.value?.raw?.article_id || task.value?.article?.id;
@@ -860,6 +852,7 @@ watch(() => props.isOpen, async (newVal) => {
                 });
                 if (response.ok) {
                     articleData = await response.json();
+                    loadedArticle.value = articleData;
                     articleHeadline.value = articleData.title || task.value?.title || '';
                     articleContent.value = articleData.content || '';
                     thumbnailPreview.value = articleData.cover_image || '';
@@ -868,7 +861,10 @@ watch(() => props.isOpen, async (newVal) => {
             } catch (e) {
                 console.warn('Could not load article:', e);
             }
+            await loadReviewComments(articleId);
         } else {
+            loadedArticle.value = null;
+            reviewComments.value = [];
             // Load initial content from task
             const initialBody = task.value?.content || task.value?.article?.content || task.value?.articleDesc || task.value?.description || '';
             articleContent.value = initialBody;
@@ -878,6 +874,8 @@ watch(() => props.isOpen, async (newVal) => {
             if (editorRef.value) {
                 editorRef.value.innerHTML = articleContent.value || '<p>Start typing your article content here...</p>';
             }
+            // The marks belong to the text just put in the editor
+            repaintHighlights();
         });
 
         // Initialize assets if available (fallback for media)
@@ -938,6 +936,77 @@ watch(currentTab, (newTab) => {
 const handleEditorInput = () => {
     if (editorRef.value) {
         articleContent.value = editorRef.value.innerHTML;
+        scheduleRepaint();
+    }
+};
+
+// ---- Review comments ----
+
+const authHeaders = () => ({ 'Authorization': `Bearer ${localStorage.getItem('sparky_token')}`, 'Accept': 'application/json' });
+
+// Loads the comments reviewers highlighted on the article.
+const loadReviewComments = async (articleId) => {
+    reviewComments.value = [];
+    activeCommentId.value = null;
+    if (!articleId) return;
+    try {
+        const res = await fetch(`/api/articles/${articleId}/review-comments`, { headers: authHeaders() });
+        if (res.ok) reviewComments.value = await res.json();
+    } catch (e) {
+        console.warn('Could not load the review comments:', e);
+    }
+    repaintHighlights();
+};
+
+// Marks the open comments in the editor.
+const repaintHighlights = async () => {
+    await nextTick();
+    if (!props.isOpen || currentTab.value !== 'content' || !editorRef.value || !hasReviewComments.value) {
+        clearHighlights();
+        return;
+    }
+    lostCommentIds.value = paintHighlights(editorRef.value, reviewComments.value, { activeId: activeCommentId.value });
+};
+
+let repaintTimer = null;
+const scheduleRepaint = () => {
+    clearTimeout(repaintTimer);
+    repaintTimer = setTimeout(repaintHighlights, 250);
+};
+
+watch([reviewComments, activeCommentId, currentTab], repaintHighlights, { deep: true });
+onBeforeUnmount(() => { clearTimeout(repaintTimer); clearHighlights(); });
+
+// Clicking a highlighted passage in the text shows its comment.
+const onEditorClick = () => {
+    const hit = commentAt(editorRef.value, reviewComments.value, caretOffset(editorRef.value));
+    if (hit) activeCommentId.value = hit.id;
+};
+
+// Clicking a comment scrolls to its passage.
+const selectReviewComment = (id) => {
+    activeCommentId.value = id;
+    const comment = reviewComments.value.find((c) => c.id === id);
+    if (comment?.status === 'open') nextTick(() => scrollToComment(editorRef.value, comment));
+};
+
+// Marks a comment Done (or takes it back).
+const setCommentStatus = async (id, status) => {
+    commentBusyId.value = id;
+    try {
+        const res = await requireOk(await fetch(`/api/review-comments/${id}`, {
+            method: 'PATCH',
+            headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status }),
+        }), 'The comment could not be updated.');
+        const updated = await res.json();
+        reviewComments.value = reviewComments.value.map((c) => (c.id === id ? updated : c));
+        detailsRefresh.value++;
+    } catch (e) {
+        saveFeedback.value = `✗ ${e.message}`;
+        setTimeout(() => { saveFeedback.value = ''; }, 4000);
+    } finally {
+        commentBusyId.value = null;
     }
 };
 
@@ -1305,11 +1374,28 @@ const confirmSubmit = async () => {
 };
 
 // Opens the copyreader's confirmation for endorsing the article or returning it.
-const openCopyreaderConfirm = (action) => {
+const openCopyreaderConfirm = async (action) => {
     copyreaderAction.value = action;
-    copyreaderReturnNotes.value = '';
     copyreaderError.value = '';
+
+    // Returning an article means highlighting what to change on the text as it stands, so save the copyreader's edits first
+    if (action === 'return') {
+        try {
+            await saveProgress();
+        } catch (saveErr) {
+            console.warn('Could not auto-save progress before returning to the writer:', saveErr);
+        }
+        isReturnReviewOpen.value = true;
+        return;
+    }
+
     isCopyreaderModalOpen.value = true;
+};
+
+// The copyreader finished highlighting: send the article back to the writer with those comments.
+const confirmCopyreaderReturn = async ({ notes }) => {
+    copyreaderAction.value = 'return';
+    await confirmCopyreaderAction(notes);
 };
 
 // Closes the copyreader confirmation (not while it is being sent).
@@ -1318,12 +1404,8 @@ const closeCopyreaderModal = () => {
     isCopyreaderModalOpen.value = false;
 };
 
-// Copyreader's decision: endorses the article to the EIC, or returns it to the writer with revision notes.
-const confirmCopyreaderAction = async () => {
-    if (copyreaderAction.value === 'return' && !copyreaderReturnNotes.value.trim()) {
-        copyreaderError.value = 'Please provide revision notes.';
-        return;
-    }
+// Copyreader's decision: endorses the article to the EIC, or returns it to the writer with the highlighted comments.
+const confirmCopyreaderAction = async (returnNotes = '') => {
 
     isCopyreaderActing.value = true;
     copyreaderError.value = '';
@@ -1389,7 +1471,7 @@ const confirmCopyreaderAction = async () => {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ notes: copyreaderReturnNotes.value.trim() })
+                    body: JSON.stringify({ notes: returnNotes })
                 }), 'Could not return the task to the writer.');
             }
 
@@ -1413,10 +1495,11 @@ const confirmCopyreaderAction = async () => {
                 })));
             }
 
-            copyreaderSuccessMessage.value = `"${articleHeadline.value || task.value.title}" has been returned to the writer with your revision notes.` + followUpNote(problems);
+            copyreaderSuccessMessage.value = `"${articleHeadline.value || task.value.title}" has been returned to the writer with your highlighted comments.` + followUpNote(problems);
         }
 
         isCopyreaderModalOpen.value = false;
+        isReturnReviewOpen.value = false;
         isSuccessModalOpen.value = true;
 
         emit('task-submitted', {
@@ -2298,83 +2381,51 @@ const closeAllModals = (action) => {
     font-size: 14px;
 }
 
-.notes-card-box {
-    background: #f8fafc;
-    border-radius: 20px;
-    padding: 24px;
-    border: 1px solid #e2e8f0;
+/* Article text beside the comments reviewers highlighted */
+.content-split {
+    display: block;
 }
 
-.notes-hdr-row {
+.content-split.has-comments {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 16px;
+    align-items: start;
+}
+
+.content-main {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
 }
 
-.notes-hdr {
-    font-size: 15px;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.content-comments {
+    position: sticky;
+    top: 0;
+    max-height: 620px;
 }
 
-.review-step-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: #64748b;
-    background: #ffffff;
-    padding: 3px 10px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-}
-
-.role-icon-circle {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-    color: #ffffff;
-}
-
-.role-icon-circle.blue {
-    background-color: #1d6bf3;
-}
-
-.role-icon-circle.purple {
-    background-color: #8b5cf6;
-}
-
-.role-icon-circle.amber {
-    background-color: #f59e0b;
-}
-
-.notes-body-text {
-    background: #ffffff;
+.legacy-note-banner {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
     border-radius: 14px;
-    padding: 16px 20px;
-    font-size: 14px;
-    color: #334155;
-    line-height: 1.6;
-    border: 1px solid #e2e8f0;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #78350f;
     white-space: pre-wrap;
 }
 
-.notes-content-empty {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 28px 20px;
-    font-size: 13.5px;
-    color: #64748b;
-    text-align: center;
-    border: 1px solid #f1f5f9;
+@media (max-width: 860px) {
+    .content-split.has-comments {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .content-comments {
+        position: static;
+        max-height: 420px;
+    }
 }
 
 /* Sub-modals */
@@ -2399,51 +2450,6 @@ const closeAllModals = (action) => {
     align-items: center;
     justify-content: center;
     margin: 0 auto 20px auto;
-}
-
-.return-icon-circle {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background-color: #f59e0b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px auto;
-}
-
-.ws-field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    text-align: left;
-    margin-bottom: 10px;
-}
-
-.ws-field-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.ws-textarea {
-    border: 1.5px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 14px;
-    color: #1e293b;
-    width: 100%;
-    resize: vertical;
-    outline: none;
-    box-sizing: border-box;
-    font-family: inherit;
-    transition: border-color 0.15s;
-}
-
-.ws-textarea:focus {
-    border-color: #2563eb;
 }
 
 .ws-error-msg {

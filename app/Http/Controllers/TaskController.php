@@ -296,13 +296,6 @@ class TaskController extends Controller
      */
     private function returnerRoleLabel($user): string
     {
-        if (!$user) return '';
-        if ($user->role === 'eic') return 'eic';
-        if ($user->role === 'section_editor') return 'section_editor';
-        if (in_array('Copyreader', [$user->secondary_role, $user->tertiary_role], true)
-            || in_array('Copy Editor', [$user->secondary_role, $user->tertiary_role], true)) {
-            return 'copyreader';
-        }
-        return $user->role ?? '';
+        return $user ? $user->reviewRole() : '';
     }
 }

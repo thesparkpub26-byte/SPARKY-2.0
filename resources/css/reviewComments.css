@@ -1,0 +1,15 @@
+/* Marks on the words a reviewer commented on (painted by utils/reviewHighlights.js, never written into the article) */
+::highlight(review-open) {
+    background-color: #fbe3a1;
+    color: inherit;
+}
+
+::highlight(review-active) {
+    background-color: #f6c453;
+    color: inherit;
+}
+
+::highlight(review-draft) {
+    background-color: #c7dcff;
+    color: inherit;
+}

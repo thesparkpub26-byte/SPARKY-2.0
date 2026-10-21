@@ -150,7 +150,17 @@
             </div>
         </div>
 
-        <!-- SUB-MODAL 1: RETURN TO WRITER -->
+        <!-- Highlight what needs changing, then send the article back (articles; a video keeps the notes form below) -->
+        <ReviewSubmissionModal
+            :is-open="isOpen && isReviewOpen && !isReturnSuccessOpen"
+            :article-id="article.id"
+            :acting="isSubmitting"
+            :error="returnError"
+            @close="isReviewOpen = false; returnError = '';"
+            @submit="submitReturnToWriter"
+        />
+
+        <!-- SUB-MODAL 1: RETURN TO WRITER (videos) -->
         <div class="article-details-overlay" v-if="isOpen && isReturnModalOpen && !isReturnSuccessOpen" @click.self="isReturnModalOpen = false">
             <div class="dialog-card-medium">
                 <div class="modal-hdr">
@@ -211,6 +221,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { youtubeEmbedUrl } from '../utils/video';
+import { lazyModal } from '../utils/lazyModal';
+
+const ReviewSubmissionModal = lazyModal(() => import('./ReviewSubmissionModal.vue'));
 
 const props = defineProps({
     isOpen: {
@@ -233,16 +246,18 @@ const embedUrl = computed(() => youtubeEmbedUrl(article.value.video_url));
 const crewMembers = computed(() => Array.isArray(article.value.video_crew) ? article.value.video_crew : []);
 
 const isReturnModalOpen = ref(false);
+const isReviewOpen = ref(false);
 const returnNotes = ref('');
 const returnError = ref('');
 const isReturnSuccessOpen = ref(false);
 const isSubmitting = ref(false);
 
-// Opens the "return to writer" form with empty notes.
+// Opens the way to send the work back: highlighting and commenting on an article, a notes form for a video.
 const openReturnModal = () => {
     returnNotes.value = '';
     returnError.value = '';
-    isReturnModalOpen.value = true;
+    if (isVideo.value) isReturnModalOpen.value = true;
+    else isReviewOpen.value = true;
 };
 
 // Extract clean section name
@@ -389,6 +404,7 @@ const displayAttachedFiles = computed(() => {
 // Closes the return dialogs and the modal, and tells the parent.
 const closeModal = () => {
     isReturnModalOpen.value = false;
+    isReviewOpen.value = false;
     isReturnSuccessOpen.value = false;
     emit('close');
 };
@@ -407,8 +423,9 @@ const requestPublishPreview = () => {
     emit('request-publish-preview', article.value);
 };
 
-// Sends the article back to the writer with the reviewer's revision notes.
-const submitReturnToWriter = async () => {
+// Sends the article back to the writer with the reviewer's revision notes (the highlighted comments, for an article).
+const submitReturnToWriter = async (payload) => {
+    const reason = payload?.notes || returnNotes.value;
     const token = localStorage.getItem('sparky_token');
     const articleId = article.value.id;
     if (!token || !articleId) {
@@ -426,13 +443,14 @@ const submitReturnToWriter = async () => {
                 Accept: 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ rejection_reason: returnNotes.value || 'Please revise based on EIC feedback.' })
+            body: JSON.stringify({ rejection_reason: reason || 'Please revise based on EIC feedback.' })
         });
         if (!res.ok) {
             const data = await res.json().catch(() => ({}));
             throw new Error(data.message || 'Failed to return the article to the writer.');
         }
         isReturnModalOpen.value = false;
+        isReviewOpen.value = false;
         isReturnSuccessOpen.value = true;
     } catch (e) {
         returnError.value = e.message || 'Failed to return the article to the writer.';
@@ -444,6 +462,7 @@ const submitReturnToWriter = async () => {
 // Closes everything after a return and tells the parent the action is complete.
 const finishAll = () => {
     isReturnModalOpen.value = false;
+    isReviewOpen.value = false;
     isReturnSuccessOpen.value = false;
     emit('action-complete');
     emit('close');

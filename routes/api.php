@@ -19,6 +19,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\PublishedIssueController;
 use App\Http\Controllers\ReaderArticleController;
 use App\Http\Controllers\ReaderSearchController;
+use App\Http\Controllers\ReviewCommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -146,6 +147,14 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::post('/articles/{article}/endorse', [ArticleController::class, 'endorse']);
         Route::post('/articles/{article}/approve', [ArticleController::class, 'approve']);
         Route::post('/articles/{article}/reject',  [ArticleController::class, 'reject']);
+
+        // Highlighted review comments, and the activity / version history shown next to them
+        Route::get('/articles/{article}/review-comments',  [ReviewCommentController::class, 'index']);
+        Route::post('/articles/{article}/review-comments', [ReviewCommentController::class, 'store'])->middleware('throttle:60,1,review-comments');
+        Route::patch('/review-comments/{comment}',         [ReviewCommentController::class, 'update']);
+        Route::delete('/review-comments/{comment}',        [ReviewCommentController::class, 'destroy']);
+        Route::get('/articles/{article}/review-details',   [ReviewCommentController::class, 'details']);
+        Route::get('/articles/{article}/versions/{version}', [ReviewCommentController::class, 'version']);
 
         // Tasks (finer rules live in TaskController)
         Route::apiResource('tasks', TaskController::class);

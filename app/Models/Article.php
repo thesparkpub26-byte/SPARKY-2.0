@@ -140,6 +140,30 @@ class Article extends Model
         return $this->hasMany(ArticleCredit::class);
     }
 
+    /** The highlighted notes reviewers left on the article. */
+    public function reviewComments()
+    {
+        return $this->hasMany(ReviewComment::class);
+    }
+
+    /** The saved copies of the article, one per submission or reviewer edit. */
+    public function versions()
+    {
+        return $this->hasMany(ArticleVersion::class);
+    }
+
+    /**
+     * Reviewers, the author, anyone assigned a task on the article and anyone credited on it
+     * may work on it (edit it, read its review comments).
+     */
+    public function canBeWorkedOnBy(User $user): bool
+    {
+        return $user->isReviewer()
+            || $this->author_id === $user->id
+            || $this->tasks()->where('assignee_id', $user->id)->exists()
+            || $this->credits()->where('user_id', $user->id)->exists();
+    }
+
     /** The 11-character video id in any common YouTube link (watch?v=, youtu.be/, /embed/, /shorts/, /live/), or null. */
     public static function youtubeId(?string $url): ?string
     {

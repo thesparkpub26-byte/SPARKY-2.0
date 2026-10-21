@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\ArticleCredit;
+use App\Models\ArticleVersion;
 use App\Models\Activity;
 use App\Models\Notification;
 use App\Models\Task;
@@ -192,10 +193,7 @@ class ArticleController extends Controller
      */
     private function canWorkOn(User $user, Article $article): bool
     {
-        return $user->isReviewer()
-            || $article->author_id === $user->id
-            || $article->tasks()->where('assignee_id', $user->id)->exists()
-            || $article->credits()->where('user_id', $user->id)->exists();
+        return $article->canBeWorkedOnBy($user);
     }
 
     /** Newest published, non-video articles first. */
@@ -290,8 +288,19 @@ class ArticleController extends Controller
             $validated['scheduled_at'] = null;
         }
 
+        // A reviewer rewriting the writer's text is kept as its own version (with the writer's text saved first)
+        $reviewerEdit = $user->isReviewer() && $article->author_id !== $user->id
+            && array_key_exists('content', $validated) && $validated['content'] !== $article->content;
+        if ($reviewerEdit) {
+            ArticleVersion::record($article, $article->author, 'Draft');
+        }
+
         $article->update($validated);
         Activity::record($request->user(), 'Updated an article', $article);
+
+        if ($reviewerEdit) {
+            ArticleVersion::record($article, $user, 'Revised article content');
+        }
 
         return response()->json($article->load(['author', 'section']));
     }
@@ -535,6 +544,7 @@ class ArticleController extends Controller
             'submitted_at' => now(),
         ]);
         Activity::record($request->user(), 'Submitted an article', $article);
+        ArticleVersion::record($article, $request->user(), 'Submitted for review');
 
         // Notify section editors
         $this->notifySectionEditors($article, 'Article Submitted', "'{$article->title}' has been submitted for review.");
@@ -679,14 +689,7 @@ class ArticleController extends Controller
      */
     private function returnerRoleLabel($user): string
     {
-        if (!$user) return '';
-        if ($user->role === 'eic') return 'eic';
-        if ($user->role === 'section_editor') return 'section_editor';
-        if (in_array('Copyreader', [$user->secondary_role, $user->tertiary_role], true)
-            || in_array('Copy Editor', [$user->secondary_role, $user->tertiary_role], true)) {
-            return 'copyreader';
-        }
-        return $user->role ?? '';
+        return $user ? $user->reviewRole() : '';
     }
 
     /**
