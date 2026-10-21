@@ -714,7 +714,8 @@ const finishAll = () => {
 /* MIDDLE CONTENT ROW */
 .middle-content-row {
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
+    /* minmax(0, ...) lets a column shrink below its longest unbroken word instead of stretching the whole dialog */
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     gap: 20px;
     margin-bottom: 28px;
 }
@@ -744,6 +745,7 @@ const finishAll = () => {
     padding: 20px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .card-box-title {
@@ -758,6 +760,7 @@ const finishAll = () => {
     color: #475569;
     margin: 0;
     line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .view-full-article-link {
@@ -819,13 +822,14 @@ const finishAll = () => {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    min-width: 0;
 }
 
 .file-name {
     font-size: 13px;
     font-weight: 700;
     color: #0f172a;
-    word-break: break-all;
+    overflow-wrap: anywhere;
 }
 
 .file-size {
