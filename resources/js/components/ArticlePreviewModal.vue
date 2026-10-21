@@ -680,7 +680,8 @@ const confirmDelete = async () => {
 /* CONTENT ROW */
 .preview-content-row {
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
+    /* minmax(0, ...) lets a column shrink below its longest unbroken word instead of stretching the whole dialog */
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     gap: 20px;
     margin-bottom: 24px;
 }
@@ -690,6 +691,7 @@ const confirmDelete = async () => {
     border: 1px solid #f1f5f9;
     border-radius: 20px;
     padding: 20px;
+    min-width: 0;
 }
 
 .video-embed {
@@ -722,9 +724,11 @@ const confirmDelete = async () => {
     color: #475569;
     margin: 0;
     line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
 .preview-side-col {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 16px;
