@@ -3,10 +3,10 @@
         <header class="booklet-header">
             <button class="booklet-back-btn" type="button" @click="goBack">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
-                Back
+                <span class="booklet-back-label">Back</span>
             </button>
             <h1 class="booklet-title">{{ issue?.title || 'Published Issue' }}</h1>
-            <div style="width: 90px;"></div>
+            <div class="booklet-header-spacer" aria-hidden="true"></div>
         </header>
 
         <div v-if="loading" class="booklet-status">
@@ -20,8 +20,8 @@
 
         <div v-else class="booklet-viewer">
             <div class="book-stage">
-                <div class="book" :class="{ closed: isCoverSpread }">
-                    <template v-if="isCoverSpread">
+                <div class="book" :class="{ closed: isCoverSpread || isMobile }">
+                    <template v-if="isCoverSpread || isMobile">
                         <div class="book-page cover-page">
                             <img v-if="leftPageSrc" :src="leftPageSrc" alt="" />
                         </div>
@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
@@ -94,10 +94,30 @@ const error = ref('');
 
 const pages = ref([]); // rendered page images (data URLs), 0-indexed
 
-// spreadIndex 0 is the cover shown alone, like a closed book. spreadIndex N (N>=1)
-// shows pages[2N-1] on the left and pages[2N] on the right — i.e. page 2 sits to
+// Below this width, a two-page spread would render each page too small to read, so
+// the viewer falls back to turning one page at a time, full width, like an ebook.
+const MOBILE_QUERY = '(max-width: 768px)';
+const isMobile = ref(typeof window !== 'undefined' ? window.matchMedia(MOBILE_QUERY).matches : false);
+
+// spreadIndex 0 is the cover shown alone, like a closed book. On desktop, spreadIndex N
+// (N>=1) shows pages[2N-1] on the left and pages[2N] on the right — i.e. page 2 sits to
 // the left of page 3 on the first opened spread, page 4 to the left of page 5 next, etc.
+// On mobile, each spread is a single page, so spreadIndex N just means pages[N].
 const spreadIndex = ref(0);
+
+// Converts a spreadIndex in the given mode to the (0-indexed) page it leads with, and back.
+// Used to keep the viewer on roughly the same page when rotating a device or resizing
+// across the mobile breakpoint, since the two modes count spreads differently.
+const pageIndexForSpread = (mobile, spread) => (mobile ? spread : (spread === 0 ? 0 : spread * 2 - 1));
+const spreadForPageIndex = (mobile, pageIdx) => (mobile ? pageIdx : (pageIdx <= 0 ? 0 : Math.ceil(pageIdx / 2)));
+const totalSpreadsForMode = (mobile, pageCount) => (mobile ? pageCount : 1 + Math.ceil(Math.max(0, pageCount - 1) / 2));
+
+watch(isMobile, (nowMobile, wasMobile) => {
+    if (!pages.value.length || flip.value.active) return;
+    const currentPage = pageIndexForSpread(wasMobile, spreadIndex.value);
+    const maxSpread = Math.max(0, totalSpreadsForMode(nowMobile, pages.value.length) - 1);
+    spreadIndex.value = Math.min(spreadForPageIndex(nowMobile, currentPage), maxSpread);
+});
 
 const FLIP_DURATION = 700; // ms, kept in sync with the CSS transition below
 
@@ -124,29 +144,42 @@ const isCoverSpread = computed(() => spreadIndex.value === 0);
 
 // Plain functions (not computeds) so the same left/right-for-a-given-spread logic can be
 // reused to preload the pages a turn is *about* to reveal, before spreadIndex actually moves.
-const leftSrcFor = (L) => (L === 0 ? pages.value[0] || null : pages.value[L * 2 - 1] || null);
-// The image shown on the right page of a spread (none on the cover spread).
-const rightSrcFor = (L) => (L === 0 ? null : pages.value[L * 2] || null);
+const leftSrcFor = (L) => {
+    if (isMobile.value) return pages.value[L] || null;
+    return L === 0 ? pages.value[0] || null : pages.value[L * 2 - 1] || null;
+};
+// The image shown on the right page of a spread (none on the cover spread, and none at
+// all on mobile, where a "spread" is always just a single page).
+const rightSrcFor = (L) => {
+    if (isMobile.value) return null;
+    return L === 0 ? null : pages.value[L * 2] || null;
+};
 
 const leftPageSrc = computed(() => leftSrcFor(spreadIndex.value));
 const rightPageSrc = computed(() => rightSrcFor(spreadIndex.value));
 
-const totalSpreads = computed(() => 1 + Math.ceil(Math.max(0, pages.value.length - 1) / 2));
+const totalSpreads = computed(() => totalSpreadsForMode(isMobile.value, pages.value.length));
 const isLastSpread = computed(() => spreadIndex.value >= totalSpreads.value - 1);
 const pageLabel = computed(() => {
+    if (isMobile.value) return `Page ${spreadIndex.value + 1} of ${pages.value.length}`;
     if (isCoverSpread.value) return `Page 1 of ${pages.value.length}`;
     const leftNum = spreadIndex.value * 2;
     const rightNum = Math.min(leftNum + 1, pages.value.length);
     return `Page ${leftNum}${rightNum > leftNum ? '-' + rightNum : ''} of ${pages.value.length}`;
 });
 
-// Flips forward to the next two-page spread with the page-turn animation.
+// Flips forward to the next spread with the page-turn animation — a two-page spread on
+// desktop, or a single full-width page on mobile (see isMobile above).
 const nextSpread = () => {
     if (flip.value.active || isLastSpread.value) return;
-    const wasCover = isCoverSpread.value;
-    const frontSrc = wasCover ? pages.value[0] : rightPageSrc.value;
-    const backSrc = pages.value[spreadIndex.value * 2 + 1] || null;
-    const newRightSrc = rightSrcFor(spreadIndex.value + 1); // revealed the instant the flap lands, not shown by it directly
+    // A "single" turn (one page wide, not a half-width flap) happens off the cover on
+    // desktop, and for every page on mobile.
+    const single = isCoverSpread.value || isMobile.value;
+    const frontSrc = single ? leftPageSrc.value : rightPageSrc.value;
+    const backSrc = isMobile.value
+        ? (pages.value[spreadIndex.value + 1] || null)
+        : (pages.value[spreadIndex.value * 2 + 1] || null);
+    const newRightSrc = isMobile.value ? null : rightSrcFor(spreadIndex.value + 1); // revealed the instant the flap lands, not shown by it directly
     // Kick decoding off in parallel rather than waiting on it — the background warm-up
     // (below) means these are almost always already decoded by the time they're needed,
     // and blocking the click on it would just add a delay before the flip even starts.
@@ -157,7 +190,7 @@ const nextSpread = () => {
     // "wide" is fixed for the whole turn (not toggled mid-flight): the flap's width is a
     // constant pixel value equal to the closed book's width, independent of the book
     // container's own resize, so it never jumps and never exposes the page underneath early.
-    flip.value = { active: true, direction: 'forward', frontSrc, backSrc, wide: wasCover };
+    flip.value = { active: true, direction: 'forward', frontSrc, backSrc, wide: single };
     // Swap the underlying page only once the flap has fully finished rotating — the flap's
     // own back face already shows the new content while it turns, so there's no need (and
     // no visual benefit) to update the page underneath any earlier.
@@ -167,18 +200,21 @@ const nextSpread = () => {
     }, FLIP_DURATION);
 };
 
-// Flips back to the previous two-page spread with the page-turn animation.
+// Flips back to the previous spread with the page-turn animation.
 const prevSpread = () => {
     if (flip.value.active || spreadIndex.value === 0) return;
     const targetIsCover = spreadIndex.value - 1 === 0;
+    const single = isMobile.value || targetIsCover;
     const frontSrc = leftPageSrc.value;
-    const backSrc = targetIsCover ? pages.value[0] : (pages.value[(spreadIndex.value - 1) * 2] || null);
+    const backSrc = isMobile.value
+        ? (pages.value[spreadIndex.value - 1] || null)
+        : (targetIsCover ? pages.value[0] : (pages.value[(spreadIndex.value - 1) * 2] || null));
     const newLeftSrc = leftSrcFor(spreadIndex.value - 1);
     preloadImage(frontSrc);
     preloadImage(backSrc);
     preloadImage(newLeftSrc);
 
-    flip.value = { active: true, direction: 'backward', frontSrc, backSrc, wide: targetIsCover };
+    flip.value = { active: true, direction: 'backward', frontSrc, backSrc, wide: single };
     setTimeout(() => {
         spreadIndex.value -= 1;
         flip.value.active = false;
@@ -215,10 +251,15 @@ const loadPdfJs = () => {
 const renderPdfToImages = async (pdfUrl) => {
     const pdfjsLib = await loadPdfJs();
     const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+    // On a high-density screen (most phones), a page also fills more of the viewport than
+    // it does on desktop (one full-width page instead of half), so render sharper there —
+    // capped so an old phone reporting a huge devicePixelRatio doesn't blow up render time.
+    const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+    const scale = 1.5 * Math.min(Math.max(dpr, 1), 2);
     const images = [];
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 1.5 });
+        const viewport = page.getViewport({ scale });
         const canvas = document.createElement('canvas');
         canvas.width = viewport.width;
         canvas.height = viewport.height;
@@ -230,8 +271,15 @@ const renderPdfToImages = async (pdfUrl) => {
     return images;
 };
 
+// Tracks the mobile breakpoint live, so rotating a tablet or resizing a desktop
+// window switches between single- and double-page mode without a reload.
+let mobileQuery;
+const handleMobileChange = (e) => { isMobile.value = e.matches; };
+
 onMounted(async () => {
     window.addEventListener('keydown', handleKeydown);
+    mobileQuery = window.matchMedia(MOBILE_QUERY);
+    mobileQuery.addEventListener('change', handleMobileChange);
 
     const issueId = route.params.id;
     try {
@@ -261,6 +309,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
     window.removeEventListener('keydown', handleKeydown);
+    mobileQuery?.removeEventListener('change', handleMobileChange);
 });
 </script>
 
@@ -276,12 +325,13 @@ onUnmounted(() => {
 .booklet-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 12px;
     padding: 18px 28px;
     color: #ffffff;
 }
 
 .booklet-back-btn {
+    flex: 0 0 auto;
     background: rgba(255, 255, 255, 0.1);
     border: none;
     color: #ffffff;
@@ -301,10 +351,21 @@ onUnmounted(() => {
 }
 
 .booklet-title {
+    flex: 1 1 auto;
+    min-width: 0;
     font-size: 16px;
     font-weight: 800;
     margin: 0;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Balances the back button's width so the title stays visually centered. */
+.booklet-header-spacer {
+    flex: 0 0 auto;
+    width: 90px;
 }
 
 .booklet-status {
@@ -471,8 +532,12 @@ onUnmounted(() => {
 .book-controls {
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px 20px;
     color: #ffffff;
+    width: 100%;
+    padding: 0 16px;
 }
 
 .book-nav-btn {
@@ -488,6 +553,7 @@ onUnmounted(() => {
     align-items: center;
     gap: 6px;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .book-nav-btn:hover:not(:disabled) {
@@ -505,21 +571,72 @@ onUnmounted(() => {
     color: #cbd5e1;
     min-width: 140px;
     text-align: center;
+    order: -1; /* sits above the two buttons once they wrap onto their own line */
+    flex: 1 1 100%;
 }
 
-@media (max-width: 640px) {
+/* Matches the JS mobile breakpoint: below this, the book shows one full-width page
+   at a time instead of a two-page spread (see isMobile in the script). */
+@media (max-width: 768px) {
+    .book-stage {
+        perspective: 1400px;
+    }
+
     .book {
-        width: 92vw;
-        height: 60vh;
+        width: min(480px, 92vw);
+        height: min(640px, 68vh);
     }
 
     .book.closed {
-        width: calc(92vw / 2);
+        width: min(480px, 92vw);
     }
 
     .flip-page.forward.wide,
     .flip-page.backward.wide {
-        width: calc(92vw / 2);
+        width: min(480px, 92vw);
+    }
+}
+
+@media (max-width: 480px) {
+    .booklet-header {
+        padding: 14px 16px;
+        gap: 8px;
+    }
+
+    .booklet-back-label {
+        display: none;
+    }
+
+    .booklet-back-btn {
+        padding: 10px 12px;
+    }
+
+    .booklet-header-spacer {
+        width: 40px;
+    }
+
+    .booklet-title {
+        font-size: 14px;
+    }
+
+    .booklet-viewer {
+        padding: 12px;
+        gap: 16px;
+    }
+
+    .book-nav-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .book-page-label {
+        min-width: 0;
+    }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+    .book {
+        height: 80vh;
     }
 }
 </style>
